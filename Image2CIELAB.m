@@ -40,7 +40,8 @@ verbose = true;
 %% Load the test image.
 %
 % Here, we are using the test image as it is, when we do it for Coco
-% dataset, we believe the object would have been segmented. 
+% dataset, we believe the object would have been segmented. Make sure you
+% are in the directory where the image is saved. 
 image = imread('orange.png');
 
 % Display the image if you want.
