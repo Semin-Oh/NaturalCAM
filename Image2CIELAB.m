@@ -4,6 +4,8 @@
 
 % History:
 %    07/17/2024   smo   - Started on it.
+%    07/17/2024   smo   - Working. For now, we set the display type as
+%                         sRGB. We can customize later on in we want.
 
 %% Initialize.
 clear; close all;
@@ -33,7 +35,7 @@ end
 % this part for the calculations.
 nInputLevels = 255;
 
-% etc.
+% Set it 'true' if you wanna plot the results. 
 verbose = true;
 
 %% Load the test image.
@@ -85,19 +87,33 @@ lab_chroma(1,:) = sqrt(lab(2,:).^2+lab(3,:).^2);
 
 % Average.
 XYZ_avgXYZ = mean(XYZ_testImage,2);
-LAB_avgLAB = mean(lab);
+xyY_avgXYZ = XYZToxyY(XYZ_avgXYZ);
+lab_avgXYZ = XYZToLab(XYZ_avgXYZ,whitepoint);
+chroma_avgXYZ = sqrt(lab_avgXYZ(2)^2+lab_avgXYZ(3)^2);
+
+lab_avgLAB = mean(lab,2);
+chroma_avgLAB = sqrt(lab_avgLAB(2)^2+lab_avgLAB(3)^2);
+XYZ_avgLAB = LabToXYZ(lab_avgLAB,whitepoint);
+xyY_avgLAB = XYZToxyY(XYZ_avgLAB);
 
 % Highest chroma.
 highestChromaVal = max(lab_chroma);
 idx_highestChroma = find(lab_chroma==highestChromaVal);
 XYZ_highestChroma = XYZ_testImage(:,idx_highestChroma);
-LAB_highestChroma = lab(:,idx_highestChroma);
+lab_highestChroma = lab(:,idx_highestChroma);
+chroma_highestChroma = sqrt(lab_highestChroma(2)^2+lab_highestChroma(3)^2);
+xyY_highestChroma = XYZToxyY(XYZ_highestChroma);
 
 %% Plot the results.
 if (verbose)
-    subplot(2,2,2);
-    hold on;
+    subplot(2,2,2); hold on;
+    % Test image.
     plot(xyY_testImage(1,:),xyY_testImage(2,:),'r.');
+    
+    % Some points that we picked.
+    plot(xyY_avgXYZ(1),xyY_avgXYZ(2),'b.','MarkerSize',12);
+    plot(xyY_avgLAB(1),xyY_avgLAB(2),'y.','MarkerSize',12);
+    plot(xyY_highestChroma(1),xyY_highestChroma(2),'g.','MarkerSize',12);
 
     % Display gamut. For now, it's set to sRGB for convenience.
     plot([xyY_targetDisplay(1,:) xyY_targetDisplay(1,1)], [xyY_targetDisplay(2,:) xyY_targetDisplay(2,1)],'k-','LineWidth',1);
@@ -113,32 +129,41 @@ if (verbose)
     ylim([0 1]);
     xlabel('CIE x','fontsize',13);
     ylabel('CIE y','fontsize',13);
-    legend('Test','Location','southeast','fontsize',11);
+    legend('Test','Avg XYZ','Avg LAB','Highest C',...
+        'Location','northeast','fontsize',7);
     title('CIE xy coordinates');
 
     % CIELAB results.
     %
     % a*b* plane.
-    subplot(2,2,3);
+    subplot(2,2,3); hold on;
     plot(lab(2,:),lab(3,:),'r.');
+    plot(lab_avgXYZ(2),lab_avgXYZ(3),'b.','MarkerSize',12);
+    plot(lab_avgLAB(2),lab_avgLAB(3),'y.','MarkerSize',12);
+    plot(lab_highestChroma(2),lab_highestChroma(3),'g.','MarkerSize',12);
     xlim([-100 100]);
     ylim([-100 100]);
     xlabel('CIELAB a*','fontsize',13);
     ylabel('CIELAB b*','fontsize',13);
     xline(0,'k-');
     yline(0,'k-');
-    legend('Test','Location','southeast','fontsize',11);
+    legend('Test','Avg XYZ','Avg LAB','Highest C',...
+        'Location','southeast','fontsize',7);
     grid on;
     title('CIELAB a*b*');
 
     % L*C* plane.
-    subplot(2,2,4);
+    subplot(2,2,4); hold on;
     plot(lab_chroma,lab(1,:),'r.');
+    plot(chroma_avgXYZ,lab_avgXYZ(1),'b.','MarkerSize',12);
+    plot(chroma_avgLAB,lab_avgLAB(1),'y.','MarkerSize',12);
+    plot(chroma_highestChroma,lab_highestChroma(1),'g.','MarkerSize',12);
     xlim([0 120]);
     ylim([0 100]);
     xlabel('CIELAB C*','fontsize',13);
     ylabel('CIELAB L*','fontsize',13);
-    legend('Test','Location','southeast','fontsize',11);
+    legend('Test','Avg XYZ','Avg LAB','Highest C',...
+        'Location','southeast','fontsize',7);
     title('CIELAB L*C*');
     grid on;
 end
