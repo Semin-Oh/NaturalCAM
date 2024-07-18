@@ -25,9 +25,6 @@ switch displayType
         % Display gamma. We can set it differently according to the
         % channels. Here, we set it as 2.2 for all channels.
         gamma = 2.2;
-        gamma_R = gamma;
-        gamma_G = gamma;
-        gamma_B = gamma;
     otherwise
 end
 
@@ -35,7 +32,7 @@ end
 % this part for the calculations.
 nInputLevels = 255;
 
-% Set it 'true' if you wanna plot the results. 
+% Set it 'true' if you wanna plot the results.
 verbose = true;
 
 %% Load the test image.
@@ -43,7 +40,8 @@ verbose = true;
 % Here, we are using the test image as it is, when we do it for Coco
 % dataset, we believe the object would have been segmented. Make sure you
 % are in the directory where the image is saved.
-image = imread('orange.png');
+testimageFilename = 'orange.png';
+image = imread(testimageFilename);
 
 % Display the image if you want.
 if (verbose)
@@ -55,24 +53,7 @@ if (verbose)
 end
 
 %% Convert digital RGB to CIE XYZ.
-%
-% Convert digital RGB to linear RGB.
-%
-% For correct calculations, make sure the class of the RGB matrix is
-% 'double' so that it can be multiplied by the conversion matrix.
-dRGB_Norm = double(image)./nInputLevels;
-LRGB_R = dRGB_Norm(:,:,1).^gamma_R;
-LRGB_G = dRGB_Norm(:,:,2).^gamma_G;
-LRGB_B = dRGB_Norm(:,:,3).^gamma_B;
-
-% Resize the matrix so that we can compute the CIE XYZ values. It should
-% look like 3 x n.
-LRGB(1,:) = LRGB_R(:);
-LRGB(2,:) = LRGB_G(:);
-LRGB(3,:) = LRGB_B(:);
-
-% Linear RGB to CIE XYZ.
-XYZ_testImage = M_RGB2XYZ * LRGB;
+XYZ_testImage = RGBToXYZ(image,M_RGB2XYZ,gamma);
 xyY_testImage = XYZToxyY(XYZ_testImage);
 
 %% CIE XYZ to CIELAB.
@@ -109,7 +90,7 @@ if (verbose)
     subplot(2,2,2); hold on;
     % Test image.
     plot(xyY_testImage(1,:),xyY_testImage(2,:),'r.');
-    
+
     % Some points that we picked.
     plot(xyY_avgXYZ(1),xyY_avgXYZ(2),'b.','MarkerSize',12);
     plot(xyY_avgLAB(1),xyY_avgLAB(2),'y.','MarkerSize',12);
@@ -168,5 +149,45 @@ if (verbose)
     grid on;
 end
 
-%% Print out the dRGB of choices.
+%% Print out the dRGB of the choices.
+RGB_avgXYZ = XYZToRGB(XYZ_avgXYZ,M_RGB2XYZ,gamma);
+RGB_avgLAB = XYZToRGB(XYZ_avgLAB,M_RGB2XYZ,gamma);
+RGB_highestChroma = XYZToRGB(XYZ_highestChroma,M_RGB2XYZ,gamma);
 
+% Plot it if you want.
+if (verbose)
+    figure; hold on;
+    sgtitle('Representative colors from the test image');
+    squareSize = 100;
+    nChannels = 3;
+    baseSquare = uint8(ones(squareSize,squareSize,nChannels));
+
+    % Define the RGB color for the square.
+    image_avgXYZ = baseSquare;
+    image_avgXYZ(:,:,1) = RGB_avgXYZ(1);
+    image_avgXYZ(:,:,2) = RGB_avgXYZ(2);
+    image_avgXYZ(:,:,3) = RGB_avgXYZ(3);
+
+    image_avgLAB = baseSquare;
+    image_avgLAB(:,:,1) = RGB_avgLAB(1);
+    image_avgLAB(:,:,2) = RGB_avgLAB(2);
+    image_avgLAB(:,:,3) = RGB_avgLAB(3);
+
+    image_highestChroma = baseSquare;
+    image_highestChroma(:,:,1) = RGB_highestChroma(1);
+    image_highestChroma(:,:,2) = RGB_highestChroma(2);
+    image_highestChroma(:,:,3) = RGB_highestChroma(3);
+
+    % Display the image here. We will plot everything in one figure.
+    subplot(1,3,1);
+    imshow(image_avgXYZ);
+    title('Average XYZ');
+
+    subplot(1,3,2);
+    imshow(image_avgLAB);
+    title('Average LAB');
+
+    subplot(1,3,3);
+    imshow(image_highestChroma);
+    title('Highest chroma');
+end
