@@ -28,10 +28,6 @@ switch displayType
     otherwise
 end
 
-% Set it based on the 8-bit display (0-255). We may not need to change it
-% this part for the calculations.
-nInputLevels = 255;
-
 % Set it 'true' if you wanna plot the results.
 verbose = true;
 
