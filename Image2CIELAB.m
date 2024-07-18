@@ -1,7 +1,6 @@
-% RunCAMs.
+% Image2CIELAB.
 %
-% This script calculates the CIECAM stats, CIELAB and CAM16. It should be
-% able to calculate the stats based on either
+% This script reads an image and calculates the CIELAB stats.
 
 % History:
 %    07/17/2024   smo   - Started on it.
@@ -46,8 +45,11 @@ image = imread('orange.png');
 
 % Display the image if you want.
 if (verbose)
-    figure; 
+    figure;
+    subplot(2,2,1);
     imshow(image);
+    title('Test image');
+    sgtitle(sprintf('Target display = (%s)',displayType),'fontsize',12);
 end
 
 %% Convert digital RGB to CIE XYZ.
@@ -72,11 +74,14 @@ XYZ_testImage = M_RGB2XYZ * LRGB;
 xyY_testImage = XYZToxyY(XYZ_testImage);
 
 %% CIE XYZ to CIELAB.
-
+whitepoint = sum(M_RGB2XYZ,2)';
+lab = xyz2lab(XYZ_testImage',whitepoint);
+lab_chroma(:,1) = sqrt(lab(:,2).^2+lab(:,3).^2);
 
 %% Plot the results.
-figure; hold on;
-plot(xyY_testImage(1,:),xyY_testImage(2,:),'r+');
+subplot(2,2,2);
+hold on;
+plot(xyY_testImage(1,:),xyY_testImage(2,:),'r.');
 
 % Display gamut. For now, it's set to sRGB for convenience.
 plot([xyY_targetDisplay(1,:) xyY_targetDisplay(1,1)], [xyY_targetDisplay(2,:) xyY_targetDisplay(2,1)],'k-','LineWidth',1);
@@ -92,5 +97,34 @@ xlim([0 1]);
 ylim([0 1]);
 xlabel('CIE x','fontsize',13);
 ylabel('CIE y','fontsize',13);
-legend('test','Location','southeast','fontsize',11);
-title('Test color on the CIE xy coordinates');
+legend('Test','Location','southeast','fontsize',11);
+title('CIE xy coordinates');
+
+% CIELAB results.
+%
+% a*b* plane.
+subplot(2,2,3);
+plot(lab(:,2),lab(:,3),'r.');
+xlim([-100 100]);
+ylim([-100 100]);
+xlabel('CIELAB a*','fontsize',13);
+ylabel('CIELAB b*','fontsize',13);
+xline(0,'k-');
+yline(0,'k-');
+legend('Test','Location','southeast','fontsize',11);
+grid on;
+title('CIELAB a*b*');
+
+% L*C* plane.
+subplot(2,2,4);
+plot(lab_chroma,lab(:,1),'r.');
+xlim([0 120]);
+ylim([0 100]);
+xlabel('CIELAB C*','fontsize',13);
+ylabel('CIELAB L*','fontsize',13);
+legend('Test','Location','southeast','fontsize',11);
+title('CIELAB L*C*');
+grid on;
+
+%% Print out the dRGB of choices.
+
