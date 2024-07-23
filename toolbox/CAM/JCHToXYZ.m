@@ -1,4 +1,4 @@
-function XYZ = jch2xyz(JCh, LA,light,white)
+function XYZ = JCHToXYZ(JCh, LA,light,white)
 % Transformation CIECAM02 to XYZ
 % input
 % JCh =  M X 3 Matrix

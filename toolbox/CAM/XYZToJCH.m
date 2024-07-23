@@ -1,4 +1,4 @@
-function JCh = xyz2jch(XYZ,LA,light,white)
+function JCh = XYZToJCH(XYZ,LA,light,white)
 % Transformation XYZ to CIECAM02
 % input
 % XYZ =  X,Y,Z M X 3 Matrix XYZ(:,1) = X, XYZ(:,2) = Y, XYZ(:,3) = Z
