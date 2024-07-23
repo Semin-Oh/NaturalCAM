@@ -1,4 +1,4 @@
-function XYZ = JCHToXYZ(JCh, LA,light,white)
+function XYZ = JCHToXYZ(JCh,LA,light,white)
 % Transformation CIECAM02 to XYZ
 % input
 % JCh =  M X 3 Matrix
@@ -7,22 +7,21 @@ if (nargin<4)
   white = [95.05, 100, 108.88]; % illuminant D65
 end
 
-
 %%%%%%%%%%%%%%%Viewing Condition Parameters%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % LA = 50; % Luminance of the adapting filed in cd/m2
 Yb = 20.0; 
 
-if light == 'da'
+if light == 'dark'
 F = 0.8; % average : 1.0 / dim : 0.9 / dark : 0.8
 c = 0.525; % average : 0.69 / dim : 0.59 / dark : 0.525
 Nc = 0.8; % average : 1.0 / dim : 0.95 / dark : 0.8
 
-elseif light == 'di'
+elseif light == 'dim'
 F = 0.9; % average : 1.0 / dim : 0.9 / dark : 0.8
 c = 0.59; % average : 0.69 / dim : 0.59 / dark : 0.525
 Nc = 0.95; % average : 1.0 / dim : 0.95 / dark : 0.8
 
-elseif light == 'av'
+elseif light == 'average'
 F = 1.0; % average : 1.0 / dim : 0.9 / dark : 0.8
 c = 0.69; % average : 0.69 / dim : 0.59 / dark : 0.525
 Nc = 1.0; % average : 1.0 / dim : 0.95 / dark : 0.8
