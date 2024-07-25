@@ -1,8 +1,8 @@
 function JCH = XYZToJCH(XYZ_target,XYZ_white,LA,options)
 % Convert the CIE XYZ values to the CIECAM02 stats.
 %
-% Syntax:
-%
+% Syntax: JCH = XYZToJCH(XYZ_target,XYZ_white,LA)
+% 
 %
 % Description:
 %    Calculate the CIECAM02 perceptual attributes. This routine should
@@ -15,10 +15,11 @@ function JCH = XYZToJCH(XYZ_target,XYZ_white,LA,options)
 %                               scene for calculations. This should be the
 %                               absolute XYZ values where its Y value
 %                               equals to the luminance (cd/m2).
-%    LA                       - 
+%    LA                       - Luminance of the adapting field (cd/m2).
 %
 % Outputs:
-%    CAMStats
+%    JCH                      - The CIECAM02 lightness (J), chroma (C), and
+%                               hue quadrature (H) of the target.
 %
 % Optional key/value pairs:
 %    options.surround         - Set a surround condition. Choose one among
@@ -30,6 +31,8 @@ function JCH = XYZToJCH(XYZ_target,XYZ_white,LA,options)
 
 % History:
 %    07/23/24       smo       - Started on it.
+%    07/25/24       smo       - Working fine. The calculation results match
+%                               with the official CIECAM02 excel file.
 
 %% Set variables.
 arguments
