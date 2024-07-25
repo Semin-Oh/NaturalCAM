@@ -238,7 +238,7 @@ JCH.J = J;
 JCH.Q = Q;
 JCH.C = C;
 JCH.M = M;
-JCH.h = s;
+JCH.s = s;
 
 % Description of each color correlate.
 JCH.describe.h = 'Hue angle (360)';
