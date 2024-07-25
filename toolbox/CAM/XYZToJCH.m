@@ -1,4 +1,4 @@
-function JCH = XYZToJCH(XYZ_target,XYZ_white,LA,options)
+function JCh = XYZToJCH(XYZ_target,XYZ_white,LA,options)
 % Convert the CIE XYZ values to the CIECAM02 stats.
 %
 % Syntax: JCH = XYZToJCH(XYZ_target,XYZ_white,LA)
@@ -18,8 +18,8 @@ function JCH = XYZToJCH(XYZ_target,XYZ_white,LA,options)
 %    LA                       - Luminance of the adapting field (cd/m2).
 %
 % Outputs:
-%    JCH                      - The CIECAM02 lightness (J), chroma (C), and
-%                               hue quadrature (H) of the target.
+%    JCh                      - The CIECAM02 lightness (J), chroma (C), and
+%                               hue angle (h) of the target.
 %
 % Optional key/value pairs:
 %    options.surround         - Set a surround condition. Choose one among
@@ -235,19 +235,24 @@ M = C * FL^0.25;
 s = 100 * sqrt(M./Q);
 
 %% Print out variables here.
-JCH.h = h;
-JCH.H = H;
-JCH.J = J;
-JCH.Q = Q;
-JCH.C = C;
-JCH.M = M;
-JCH.s = s;
+JCh = [J; C; h];
 
-% Description of each color correlate.
-JCH.describe.h = 'Hue angle (360)';
-JCH.describe.H = 'Hue quadrature (400)';
-JCH.describe.J = 'Lightness';
-JCH.describe.Q = 'Brightness';
-JCH.describe.C = 'Chroma';
-JCH.describe.M = 'Colorfulness';
-JCH.describe.s = 'Saturation';
+% This part has been deactivated for now. We can customize the variables to
+% print out later on.
+%
+% JCH.h = h;
+% JCH.H = H;
+% JCH.J = J;
+% JCH.Q = Q;
+% JCH.C = C;
+% JCH.M = M;
+% JCH.s = s;
+% 
+% % Description of each color correlate.
+% JCH.describe.h = 'Hue angle (360)';
+% JCH.describe.H = 'Hue quadrature (400)';
+% JCH.describe.J = 'Lightness';
+% JCH.describe.Q = 'Brightness';
+% JCH.describe.C = 'Chroma';
+% JCH.describe.M = 'Colorfulness';
+% JCH.describe.s = 'Saturation';
