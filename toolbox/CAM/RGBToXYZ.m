@@ -19,7 +19,7 @@ function [XYZ] = RGBToXYZ(dRGB,M,gamma,options)
 %
 % Outputs:
 %    XYZ                      - The CIE XYZ values of the targeted digital
-%                               RGB values (dRGB). 
+%                               RGB values (dRGB).
 %
 % Optional key/value pairs:
 %    nInputlevels             - The number of input levels within the
@@ -31,6 +31,7 @@ function [XYZ] = RGBToXYZ(dRGB,M,gamma,options)
 
 % History:
 %    07/18/24       smo       - Wrote it
+%    08/02/24       smo       - Modified it to work for a single pixel.
 
 %% Set variables.
 arguments
@@ -51,9 +52,18 @@ gamma_B = gamma;
 % For correct calculations, make sure the class of the RGB matrix is
 % 'double' so that it can be multiplied by the conversion matrix.
 dRGB_Norm = double(dRGB) ./ options.nInputLevels;
-LRGB_R = dRGB_Norm(:,:,1).^gamma_R;
-LRGB_G = dRGB_Norm(:,:,2).^gamma_G;
-LRGB_B = dRGB_Norm(:,:,3).^gamma_B;
+
+% For a single pixel.
+if size(dRGB_Norm,3) == 1
+    LRGB_R = dRGB_Norm(1).^gamma_R;
+    LRGB_G = dRGB_Norm(2).^gamma_G;
+    LRGB_B = dRGB_Norm(3).^gamma_B;
+else
+    % For an image in 3-D format.
+    LRGB_R = dRGB_Norm(:,:,1).^gamma_R;
+    LRGB_G = dRGB_Norm(:,:,2).^gamma_G;
+    LRGB_B = dRGB_Norm(:,:,3).^gamma_B;
+end
 
 % Resize the matrix so that we can compute the CIE XYZ values. It should
 % look like 3 x n.

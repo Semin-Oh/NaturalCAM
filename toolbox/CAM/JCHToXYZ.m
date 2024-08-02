@@ -47,11 +47,6 @@ end
 % Get the number of the target.
 nTargets = size(JCh,2);
 
-% Transformation CIECAM02 to XYZ
-% input
-% JCh =  M X 3 Matrix
-% White = XYZ tristimulus value XYZ , size [1 X 3]
-
 %% Viewing Condition Parameters.
 %
 % Luminance of the background. It is usually set as 20% of the white point
