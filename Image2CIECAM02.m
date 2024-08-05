@@ -45,7 +45,7 @@ verbose = true;
 % We will calculate the CIECAM02 stats by using the digital RGB values of
 % one pixel, so here we define one pixel values (array should look like
 % 3x1).
-dRGB_target = [100;100;255];
+dRGB_target = [100; 100; 255];
 
 %% Calculate the CIECAM02 stats.
 %
