@@ -17,22 +17,23 @@ switch displayType
         % 3x3 matrix to convert from the linear RGB to CIE XYZ.
         M_RGB2XYZ = [0.4124 0.3576 0.1805; 0.2126 0.7152 0.0722; 0.0193 0.1192 0.9505];
 
-        % Define white point and luminance of the adapting field (cd/m2). Each
-        % image should have different white points and luminance of the scene. Here
-        % we set the white point as D65 and fixed luminance as 100 (cd/m2) for
-        % every image. We should update this part to reflect the actual viewing
-        % situations within the image.
+        % White point.
         XYZ_white = sum(M_RGB2XYZ,2);
-        LA = 100;
         
-        % Scaling the 3x3 matrix and the white point according to the
-        % luminance of the adapting field.
-        M_RGB2XYZ = M_RGB2XYZ*LA;
-        XYZ_white = XYZ_white*LA;
+        % Scaling the 3x3 matrix and the white point to have the relative
+        % luminance value (Yw) as 100.
+        M_RGB2XYZ = M_RGB2XYZ * 100;
+        XYZ_white = (XYZ_white./XYZ_white(2)) * 100;
 
         % Display gamma. We can set it differently according to the
         % channels. Here, we set it as 2.2 for all channels.
         gamma = 2.2;
+        
+        % Define the adapting luminance (cd/m2). Each image should have
+        % different luminance of the scene. Here we set the fixed luminance
+        % as 50 (cd/m2) for every image. We should update this part to
+        % reflect the actual viewing situations within the image later on.
+        LA = 50;
     otherwise
 end
 
