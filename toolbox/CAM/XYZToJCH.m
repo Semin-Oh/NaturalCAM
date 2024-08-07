@@ -2,7 +2,6 @@ function JCh = XYZToJCH(XYZ_target,XYZ_white,LA,options)
 % Convert the CIE XYZ values to the CIECAM02 stats.
 %
 % Syntax: JCH = XYZToJCH(XYZ_target,XYZ_white,LA)
-% 
 %
 % Description:
 %    Calculate the CIECAM02 perceptual attributes. This routine should
