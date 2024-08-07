@@ -16,7 +16,8 @@ switch displayType
     case 'sRGB'
         % 3x3 matrix to convert from the linear RGB to CIE XYZ.
         M_RGB2XYZ = [0.4124 0.3576 0.1805; 0.2126 0.7152 0.0722; 0.0193 0.1192 0.9505];
-
+        % M_RGB2XYZ = CalPrimariesWithSetWhite(xy_primaries, xy_whitepoint);
+        
         % White point.
         XYZ_white = sum(M_RGB2XYZ,2);
         
