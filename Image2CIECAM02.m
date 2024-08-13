@@ -63,23 +63,56 @@ switch SETWHITEPOINT
         %
         % Rearrange the image in 2-D for calculation.
         [row column nChannels] = size(image);
-        imageTemp = reshape(image,[nChannels row*column]);
-
-        % Cutting off happens here. Any pixel over 90% of the dynamic range
-        % would be cut off per each channel.
+        dRGB_image = reshape(image,[nChannels row*column]);
+        
+        % Set the boundary to cut off the pixels. Here we will cut off the
+        % pixel exceeds the 90% of the dynamic range.
         maxRGB = 255;
         percentCutoff = 0.9;
-        for ii = 1:length(imageTemp)
-            if any(imageTemp(:,ii) < maxRGB*percentCutoff)
-                imageTemp(:,ii) = [];
-            end
-        end
+        dRGB_cutoff = uint8(maxRGB * percentCutoff);
 
-        % Take the bright pixels.
+        % Find the index of the array where the pixel exceeds the criteria.
+        idxCutoff_R = find(dRGB_image(1,:)>dRGB_cutoff); 
+        idxCutoff_G = find(dRGB_image(2,:)>dRGB_cutoff); 
+        idxCutoff_B = find(dRGB_image(3,:)>dRGB_cutoff); 
+        idxCutoff = unique([idxCutoff_R idxCutoff_G idxCutoff_B]);
+        
+        % Cutting off happens here.
+        dRGB_image_cutoff = dRGB_image;
+        dRGB_image_cutoff(:,idxCutoff) = [];
 
+        % Now we will take the bright pixels within the pixels after
+        % cutting off.
+        %
+        % We can use different statistical estimator, but use 5% for mean,
+        % and 3% for median. This number is based on the referred paper.
+        % Here, we use the mean with 5% brightnest pixels, which makes the
+        % lowest mean angular errors.
+        sumRGB_image = sum(dRGB_image_cutoff);
+        [sumRGB_image_sorted I] = sort(sumRGB_image,'descend');
+        
+        % Sort the dRGB in the same order.
+        dRGB_image_cutoff_sorted = dRGB_image_cutoff(:,I);
 
+        percentBrightest = 0.05;
+        nPixels = length(sumRGB_image_sorted);
+        idxPecentBrightest = ceil(percentBrightest*nPixels);
+        dRGB_image_bright = dRGB_image_cutoff_sorted(:,1:idxPecentBrightest);
+        mean_dRGB_image_bright = mean(dRGB_image_bright,2);
 
+        % Calculate the rg coordinates.
+        rg_image = RGBTorg(dRGB_image);
+        rg_image_cutoff = RGBTorg(dRGB_image_cutoff);
+        rg_image_bright = RGBTorg(dRGB_image_bright);
+        rg_image_white = RGBTorg(mean_dRGB_image_bright);
+        
         % Plot it how we did.
+        figure; hold on;
+        
+        plot(rg_image(1,:),rg_image(2,:),'k.');
+        plot(rg_image_cutoff(1,:),rg_image_cutoff(2,:),'ko');
+        plot(rg_image_bright(1,:),rg_image_bright(2,:),'b.');
+        plot(rg_image_white(1),rg_image_white(2),'bo');
 
     otherwise
         XYZ_white = sum(M_RGB2XYZ,2);
