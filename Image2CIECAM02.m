@@ -110,10 +110,14 @@ switch SETWHITEPOINT
         figure; hold on;
         
         plot(rg_image(1,:),rg_image(2,:),'k.');
-        plot(rg_image_cutoff(1,:),rg_image_cutoff(2,:),'ko');
-        plot(rg_image_bright(1,:),rg_image_bright(2,:),'b.');
-        plot(rg_image_white(1),rg_image_white(2),'bo');
-
+%         plot(rg_image_cutoff(1,:),rg_image_cutoff(2,:),'k+');
+        plot(rg_image_bright(1,:),rg_image_bright(2,:),'g.');
+        plot(rg_image_white(1),rg_image_white(2),'ro', ...
+            'markersize',5,'markerfacecolor','r','markeredgecolor','k');
+        
+        xlabel('r');
+        ylabel('g');
+        legend('original','cut-off','bright','white point');
     otherwise
         XYZ_white = sum(M_RGB2XYZ,2);
 end
