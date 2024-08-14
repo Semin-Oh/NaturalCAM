@@ -4,6 +4,8 @@
 
 % History:
 %    08/02/24    smo    - Wrote it.
+%    08/14/24    smo    - Searching white point based on 'White-patch
+%                         method' is working.
 
 %% Initialize.
 clear all; close all;
@@ -64,7 +66,7 @@ switch SETWHITEPOINT
         % Rearrange the image in 2-D for calculation.
         [row column nChannels] = size(image);
         dRGB_image = reshape(image,[nChannels row*column]);
-        
+
         % Set the boundary to cut off the pixels. Here we will cut off the
         % pixel exceeds the 90% of the dynamic range.
         maxRGB = 255;
@@ -72,14 +74,19 @@ switch SETWHITEPOINT
         dRGB_cutoff = uint8(maxRGB * percentCutoff);
 
         % Find the index of the array where the pixel exceeds the criteria.
-        idxCutoff_R = find(dRGB_image(1,:)>dRGB_cutoff); 
-        idxCutoff_G = find(dRGB_image(2,:)>dRGB_cutoff); 
-        idxCutoff_B = find(dRGB_image(3,:)>dRGB_cutoff); 
+        idxCutoff_R = find(dRGB_image(1,:)>dRGB_cutoff);
+        idxCutoff_G = find(dRGB_image(2,:)>dRGB_cutoff);
+        idxCutoff_B = find(dRGB_image(3,:)>dRGB_cutoff);
         idxCutoff = unique([idxCutoff_R idxCutoff_G idxCutoff_B]);
-        
+
         % Cutting off happens here.
         dRGB_image_cutoff = dRGB_image;
         dRGB_image_cutoff(:,idxCutoff) = [];
+
+        % Get the cut off dummy pixels here. We may want to see what pixels
+        % were cut off.
+        dRGB_image_cutoff_dummy = dRGB_image;
+        dRGB_image_cutoff_dummy = dRGB_image_cutoff_dummy(:,idxCutoff);
 
         % Now we will take the bright pixels within the pixels after
         % cutting off.
@@ -90,10 +97,11 @@ switch SETWHITEPOINT
         % lowest mean angular errors.
         sumRGB_image = sum(dRGB_image_cutoff);
         [sumRGB_image_sorted I] = sort(sumRGB_image,'descend');
-        
+
         % Sort the dRGB in the same order.
         dRGB_image_cutoff_sorted = dRGB_image_cutoff(:,I);
 
+        % Get the mean of the bright pixels.
         percentBrightest = 0.05;
         nPixels = length(sumRGB_image_sorted);
         idxPecentBrightest = ceil(percentBrightest*nPixels);
@@ -103,27 +111,32 @@ switch SETWHITEPOINT
         % Calculate the rg coordinates.
         rg_image = RGBTorg(dRGB_image);
         rg_image_cutoff = RGBTorg(dRGB_image_cutoff);
+        rg_image_cutoff_dummy = RGBTorg(dRGB_image_cutoff_dummy);
         rg_image_bright = RGBTorg(dRGB_image_bright);
         rg_image_white = RGBTorg(mean_dRGB_image_bright);
-        
+
         % Plot it how we did.
-        figure; hold on;
-        
-        plot(rg_image(1,:),rg_image(2,:),'k.');
-%         plot(rg_image_cutoff(1,:),rg_image_cutoff(2,:),'k+');
-        plot(rg_image_bright(1,:),rg_image_bright(2,:),'g.');
-        plot(rg_image_white(1),rg_image_white(2),'ro', ...
-            'markersize',5,'markerfacecolor','r','markeredgecolor','k');
-        
-        xlabel('r');
-        ylabel('g');
-        legend('original','cut-off','bright','white point');
+        if (verbose)
+            figure; hold on;
+            plot(rg_image(1,:),rg_image(2,:),'k.');
+            plot(rg_image_cutoff_dummy(1,:),rg_image_cutoff_dummy(2,:),'yo');
+            plot(rg_image_bright(1,:),rg_image_bright(2,:),'g.');
+            plot(rg_image_white(1),rg_image_white(2),'ro', ...
+                'markersize',5,'markerfacecolor','r','markeredgecolor','k');
+            xlabel('r','FontSize',14);
+            ylabel('g','FontSize',14);
+            xlim([0 1]);
+            ylim([0 1]);
+            title('Image profile on the rg-coordinates');
+            legend('original','cut-off','bright','white point','FontSize',14);
+        end
+
+        % Calculate the XYZ values of the white point.
+        XYZ_white = RGBToXYZ(mean_dRGB_image_bright,M_RGB2XYZ,gamma);
+
     otherwise
         XYZ_white = sum(M_RGB2XYZ,2);
 end
-
-% Scale it to have the luminance value (Yw) as 100.
-XYZ_white = (XYZ_white./XYZ_white(2)) * 100;
 
 %% Define the adapting luminance (cd/m2).
 %
@@ -131,8 +144,10 @@ XYZ_white = (XYZ_white./XYZ_white(2)) * 100;
 % fixed luminance as 50 (cd/m2) for every image. We should update this part
 % to reflect the actual viewing situations within the image later on.
 switch SETWHITEPOINT
-    case 'auto'
-
+    case 'whitepatch'
+        % We set the luminance of the adapting field based on the white
+        % point that we searched from the above setting the white point.
+        LA = XYZ_white(2);
     otherwise
         % You can fix the value if you want. Not recommneded when we train
         % the model with COCO image set.
@@ -143,6 +158,9 @@ end
 %
 % First, calculate the XYZ values of the target.
 XYZ_target = RGBToXYZ(dRGB_target,M_RGB2XYZ,gamma);
+
+% Scale it to have the luminance value (Yw) as 100.
+XYZ_white = (XYZ_white./XYZ_white(2)) * 100;
 
 % Then, calculate the CIECAM02 stats. The output 'JCH_target' contains
 % three numbers, lightness (J), chroma (C), and hue angle (h).
