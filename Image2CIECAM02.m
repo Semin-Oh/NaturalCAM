@@ -10,6 +10,19 @@
 %% Initialize.
 clear all; close all;
 
+%% Read a test image and target digital RGB values.
+% 
+% Read out an image. We will set the white point and adapting luminance
+% (cd/m2) based on each image for CIECAM02 calculations.
+image = imread('football.jpg');
+
+% Define a target point of one pixel pixel (array should look like 3x1).
+%
+% As we already extracted a representing color in one pixel of each object
+% for all images, so here we're gonna use that information according to the
+% object within the image.
+dRGB_target = [100; 100; 255];
+
 %% Set variables.
 %
 % Set the display type. If unknown, set it to 'sRGB'.
@@ -33,19 +46,6 @@ end
 
 % Set it 'true' if you wanna plot the results.
 verbose = true;
-
-%% Read the target image.
-image = imread('orange.png');
-
-%% Define the target point.
-%
-% We will calculate the CIECAM02 stats by using the digital RGB values of
-% one pixel, so here we define one pixel values (array should look like
-% 3x1).
-%
-% As we already extracted the representing color of the pixel, so here
-% we're gonna use that according to the object within the image.
-dRGB_target = [100; 100; 255];
 
 %% Define the white point within the scene.
 %
@@ -92,7 +92,8 @@ switch SETWHITEPOINT
         % cutting off.
         %
         % We can use different statistical estimator, but use 5% for mean,
-        % and 3% for median. This number is based on the referred paper.
+        % and 3% for median. These numbers are based on the referred paper.
+        %
         % Here, we use the mean with 5% brightnest pixels, which makes the
         % lowest mean angular errors.
         sumRGB_image = sum(dRGB_image_cutoff);
@@ -114,27 +115,41 @@ switch SETWHITEPOINT
         rg_image_cutoff_dummy = RGBTorg(dRGB_image_cutoff_dummy);
         rg_image_bright = RGBTorg(dRGB_image_bright);
         rg_image_white = RGBTorg(mean_dRGB_image_bright);
+        rg_white_d65 = RGBTorg([255;255;255]);
 
         % Plot it how we did.
         if (verbose)
             figure; hold on;
+
+            % Image.
+            subplot(1,2,1);
+            imshow(image);
+            title('Test image');
+
+            % Image profile.
+            subplot(1,2,2); hold on;
             plot(rg_image(1,:),rg_image(2,:),'k.');
-            plot(rg_image_cutoff_dummy(1,:),rg_image_cutoff_dummy(2,:),'yo');
+            plot(rg_image_cutoff_dummy(1,:),rg_image_cutoff_dummy(2,:),'y.');
             plot(rg_image_bright(1,:),rg_image_bright(2,:),'g.');
             plot(rg_image_white(1),rg_image_white(2),'ro', ...
                 'markersize',5,'markerfacecolor','r','markeredgecolor','k');
+            plot(rg_white_d65(1),rg_white_d65(2),'bo',...
+                'markersize',3,'markerfacecolor','b','markeredgecolor','k');
             xlabel('r','FontSize',14);
             ylabel('g','FontSize',14);
             xlim([0 1]);
             ylim([0 1]);
             title('Image profile on the rg-coordinates');
-            legend('original','cut-off','bright','white point','FontSize',14);
+            legend('original','cut-off','bright','white point','d65',...
+                'FontSize',14);
         end
 
-        % Calculate the XYZ values of the white point.
+        % Calculate the XYZ values of the white point. We will use this as
+        % a white point for CIECAM02 calculations.
         XYZ_white = RGBToXYZ(mean_dRGB_image_bright,M_RGB2XYZ,gamma);
 
     otherwise
+        % Otherwise, set it to standard d65.
         XYZ_white = sum(M_RGB2XYZ,2);
 end
 
@@ -149,8 +164,8 @@ switch SETWHITEPOINT
         % point that we searched from the above setting the white point.
         LA = XYZ_white(2);
     otherwise
-        % You can fix the value if you want. Not recommneded when we train
-        % the model with COCO image set.
+        % You can fix the value if you want. Not sure if if is a good idea
+        % to train the model with COCO image set.
         LA = 50;
 end
 
