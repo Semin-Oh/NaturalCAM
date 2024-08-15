@@ -65,7 +65,7 @@ switch SETWHITEPOINT
         %
         % Rearrange the image in 2-D for calculation.
         [row column nChannels] = size(image);
-        dRGB_image = reshape(image,[nChannels row*column]);
+        dRGB_image = reshape(permute(image,[3,1,2]),[nChannels row*column]);
 
         % Set the boundary to cut off the pixels. Here we will cut off the
         % pixel exceeds the 90% of the dynamic range.
