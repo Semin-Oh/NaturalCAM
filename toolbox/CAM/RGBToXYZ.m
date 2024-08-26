@@ -55,9 +55,9 @@ dRGB_Norm = double(dRGB) ./ options.nInputLevels;
 
 % For a single pixel.
 if size(dRGB_Norm,3) == 1
-    LRGB_R = dRGB_Norm(1).^gamma_R;
-    LRGB_G = dRGB_Norm(2).^gamma_G;
-    LRGB_B = dRGB_Norm(3).^gamma_B;
+    LRGB_R = dRGB_Norm(1,:).^gamma_R;
+    LRGB_G = dRGB_Norm(2,:).^gamma_G;
+    LRGB_B = dRGB_Norm(3,:).^gamma_B;
 else
     % For an image in 3-D format.
     LRGB_R = dRGB_Norm(:,:,1).^gamma_R;
