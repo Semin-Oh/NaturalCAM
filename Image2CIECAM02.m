@@ -181,3 +181,4 @@ XYZ_white = (XYZ_white./XYZ_white(2)) * 100;
 % Then, calculate the CIECAM02 stats. The output 'JCH_target' contains
 % three numbers, lightness (J), chroma (C), and hue angle (h).
 JCH_target = XYZToJCH(XYZ_target,XYZ_white,LA);
+
