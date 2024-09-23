@@ -224,8 +224,8 @@ Q = (4/c)*sqrt(J/100)*(Aw+4)*FL^0.25;
 
 % Chroma (C).
 et = (1/4)*(cos(hq*pi/180+2)+3.8);
-t = (50000/13)*Nc*Ncb*et*sqrt(a.^2+b.^2)./(RGBpa(1,:)+RGBpa(2,:)+(21/20)*RGBpa(3,:));
-C = t.^(0.9) * sqrt(J/100) * (1.64-0.29^n)^0.73;
+t = (50000/13)*Nc*Ncb*et.*sqrt(a.^2+b.^2)./(RGBpa(1,:)+RGBpa(2,:)+(21/20)*RGBpa(3,:));
+C = t.^(0.9) .* sqrt(J/100) * (1.64-0.29^n)^0.73;
 
 % Colorfulness (M).
 M = C * FL^0.25;
