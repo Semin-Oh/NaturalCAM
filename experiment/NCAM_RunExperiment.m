@@ -24,7 +24,7 @@ sysInfo = GetComputerInfo();
 switch sysInfo.userShortName
     case 'semin'
         % Office computer.
-        baseFiledir = '~/Documents/MATLAB';
+        baseFiledir = '/Users/semin/Dropbox (Personal)/JLU/2) Projects';
     case 'gegenfurtner'
         % Lab Linux computer Dropbox directory.
         baseFiledir = '/home/gegenfurtner/Dropbox/JLU/2) Projects';
@@ -56,18 +56,20 @@ try
     %% Load the test images.
     %
     % Get the directory where the test images are saved.
-    testImageFiledir = fullfile(testFiledir,'image','TestImagesEXP');
+    testImageFiledir = fullfile(testFiledir,'experiment','images');
+    
+    % HERE WE WILL COUNT THE NUMBER OF IMAGES BASED ON THE IMAGE IN THE
+    % FOLDER.
+    % Get the info of the number of different test images.
+    expParams.nTestImages = size(images.testImage,1);
 
-    % Load the images here. We will load the corresponding test images
-    % according to stripe color input received at the beginning.
-    testImageFilename = GetMostRecentFileName(testImageFiledir,sprintf('TestImages'));
-    images = load(testImageFilename);
+    % Load the images here. We will read out as an image format.
+    imageName = 'orange1';
+    testImageFilename = GetMostRecentFileName(testImageFiledir,imageName);
+    images = imread(testImageFilename);
 
     % Set the random order of displaying the test images.
     %
-    % Get the info of the number of different test images.
-    expParams.nTestImages = size(images.testImage,1);
- 
     % The array should look like the number of test images x the number of
     % repeatitions per each test image. For example, if there are 5 test
     % images and repeat each test image for 10 times, the array should look
