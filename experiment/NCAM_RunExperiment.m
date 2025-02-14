@@ -93,48 +93,31 @@ try
     % Open the PTB screen. We will display an uniform black screen.
     initialScreenSetting = [0 0 0]';
     [window windowRect] = OpenPlainScreen(initialScreenSetting);
+    
+    % Make a null image here. We set a null image as uniform black screen.
+    nullImage = zeros(windowRect(3),windowRect(4),3);
 
     % Set the initial screen with written instruction.
-    textString = 'Press any button to start the experiment';
-    
-    % Set the font size and color.
-    textColor = [255, 255, 255];
-    textSize = 40;
-    [xCenter, yCenter] = RectCenter(windowRect);
-    Screen('TextSize', window, textSize);
+    imageSize = size(nullImage);
+    messageInitialImage_1stLine = 'Press any button';
+    messageInitialImage_2ndLine = 'To start the experiment';
+    ratioMessageInitialHorz = 0.49;
+    ratioMessageInitialVert = 0.03;
 
-    % Draw the font here.
-    DrawFormattedText(window, textString, 'center', 'center', textColor);
-    Screen('Flip', window);
+    % Set the font.
+    instructionImageFont = 'Arial';
+    initialImageBg = ones(size(nullImage))*0.5;
+    initialInstructionImage = insertText(initialImageBg,[imageSize(2)*ratioMessageInitialHorz imageSize(1)/2-imageSize(1)*ratioMessageInitialVert; imageSize(2)*ratioMessageInitialHorz imageSize(1)/2+imageSize(1)*ratioMessageInitialVert],...
+        {messageInitialImage_1stLine messageInitialImage_2ndLine},...
+        'fontsize',40,'Font',instructionImageFont,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','black','AnchorPoint','LeftCenter');
 
-    % THIS PART WILL BE DELETED IF THE ABOVE CODE WORKS.
-    %
-    % % Set the initial screen with written instruction.
-    % imageSize = size(images.nullImage);
-    % messageInitialImage_1stLine = 'Press any button';
-    % messageInitialImage_2ndLine = sprintf('To start the experiment');
-    % ratioMessageInitialHorz = 0.49;
-    % ratioMessageInitialVert = 0.03;
-    % 
-    % % Set the font.
-    % switch sysInfo.userShortName
-    %     case 'gegenfurtner'
-    %         instructionImageFont = 'DejaVuSans';
-    %     otherwise
-    %         instructionImageFont = 'Arial';
-    % end
-    % initialImageBg = ones(size(images.nullImage))*0.5;
-    % initialInstructionImage = insertText(initialImageBg,[imageSize(2)*ratioMessageInitialHorz imageSize(1)/2-imageSize(1)*ratioMessageInitialVert; imageSize(2)*ratioMessageInitialHorz imageSize(1)/2+imageSize(1)*ratioMessageInitialVert],...
-    %     {messageInitialImage_1stLine messageInitialImage_2ndLine},...
-    %     'fontsize',40,'Font',instructionImageFont,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','black','AnchorPoint','LeftCenter');
-    % 
-    % % Display an image texture of the initial image.
-    % [initialInstructionImageTexture initialInstructionImageWindowRect rng] = MakeImageTexture(initialInstructionImage, window, windowRect,'verbose',false);
-    % FlipImageTexture(initialInstructionImageTexture, window, windowRect,'verbose',false);
-    % 
-    % % Get the PTB texture info in an array.
-    % activeTextures = [];
-    % activeTextures(end+1) = initialInstructionImageTexture;
+    % Display an image texture of the initial image.
+    [initialInstructionImageTexture initialInstructionImageWindowRect rng] = MakeImageTexture(initialInstructionImage, window, windowRect,'verbose',false);
+    FlipImageTexture(initialInstructionImageTexture, window, windowRect,'verbose',false);
+
+    % Get the PTB texture info in an array.
+    activeTextures = [];
+    activeTextures(end+1) = initialInstructionImageTexture;
 
     % Get any key press to proceed.
     switch (expParams.expKeyType)
