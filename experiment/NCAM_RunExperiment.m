@@ -44,7 +44,7 @@ try
     %% Set variables.
     %
     % Experimental variables.
-    expParams.nRepeat = 5;
+    expParams.nRepeat = 1;
     expParams.postIntervalDelaySec = 2;
     expParams.postColorCorrectDelaySec = 0.1;
     expParams.subjectName = subjectName;
@@ -57,14 +57,18 @@ try
     %
     % Get the directory where the test images are saved.
     testImageFiledir = fullfile(testFiledir,'experiment','images');
-    
-    % HERE WE WILL COUNT THE NUMBER OF IMAGES BASED ON THE IMAGE IN THE
-    % FOLDER.
-    % Get the info of the number of different test images.
-    expParams.nTestImages = size(images.testImage,1);
+
+    % Get available images.
+    imageNameContent = dir(testImageFiledir);
+    imageNameList = {imageNameContent.name};
+    imageNames = imageNameList(~startsWith(imageNameList,'.'));
+
+    % Count the number of available images.
+    expParmas.nTestImages = length(imageNames);
 
     % Load the images here. We will read out as an image format.
-    imageName = 'orange1';
+    idxImageName = 1;
+    imageName = imageNames{idxImageName};
     testImageFilename = GetMostRecentFileName(testImageFiledir,imageName);
     images = imread(testImageFilename);
 
@@ -155,10 +159,10 @@ try
         % Second loop for different test images. We will display them
         % together in randomized order.
         for ii = 1:expParams.nTestImages
-            idxImage = expParams.randOrder(ii,rr);
+            idxImageName = expParams.randOrder(ii,rr);
            
             % One evaluation happens here using Magnitude estimation method.
-            data.matchingIntensityColorCorrect(ii,rr) = GetOneRespColorMatching(images.testImage,idxImage,idxColorCorrectImage,...
+            data.matchingIntensityColorCorrect(ii,rr) = GetOneRespColorMatching(images.testImage,idxImageName,idxColorCorrectImage,...
                 images.imageParams.intensityColorCorrect,window,windowRect,...
                 'expKeyType',expParams.expKeyType,'postColorCorrectDelaySec',expParams.postColorCorrectDelaySec,...
                 'imageFixationType',expParams.imageFixationType,'verbose',true);
