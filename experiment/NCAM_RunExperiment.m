@@ -148,7 +148,7 @@ try
             idxImageName = expParams.randOrder(ii,rr);
            
             % One evaluation happens here using Magnitude estimation method.
-            data.rawEvaluation(ii,rr) = GetOneRespMagnitudeEst(images.testImage,window,windowRect,...
+            data.hueScore(ii,rr) = GetOneRespMagnitudeEst(images.testImage,window,windowRect,...
                 'expKeyType',expParams.expKeyType,'postColorCorrectDelaySec',expParams.postColorCorrectDelaySec,'verbose',true);
 
             % Display a null image again and pause for a second before
