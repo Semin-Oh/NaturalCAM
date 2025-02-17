@@ -1,29 +1,35 @@
-function [matchingIntensity] = GetOneRespMagnitudeEst(testImages,idxImage,idxColorCorrectImage,intensityColorCorrect, ...
-    window,windowRect,options)
+function [evaluation] = GetOneRespMagnitudeEst(testImage,window,windowRect,options)
 % This routine does one evaulation using Magnitude Estimation method.
+% This is written for the NCAM DNN project.
 %
 % Syntax:
-%    [matchingIntensity] = GetOneRespMagnitudeEst(images,idxImage,intensityColorCorrect,idxColorCorrectImage,nTestPoints, ...
+%    [evaluation] = GetOneRespMagnitudeEst(images,idxImage,intensityColorCorrect,idxColorCorrectImage,nTestPoints, ...
 %    window,windowRect)
 %
 % Description:
 %    dd
 %
 % Inputs:
-%    testImages                 -
-%    idxImage
-%    idxColorCorrectImage
-%    intensityColorCorrect
+%    testImage                  -
 %    window
 %    windowRect
 %
 % Outputs:
-%    matchingIntensity          - dd
+%    evaluation                 - Raw data of the evaluation using the
+%                                 magnitude estimation method. This should
+%                                 be a single integer value.
 %
 % Optional key/value pairs:
-%    imageFixationType
-%    expKeyType
-%    postColorCorrectDelaySec
+%    testImageSizeRatio         - Ratio of the test image size to the
+%                                 resolution of the display. It's based on
+%                                 the width of the resolution. For example,
+%                                 if this is set to 0.5, the test image
+%                                 will be placed within the 50% size of the
+%                                 display resolution.
+%    expKeyType                 - Method to collect the evaluation. Choose
+%                                 either 'keyboard' or 'gamepad'.
+%    postKeyPressDelaySec       - Time delay in sec every after pressing
+%                                 the key.
 %    verbose                    - Boolean. Default true. Controls
 %                                 printout.
 %
@@ -35,25 +41,53 @@ function [matchingIntensity] = GetOneRespMagnitudeEst(testImages,idxImage,idxCol
 
 %% Set variables.
 arguments
-    testImages
-    idxImage (1,1)
-    idxColorCorrectImage (1,1)
-    intensityColorCorrect
+    testImage
     window (1,1)
     windowRect (1,4)
-    options.imageFixationType = 'filled-circle';
+    options.testImageSizeRatio (1,1) = 0.4;     
     options.expKeyType = 'gamepad';
-    options.postColorCorrectDelaySec = 0.5;
+    options.postKeyPressDelaySec = 0.5;
     options.verbose = true;
 end
-nColorCorrectPoints = length(intensityColorCorrect);
 
 %% Color matching experiment happens here.
 %
+% Define the image direction.
+testImageSize = size(testImage);
+imageHeight = testImageSize(1);
+imageWidth = testImageSize(2);
+imageHeightToWidthRatio = imageHeight/imageWidth;
+if imageHeightToWidthRatio == 1
+    imageType = 'square';
+elseif imageHeightToWidthRatio < 1
+    imageType = 'landscape';
+elseif imageHeightToWidthRatio > 1
+    imageType = 'portrait';
+end
+
+% Set the desired image size. We set it differently over the direction of
+% the test image.
+displayResolutionWidth = windowRect(3);
+predefinedImageSquareSize = displayResolutionWidth * options.testImageSizeRatio;
+switch imageType
+    case 'landscape'
+        resizedImageWidth = predefinedImageSquareSize;
+        resizedImageHeight = resizedImageWidth * imageHeightToWidthRatio;
+    case 'portrait'
+        resizedImageHeight = predefinedImageSquareSize;
+        resizedImageWidth = resizedImageHeight * 1/imageHeightToWidthRatio;
+    otherwise
+        resizedImageHeight = predefinedImageSquareSize;
+        resizedImageWidth = predefinedImageSquareSize;
+end
+
+% Define the destination rectangle for image placement.
+[xCenter, yCenter] = RectCenter(windowRect);
+resizedWindowRect = [xCenter - resizedImageWidth/2, yCenter - resizedImageHeight/2, ...
+    xCenter + resizedImageWidth/2, yCenter + resizedImageHeight/2];
+
 % Display the test image.
-testImage = testImages{idxImage,idxColorCorrectImage};
-[testImageTexture testImageWindowRect rng] = MakeImageTexture(testImage, window, windowRect,...
-    'addFixationPointImage',options.imageFixationType,'verbose',false);
+[testImageTexture testImageWindowRect rng] = MakeImageTexture(testImage, window, resizedWindowRect,'verbose',false);
 FlipImageTexture(testImageTexture,window,windowRect,'verbose',false);
 
 % Close the other textures except the one currently on. For now, we
@@ -71,12 +105,19 @@ switch options.expKeyType
     case 'gamepad'
         buttonDown = 'down';
         buttonUp = 'up';
-        buttonDecide = 'right';
+        buttonLeft = 'left';
+        buttonRight = 'right';
+        buttonReset = 'sideright';
+        % buttonStepSize = '';
         buttonQuit = 'sideleft';
+
     case 'keyboard'
-        buttonDown = 'LeftArrow';
-        buttonUp = 'RightArrow';
-        buttonDecide = 'DownArrow';
+        buttonDown = 'DownArrow';
+        buttonUp = 'UpArrow';
+        buttonLeft = 'LeftArrow';
+        buttonRight = 'RightArrow';
+        buttonReset = 'r';
+        buttonStepSize = 's';
         buttonQuit = 'q';
 end
 
@@ -89,71 +130,31 @@ while true
         case 'keyboard'
             keyPressed = GetKeyPress;
     end
-
-    % Finish the evalution.
-    if strcmp(keyPressed,buttonDecide)
-        fprintf('A key pressed = (%s) \n',keyPressed);
-        break;
-
-        % Update the test image with less color correction.
+    
+    % Evaluation happens here.
+    if strcmp(keyPressed,buttonUp)
+    
     elseif strcmp(keyPressed,buttonDown)
-        idxColorCorrectImage = idxColorCorrectImage - 1;
 
-        % Set the index within the feasible range.
-        if idxColorCorrectImage < 1
-            idxColorCorrectImage = 1;
-        elseif idxColorCorrectImage > nColorCorrectPoints
-            idxColorCorrectImage = nColorCorrectPoints;
-        end
+    elseif strcmp(keyPressed,buttonRight)
 
-        % Update the image here.
-        testImage = testImages{idxImage,idxColorCorrectImage};
-        [testImageTexture testImageWindowRect rng] = MakeImageTexture(testImage, window, windowRect,...
-            'addFixationPointImage',options.imageFixationType,'verbose', false);
-        FlipImageTexture(testImageTexture, window, windowRect,'verbose',false);
-        fprintf('Test image is now displaying: Color correct level (%d/%d) \n',idxColorCorrectImage,nColorCorrectPoints);
+    elseif strcmp(keyPressed,buttonLeft)
 
-        % Close the other textures.
-        texturesToClose = setdiff(texturesToClose,testImageTexture);
-        CloseImageTexture('whichTexture',texturesToClose);
+    elseif strcmp(keyPressed,buttonReset)
 
-        % Update the test image with stronger color correction.
-    elseif strcmp(keyPressed,buttonUp)
-        idxColorCorrectImage = idxColorCorrectImage + 1;
-
-        % Set the index within the feasible range.
-        if idxColorCorrectImage < 1
-            idxColorCorrectImage = 1;
-        elseif idxColorCorrectImage > nColorCorrectPoints
-            idxColorCorrectImage = nColorCorrectPoints;
-        end
-
-        % Update the image here.
-        testImage = testImages{idxImage,idxColorCorrectImage};
-        [testImageTexture testImageWindowRect rng] = MakeImageTexture(testImage, window, windowRect,'addFixationPointImage',options.imageFixationType,'verbose', false);
-        FlipImageTexture(testImageTexture, window, windowRect,'verbose',false);
-        fprintf('Test image is now displaying: Color correct level (%d/%d) \n',idxColorCorrectImage,nColorCorrectPoints);
-
-        % Close the other textures.
-        texturesToClose = setdiff(texturesToClose,testImageTexture);
-        CloseImageTexture('whichTexture',texturesToClose);
-
-    elseif strcmp(keyPressed,buttonQuit)
         % Close the PTB. Force quit the experiment.
+    elseif strcmp(keyPressed,buttonQuit)
         CloseScreen;
         break;
     else
         % Show a message to press a valid key press.
-        fprintf('Press a key either (%s) or (%s) or (%s) \n',buttonDown,buttonUp,buttonDecide);
+        fprintf('Press a key either (%s) or (%s) or (%s) or (%s) \n',buttonDown,buttonUp,buttonRight,buttonLeft);
     end
 
-    % Make a tiny time delay here so that we make sure we color
-    % match in a unit step size. Without time delay, the color
-    % matching would be executed in more than one step size if
-    % we press the button too long.
-    pause(options.postColorCorrectDelaySec);
+    % Make a tiny time delay every after key press.
+    pause(options.postKeyPressDelaySec);
 end
 
 % Collect the key press data here.
-matchingIntensity = intensityColorCorrect(idxColorCorrectImage);
+evaluation = intensityColorCorrect(idxColorCorrectImage);
 end

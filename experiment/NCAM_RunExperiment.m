@@ -28,6 +28,9 @@ switch sysInfo.userShortName
     case 'gegenfurtner'
         % Lab Linux computer Dropbox directory.
         baseFiledir = '/home/gegenfurtner/Dropbox/JLU/2) Projects';
+    case 'colorlab'
+        % EIZO computer at the color lab.
+        baseFiledir = '~/desktop';
     otherwise
 end
 
@@ -48,7 +51,7 @@ try
     expParams.postIntervalDelaySec = 2;
     expParams.postColorCorrectDelaySec = 0.1;
     expParams.subjectName = subjectName;
-    expParams.expKeyType = 'gamepad';
+    expParams.expKeyType = 'keyboard';
 
     % etc.
     SAVETHERESULTS = true;
@@ -145,10 +148,8 @@ try
             idxImageName = expParams.randOrder(ii,rr);
            
             % One evaluation happens here using Magnitude estimation method.
-            data.matchingIntensityColorCorrect(ii,rr) = GetOneRespColorMatching(images.testImage,idxImageName,idxColorCorrectImage,...
-                images.imageParams.intensityColorCorrect,window,windowRect,...
-                'expKeyType',expParams.expKeyType,'postColorCorrectDelaySec',expParams.postColorCorrectDelaySec,...
-                'imageFixationType',expParams.imageFixationType,'verbose',true);
+            data.rawEvaluation(ii,rr) = GetOneRespMagnitudeEst(images.testImage,window,windowRect,...
+                'expKeyType',expParams.expKeyType,'postColorCorrectDelaySec',expParams.postColorCorrectDelaySec,'verbose',true);
 
             % Display a null image again and pause for a second before
             % displaying the next test image.
