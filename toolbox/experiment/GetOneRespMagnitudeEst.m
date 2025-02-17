@@ -30,6 +30,8 @@ function [evaluation] = GetOneRespMagnitudeEst(testImage,window,windowRect,optio
 %                                 either 'keyboard' or 'gamepad'.
 %    postKeyPressDelaySec       - Time delay in sec every after pressing
 %                                 the key.
+%    stepSizeProp               - Step size to control the proportion of
+%                                 each unique hue. Default to 5.
 %    verbose                    - Boolean. Default true. Controls
 %                                 printout.
 %
@@ -44,15 +46,19 @@ arguments
     testImage
     window (1,1)
     windowRect (1,4)
-    options.testImageSizeRatio (1,1) = 0.4;     
+    options.testImageSizeRatio (1,1) = 0.4;
     options.expKeyType = 'gamepad';
     options.postKeyPressDelaySec = 0.5;
+    options.stepSizeProp = 5;
     options.verbose = true;
 end
 
-%% Color matching experiment happens here.
-%
-% Define the image direction.
+%% Define unique hues.
+uniqueHues = {'Red', 'Green', 'Yellow', 'Blue'};
+numUniqueHues = [0 100 200 300 400];
+selectedHues = {};
+
+%% Define the image direction and resize it to fit in the screen.
 testImageSize = size(testImage);
 imageHeight = testImageSize(1);
 imageWidth = testImageSize(2);
@@ -81,12 +87,12 @@ switch imageType
         resizedImageWidth = predefinedImageSquareSize;
 end
 
-% Define the destination rectangle for image placement.
+% Define the desired size for image placement.
 [xCenter, yCenter] = RectCenter(windowRect);
 resizedWindowRect = [xCenter - resizedImageWidth/2, yCenter - resizedImageHeight/2, ...
     xCenter + resizedImageWidth/2, yCenter + resizedImageHeight/2];
 
-% Display the test image.
+% Display the resized test image.
 [testImageTexture testImageWindowRect rng] = MakeImageTexture(testImage, window, resizedWindowRect,'verbose',false);
 FlipImageTexture(testImageTexture,window,windowRect,'verbose',false);
 
@@ -121,7 +127,15 @@ switch options.expKeyType
         buttonQuit = 'q';
 end
 
-%% This block completes a one evaluation. Get a key press.
+%% Choose a dominant hue.
+%
+% Set the initial hue.
+idxHue = 1;
+initialHue = uniqueHues{idxHue};
+selectedHues = initialHue;
+
+% Choose either one hue or another to be mixed.
+nUniqueHues = length(uniqueHues);
 while true
     % Get a key press here.
     switch options.expKeyType
@@ -130,17 +144,24 @@ while true
         case 'keyboard'
             keyPressed = GetKeyPress;
     end
-    
+
     % Evaluation happens here.
+    %
+    % Up button.
     if strcmp(keyPressed,buttonUp)
-    
+        if idxHue < nUniqueHues
+            idxHue = idxHue + 1;
+        end
+
+        % Down button.
     elseif strcmp(keyPressed,buttonDown)
+        if idxHue > 2
+            idxHue = idxHue - 1;
+        end
 
+        % Right button.
     elseif strcmp(keyPressed,buttonRight)
-
-    elseif strcmp(keyPressed,buttonLeft)
-
-    elseif strcmp(keyPressed,buttonReset)
+        break;
 
         % Close the PTB. Force quit the experiment.
     elseif strcmp(keyPressed,buttonQuit)
@@ -148,13 +169,204 @@ while true
         break;
     else
         % Show a message to press a valid key press.
-        fprintf('Press a key either (%s) or (%s) or (%s) or (%s) \n',buttonDown,buttonUp,buttonRight,buttonLeft);
+        fprintf('Press a key either (%s) or (%s) or (%s) or (%s) \n',buttonDown,buttonUp,buttonRight);
+    end
+
+    % Make a tiny time delay every after key press.
+    pause(options.postKeyPressDelaySec);
+end
+selectedHues = uniqueHues{idxHue};
+
+%% Ask if subject wants to add a secondary hue.
+%
+% THIS PART WILL BE SUBSTITUTED BY DISPLAYING ON THE SCREEN.
+fprintf('\nDo you want to add a second hue? (Y/N)\n');
+
+% Answer options to add the secondary hue.
+YNOptions = {'yes','no'};
+idxYNOptions = [1 2];
+idxYN = 1;
+
+while true
+    % Get a key press here.
+    switch options.expKeyType
+        case 'gamepad'
+            keyPressed = GetJSResp;
+        case 'keyboard'
+            keyPressed = GetKeyPress;
+    end
+
+    % Up or Down button. Both button updates the secondary hue option.
+    if or(strcmp(keyPressed,buttonUp), strcmp(keyPressed,buttonDown))
+        idxYN = setdiff(idxYNOptions,idxYN);
+
+        % Right button.
+    elseif strcmp(keyPressed,buttonRight)
+        break;
+
+        % Close the PTB. Force quit the experiment.
+    elseif strcmp(keyPressed,buttonQuit)
+        CloseScreen;
+        break;
+    else
+        % Show a message to press a valid key press.
+        fprintf('Press a key either (%s) or (%s) or (%s) or (%s) \n',buttonDown,buttonUp,buttonRight);
     end
 
     % Make a tiny time delay every after key press.
     pause(options.postKeyPressDelaySec);
 end
 
-% Collect the key press data here.
-evaluation = intensityColorCorrect(idxColorCorrectImage);
+% We set the proportion over using one or two unique hues.
+isSecondaryHue = YNOptions{idxYN};
+switch isSecondaryHue
+    % Two unique hues. Starting 50/50.
+    case 'yes'
+        prop1 = 50;
+        prop2 = 50;
+        % Only one unique hue.
+    case 'no'
+        prop1 = 100;
+        prop2 = 0;
+end
+
+%% Choose which secondary hue to select.
+%
+% This part is only running when the secondary hue is mixed.
+if strcmp(isSecondaryHue,'yes')
+
+    % Set secondary hue options differently over the dominant hue.
+    idxSecondaryHue = 1;
+    switch selectedHues
+        case or('red','green')
+            secondaryHueOptions = {'yellow','blue'};
+        case or('yellow','blue')
+            secondaryHueOptions = {'red','green'};
+    end
+
+    while true
+        % Get a key press here.
+        switch options.expKeyType
+            case 'gamepad'
+                keyPressed = GetJSResp;
+            case 'keyboard'
+                keyPressed = GetKeyPress;
+        end
+
+        % Up button.
+        nSecondaryHueOptions = length(secondaryHueOptions);
+        if strcmp(keyPressed,buttonUp)
+            if (idxSecondaryHue < nSecondaryHueOptions)
+                idxSecondaryHue = idxSecondaryHue + 1;
+            end
+            % Down button.
+        elseif strcmp(keyPressed,buttonDown)
+            if (idxSecondaryHue > 1)
+                idxSecondaryHue = idxSecondaryHue - 1;
+            end
+            % Right button.
+        elseif strcmp(keyPressed,buttonRight)
+            break;
+
+            % Close the PTB. Force quit the experiment.
+        elseif strcmp(keyPressed,buttonQuit)
+            CloseScreen;
+            break;
+        else
+            % Show a message to press a valid key press.
+            fprintf('Press a key either (%s) or (%s) or (%s) or (%s) \n',buttonDown,buttonUp,buttonRight);
+        end
+
+        % Make a tiny time delay every after key press.
+        pause(options.postKeyPressDelaySec);
+    end
+
+    % Add the chosen secondary hue to the selected hues.
+    selctedHues{end+1} = secondaryHueOptions{idxSecondaryHue};
+end
+
+%% If the secondary hue was chosen, evaluate it in ratio.
+%
+% This part also only runs when the secondary hue was selected.
+if strcmp(isSecondaryHue,'yes')
+
+    while true
+        % Get a key press here.
+        switch options.expKeyType
+            case 'gamepad'
+                keyPressed = GetJSResp;
+            case 'keyboard'
+                keyPressed = GetKeyPress;
+        end
+
+        % Evaluation happens here.
+        if strcmp(keyPressed,buttonUp)
+            if prop1 < 100
+                prop1 = prop1 + options.stepSizeProp;
+            end
+        elseif strcmp(keyPressed,buttonDown)
+            if prop1 > 0
+                prop1 = prop1 - options.stepSizeProp;
+            end
+        elseif strcmp(keyPressed,buttonRight)
+            break;
+
+            % Close the PTB. Force quit the experiment.
+        elseif strcmp(keyPressed,buttonQuit)
+            CloseScreen;
+            break;
+        else
+            % Show a message to press a valid key press.
+            fprintf('Press a key either (%s) or (%s) or (%s) or (%s) \n',buttonDown,buttonUp,buttonRight,buttonLeft);
+        end
+
+        % Set the proportion of the dominant hue in the right range.
+        if prop1 > 100
+            prop1 = 100;
+        elseif prop1 < 0
+            prop1 = 0;
+        end
+
+        % Set the proportion of the secondary hue.
+        prop2 = 100 - prop1;
+
+        % Make a tiny time delay every after key press.
+        pause(options.postKeyPressDelaySec);
+    end
+end
+
+% Sanity check.
+proportions = [prop1 prop2];
+sumProps = sum(proportions);
+if ~(sumProps == 100)
+    error('The sum of the proportion does not make sense!')
+end
+
+% Convert the evaluation into hue-400 score.
+evaluation = computeHueScore(selctedHues,proportions);
+end
+
+%% We might want to make this part as a separate function later on.
+%
+% Convert Hue Selection and Proportions to a Hue 400 Score
+function hueScore = computeHueScore(selectedHues, proportions)
+% Assign values to unique hues
+hue_values = struct('Red', 0, 'Yellow', 100, 'Green', 200, 'Blue', 300);
+
+% Convert selected hues to corresponding values
+hue_numeric = zeros(1, length(selectedHues));
+for i = 1:length(selectedHues)
+    hue_numeric(i) = hue_values.(selectedHues{i});
+end
+
+% Compute the weighted sum
+hueScore = sum(hue_numeric .* (proportions / 100));
+
+% Ensure circularity: Convert scores above 400 to within 0-400 range
+if hueScore >= 400
+    hueScore = hueScore - 400;
+end
+
+% Display the result
+fprintf('Hue 400 Score: %.2f\n', hueScore);
 end
