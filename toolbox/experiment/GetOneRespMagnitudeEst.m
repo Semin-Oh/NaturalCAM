@@ -40,6 +40,9 @@ function [evaluation] = GetOneRespMagnitudeEst(testImage,window,windowRect,optio
 
 % History:
 %   02/17/25 smo                - Wrote it.
+%   02/18/25 smo                - Draft using Magnitude estimation method
+%                                 using either gamepad or keyboard. Needs
+%                                 to be tested if it works.
 
 %% Set variables.
 arguments
@@ -231,7 +234,7 @@ selectedHues = uniqueHues{idxHue};
 %% Ask if subject wants to add a secondary hue.
 %
 % Add some more texts to display.
-text_secondHue = 'Do you want to add a second hue?'; 
+text_secondHue = 'Do you want to add a second hue?';
 text_yes = 'yes';
 text_no = 'no';
 texts = [uniqueHues text_secondHue text_yes text_no text_select];
@@ -253,13 +256,13 @@ textPositions_question = {textPosition_secondHue textPosition_yes textPosition_n
 textPosition_marker_yes = textPosition_yes;
 textPosition_marker_no = textPosition_no;
 textPosition_marker_yes(2) = textPosition_marker_yes(2) + shiftPositionVert;
+textPosition_marker_no(2) = textPosition_marker_no(2) + shiftPositionVert;
 
 textPositions_markerYN = {textPosition_marker_yes textPosition_marker_no};
-textPosition_marker_initial =  
-textPositions = [textPositions_UH textPositions_question ]
+textPosition_marker_initial = textPositions_markerYN{1};
+textPositions = [textPositions_UH textPositions_question textPosition_marker_initial];
 
-% This is updated marker position.
-textPositions(5,:) = [1 positionVert+160];
+% Update the texts on the image.
 testImageWithText = insertText(testImage,textPositions,texts,...
     'font','newyork','fontsize',40,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','black','AnchorPoint','LeftCenter');
 
@@ -267,13 +270,8 @@ testImageWithText = insertText(testImage,textPositions,texts,...
 [testImageTexture testImageWindowRect rng] = MakeImageTexture(testImageWithText, window, resizedWindowRect,'verbose',false);
 FlipImageTexture(testImageTexture,window,windowRect,'verbose',false);
 
-fprintf('Do you want to add a second hue? (Y/N)\n');
-
 % Answer options to add the secondary hue.
 YNOptions = {'yes','no'};
-markerPositionYes = [1 positionVert+160];
-markerPositionNo = [positionHorz*0.8 positionVert+160];
-markerPositionYNOptions = {markerPositionYes markerPositionNo};
 idxYNOptions = [1 2];
 idxYN = 1;
 
@@ -311,8 +309,8 @@ while true
 
     % Update the image with an updated marker position. Again, it should be
     % the same image with different position of the text.
-    updatedPositionMarker = markerPositionYNOptions{idxYN};
-    textPositions(5,:) = updatedPositionMarker;
+    textPosition_marker_updated = textPositions_markerYN{idxYN};
+    textPositions = [uniqueHues textPositions_question textPosition_marker_updated];
     testImageWithText = insertText(testImage,textPositions,texts,...
         'font','newyork','fontsize',40,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','black','AnchorPoint','LeftCenter');
 
@@ -343,12 +341,14 @@ end
 if strcmp(isSecondaryHue,'yes')
 
     % Set secondary hue options differently over the dominant hue.
-    idxSecondaryHue = 1;
+    idxSecondHue = 1;
     switch selectedHues
-        case or('red','green')
-            secondaryHueOptions = {'yellow','blue'};
-        case or('yellow','blue')
-            secondaryHueOptions = {'red','green'};
+        case or('Red','Green')
+            secondaryHueOptions = {'Yellow','Blue'};
+            textPositions_marker_secondHue = {textPosition_marker_yellow textPosition_marker_blue};
+        case or('Yellow','Blue')
+            secondaryHueOptions = {'Red','Green'};
+            textPositions_marker_secondHue = {textPosition_marker_red textPosition_marker_green};
     end
 
     while true
@@ -361,15 +361,15 @@ if strcmp(isSecondaryHue,'yes')
         end
 
         % Up button.
-        nSecondaryHueOptions = length(secondaryHueOptions);
+        nSecondHueOptions = length(secondaryHueOptions);
         if strcmp(keyPressed,buttonUp)
-            if (idxSecondaryHue < nSecondaryHueOptions)
-                idxSecondaryHue = idxSecondaryHue + 1;
+            if (idxSecondHue < nSecondHueOptions)
+                idxSecondHue = idxSecondHue + 1;
             end
             % Down button.
         elseif strcmp(keyPressed,buttonDown)
-            if (idxSecondaryHue > 1)
-                idxSecondaryHue = idxSecondaryHue - 1;
+            if (idxSecondHue > 1)
+                idxSecondHue = idxSecondHue - 1;
             end
             % Right button.
         elseif strcmp(keyPressed,buttonRight)
@@ -386,9 +386,9 @@ if strcmp(isSecondaryHue,'yes')
 
         % Update the image with an updated marker position. Again, it should be
         % the same image with different position of the text.
-        texts = 
-        updatedPositionMarker = 
-        textPositions(5,:) = updatedPositionMarker;
+        texts = [uniqueHues text_select];
+        textPosition_marker_updated = textPositions_marker_secondHue{idxSecondHue};
+        textPositions = [textPositions_UH textPosition_marker_updated];
         testImageWithText = insertText(testImage,textPositions,texts,...
             'font','newyork','fontsize',40,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','black','AnchorPoint','LeftCenter');
 
@@ -401,12 +401,26 @@ if strcmp(isSecondaryHue,'yes')
     end
 
     % Add the chosen secondary hue to the selected hues.
-    selctedHues{end+1} = secondaryHueOptions{idxSecondaryHue};
+    selectedHues{end+1} = secondaryHueOptions{idxSecondHue};
 end
 
-%% If the secondary hue was chosen, evaluate it in ratio.
+%% AS a final step, evaluate two unique hues in proportion.
 %
-% This part also only runs when the secondary hue was selected.
+% This part runs only if the secondary hue was selected.
+
+% Get the index of the selected hues.
+idx_selectedHue1 = find(uniqueHues,selectedHues{1});
+idx_selectedHue2 = find(uniqueHues,selectedHues{2});
+
+% Set the text positions of the proportions of two unique hues.
+textPosition_prob1 = textPositions_UH{idx_selectedHue1};
+textPosition_prob2 = textPositions_UH{idx_selectedHue2};
+
+textPosition_prob1(2) = textPosition_prob1(2) + shiftPositionVert;
+textPosition_prob2(2) = textPosition_prob2(2) + shiftPositionVert;
+textPositions_probs = {textPosition_prob1 textPosition_prob2};
+
+% Evaluation happens in this loop.
 if strcmp(isSecondaryHue,'yes')
 
     while true
@@ -460,6 +474,17 @@ sumProps = sum(proportions);
 if ~(sumProps == 100)
     error('The sum of the proportion does not make sense!')
 end
+
+% Dislpay the test image with an updated proportions. This would look like
+% sort of a real time control.
+texts = [uniqueHues string(prob1) string(prob2)];
+textPositions = [textPositions_UH textPositions_probs];
+testImageWithText = insertText(testImage,textPositions,texts,...
+    'font','newyork','fontsize',40,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','black','AnchorPoint','LeftCenter');
+
+% Display the test image with updated texts.
+[testImageTexture testImageWindowRect rng] = MakeImageTexture(testImageWithText, window, resizedWindowRect,'verbose',false);
+FlipImageTexture(testImageTexture,window,windowRect,'verbose',false);
 
 % Convert the evaluation into hue-400 score.
 evaluation = computeHueScore(selctedHues,proportions);
