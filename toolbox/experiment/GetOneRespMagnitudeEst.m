@@ -93,26 +93,42 @@ resizedWindowRect = [xCenter - resizedImageWidth/2, yCenter - resizedImageHeight
     xCenter + resizedImageWidth/2, yCenter + resizedImageHeight/2];
 
 % Set the string and location on the test image.
-text1 = 'Red';
-text2 = 'Green';
-text3 = 'Yellow';
-text4 = 'Blue';
-marker1 = 'select';
-texts = {text1 text2 text3 text4 marker1};
+text_select = 'select';
+texts = [uniqueHues text_select];
 
 % TEXT POSITION WILL BE DECIDED RELATING TO THE LOCATION OF THE PRE-DEFINED
 % SQUARE. For now, we are displaying all the texts horizontally.
-positionHorzIntv = 150;
+positionHorz = 150;
 positionVert = 50;
 
-positionMarkerRed = [1 positionVert+40];
-positionMarkerGreen = [positionHorzIntv*0.8 positionVert+40];
-positionMarkerYellow = [positionHorzIntv*2 positionVert+40];
-positionMarkerBlue = [positionHorzIntv*3 positionVert+40];
-positionMarkerOptions = {positionMarkerRed positionMarkerGreen positionMarkerYellow positionMarkerBlue};
-positionMarker = positionMarkerOptions{1};
+% Set the positions of unique hue text.
+textPosition_red = [1 positionVert];
+textPosition_green = [positionHorz*0.8 positionVert];
+textPosition_yellow = [positionHorz*2 positionVert];
+textPosition_blue = [positionHorz*3 positionVert];
+textPositions_UH = {textPosition_red textPosition_green textPosition_yellow textPosition_blue};
 
-textPositions = [1 positionVert; positionHorzIntv*0.8 positionVert; positionHorzIntv*2 positionVert; positionHorzIntv*3 positionVert; positionMarker];
+% Set the positions of the marker for each unique hue. We will place it
+% right below each unique hue text with another text 'select'.
+%
+% Set how much we will shift the marker from the texts of unique hue.
+shiftPositionVert = 40;
+
+% Copy the text positions and make a shift from it.
+textPosition_marker_red = textPosition_red;
+textPosition_marker_green = textPosition_green;
+textPosition_marker_yellow = textPosition_yellow;
+textPosition_marker_blue = textPosition_blue;
+
+textPosition_marker_red = textPosition_marker_red(2) + shiftPositionVert;
+textPosition_marker_green = textPosition_marker_green(2) + shiftPositionVert;
+textPosition_marker_yellow = textPosition_marker_yellow(2) + shiftPositionVert;
+textPosition_marker_blue = textPosition_marker_blue(2) + shiftPositionVert;
+textPositions_marker = {textPosition_marker_red textPosition_marker_green textPosition_marker_yellow textPosition_marker_blue};
+textPosition_marker_initial = textPositions_marker(1);
+
+% Collect all the positions in a variable.
+textPositions = [textPositions_UH textPosition_marker_initial];
 
 % Add text to the test image for evaluation.
 testImageWithText = insertText(testImage,textPositions,texts,...
@@ -155,9 +171,8 @@ end
 
 %% Choose a dominant hue.
 %
-% Set the initial hue.
+% Set the initial hue to start the evaluation.
 idxHue = 1;
-initialHue = uniqueHues{idxHue};
 
 % Choose either one hue or another to be mixed.
 nUniqueHues = length(uniqueHues);
@@ -199,8 +214,8 @@ while true
 
     % Update the marker on the image. Marker is basically texts, so
     % we update the text and make a new image texture.
-    updatedPositionMarker = positionMarkerOptions{idxHue};
-    textPositions(end,:) = updatedPositionMarker;
+    textPosition_marker_updated = textPositions_marker{idxHue};
+    textPositions = [textPositions_UH textPosition_marker_updated];
     testImageWithText = insertText(testImage,textPositions,texts,...
         'font','newyork','fontsize',40,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','black','AnchorPoint','LeftCenter');
 
@@ -215,18 +230,33 @@ selectedHues = uniqueHues{idxHue};
 
 %% Ask if subject wants to add a secondary hue.
 %
-% Update the image with a message.
-texts{end+1} = 'Do you want to add a second hue?';
-texts{end+1} = 'yes';
-texts{end+1} = 'no';
+% Add some more texts to display.
+text_secondHue = 'Do you want to add a second hue?'; 
+text_yes = 'yes';
+text_no = 'no';
+texts = [uniqueHues text_secondHue text_yes text_no text_select];
 
-% Set the text message positions.
-messageQuestionPosition = [1 positionVert+80];
-messageYesPosition = [1 positionVert+120];
-messageNoPosition = [positionHorzIntv*0.8 positionVert+120];
-textPositions(end+1,:) = messageQuestionPosition;
-textPositions(end+1,:) = messageYesPosition;
-textPositions(end+1,:) = messageNoPosition;
+% Set the text message positions. These are arbitrary positions set for
+% now. We will update these once we decide where we display the image on
+% the screen.
+textPosition_secondHue = textPosition_red;
+textPosition_yes = textPosition_red;
+textPosition_no = textPosition_green;
+
+% These positions will not be changed during the experiment.
+textPosition_secondHue(2) = textPosition_secondHue(2) + shiftPositionVert;
+textPosition_yes(2) = textPosition_yes(2) + shiftPositionVert*2;
+textPosition_no(2) = textPosition_no(2) + shiftPositionVert*2;
+textPositions_question = {textPosition_secondHue textPosition_yes textPosition_no};
+
+% Set the position of the marker and merge all of them.
+textPosition_marker_yes = textPosition_yes;
+textPosition_marker_no = textPosition_no;
+textPosition_marker_yes(2) = textPosition_marker_yes(2) + shiftPositionVert;
+
+textPositions_markerYN = {textPosition_marker_yes textPosition_marker_no};
+textPosition_marker_initial =  
+textPositions = [textPositions_UH textPositions_question ]
 
 % This is updated marker position.
 textPositions(5,:) = [1 positionVert+160];
@@ -242,7 +272,7 @@ fprintf('Do you want to add a second hue? (Y/N)\n');
 % Answer options to add the secondary hue.
 YNOptions = {'yes','no'};
 markerPositionYes = [1 positionVert+160];
-markerPositionNo = [positionHorzIntv*0.8 positionVert+160];
+markerPositionNo = [positionHorz*0.8 positionVert+160];
 markerPositionYNOptions = {markerPositionYes markerPositionNo};
 idxYNOptions = [1 2];
 idxYN = 1;
