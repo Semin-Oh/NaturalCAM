@@ -92,8 +92,17 @@ end
 resizedWindowRect = [xCenter - resizedImageWidth/2, yCenter - resizedImageHeight/2, ...
     xCenter + resizedImageWidth/2, yCenter + resizedImageHeight/2];
 
+% Set the string and location on the test image.
+text1 = 'red';
+text2 = 'green';
+textPosition = [1 50; 100 50];
+
+% Add text to the test image for evaluation.
+testImageWithText = insertText(testImage,textPosition,{text1 text2},...
+    'fontsize',40,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','black','AnchorPoint','LeftCenter');
+
 % Display the resized test image.
-[testImageTexture testImageWindowRect rng] = MakeImageTexture(testImage, window, resizedWindowRect,'verbose',false);
+[testImageTexture testImageWindowRect rng] = MakeImageTexture(testImageWithText, window, resizedWindowRect,'verbose',false);
 FlipImageTexture(testImageTexture,window,windowRect,'verbose',false);
 
 % Close the other textures except the one currently on. For now, we
