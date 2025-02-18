@@ -93,13 +93,30 @@ resizedWindowRect = [xCenter - resizedImageWidth/2, yCenter - resizedImageHeight
     xCenter + resizedImageWidth/2, yCenter + resizedImageHeight/2];
 
 % Set the string and location on the test image.
-text1 = 'red';
-text2 = 'green';
-textPosition = [1 50; 100 50];
+text1 = 'Red';
+text2 = 'Green';
+text3 = 'Yellow';
+text4 = 'Blue';
+marker1 = 'select';
+texts = {text1 text2 text3 text4 marker1};
+
+% TEXT POSITION WILL BE DECIDED RELATING TO THE LOCATION OF THE PRE-DEFINED
+% SQUARE. For now, we are displaying all the texts horizontally.
+positionHorzIntv = 150;
+positionVert = 50;
+
+positionMarkerRed = [1 positionVert+40];
+positionMarkerGreen = [positionHorzIntv*0.8 positionVert+40];
+positionMarkerYellow = [positionHorzIntv*2 positionVert+40];
+positionMarkerBlue = [positionHorzIntv*3 positionVert+40];
+positionMarkerOptions = {positionMarkerRed positionMarkerGreen positionMarkerYellow positionMarkerBlue};
+positionMarker = positionMarkerOptions{1};
+
+textPositions = [1 positionVert; positionHorzIntv*0.8 positionVert; positionHorzIntv*2 positionVert; positionHorzIntv*3 positionVert; positionMarker];
 
 % Add text to the test image for evaluation.
-testImageWithText = insertText(testImage,textPosition,{text1 text2},...
-    'fontsize',40,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','black','AnchorPoint','LeftCenter');
+testImageWithText = insertText(testImage,textPositions,texts,...
+    'font','newyork','fontsize',40,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','black','AnchorPoint','LeftCenter');
 
 % Display the resized test image.
 [testImageTexture testImageWindowRect rng] = MakeImageTexture(testImageWithText, window, resizedWindowRect,'verbose',false);
@@ -141,7 +158,6 @@ end
 % Set the initial hue.
 idxHue = 1;
 initialHue = uniqueHues{idxHue};
-selectedHues = initialHue;
 
 % Choose either one hue or another to be mixed.
 nUniqueHues = length(uniqueHues);
@@ -181,6 +197,17 @@ while true
         fprintf('Press a key either (%s) or (%s) or (%s) or (%s) \n',buttonDown,buttonUp,buttonRight);
     end
 
+    % Update the marker on the image. Marker is basically texts, so
+    % we update the text and make a new image texture.
+    updatedPositionMarker = positionMarkerOptions{idxHue};
+    textPositions(end,:) = updatedPositionMarker;
+    testImageWithText = insertText(testImage,textPositions,texts,...
+        'font','newyork','fontsize',40,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','black','AnchorPoint','LeftCenter');
+
+    % Display the test image with updated texts.
+    [testImageTexture testImageWindowRect rng] = MakeImageTexture(testImageWithText, window, resizedWindowRect,'verbose',false);
+    FlipImageTexture(testImageTexture,window,windowRect,'verbose',false);
+
     % Make a tiny time delay every after key press.
     pause(options.postKeyPressDelaySec);
 end
@@ -188,11 +215,35 @@ selectedHues = uniqueHues{idxHue};
 
 %% Ask if subject wants to add a secondary hue.
 %
-% THIS PART WILL BE SUBSTITUTED BY DISPLAYING ON THE SCREEN.
-fprintf('\nDo you want to add a second hue? (Y/N)\n');
+% Update the image with a message.
+texts{end+1} = 'Do you want to add a second hue?';
+texts{end+1} = 'yes';
+texts{end+1} = 'no';
+
+% Set the text message positions.
+messageQuestionPosition = [1 positionVert+80];
+messageYesPosition = [1 positionVert+120];
+messageNoPosition = [positionHorzIntv*0.8 positionVert+120];
+textPositions(end+1,:) = messageQuestionPosition;
+textPositions(end+1,:) = messageYesPosition;
+textPositions(end+1,:) = messageNoPosition;
+
+% This is updated marker position.
+textPositions(5,:) = [1 positionVert+160];
+testImageWithText = insertText(testImage,textPositions,texts,...
+    'font','newyork','fontsize',40,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','black','AnchorPoint','LeftCenter');
+
+% Display the test image with updated texts.
+[testImageTexture testImageWindowRect rng] = MakeImageTexture(testImageWithText, window, resizedWindowRect,'verbose',false);
+FlipImageTexture(testImageTexture,window,windowRect,'verbose',false);
+
+fprintf('Do you want to add a second hue? (Y/N)\n');
 
 % Answer options to add the secondary hue.
 YNOptions = {'yes','no'};
+markerPositionYes = [1 positionVert+160];
+markerPositionNo = [positionHorzIntv*0.8 positionVert+160];
+markerPositionYNOptions = {markerPositionYes markerPositionNo};
 idxYNOptions = [1 2];
 idxYN = 1;
 
@@ -205,12 +256,18 @@ while true
             keyPressed = GetKeyPress;
     end
 
-    % Up or Down button. Both button updates the secondary hue option.
-    if or(strcmp(keyPressed,buttonUp), strcmp(keyPressed,buttonDown))
-        idxYN = setdiff(idxYNOptions,idxYN);
-
-        % Right button.
-    elseif strcmp(keyPressed,buttonRight)
+    % Right button.
+    if strcmp(keyPressed,buttonRight)
+        if idxYN < length(idxYNOptions)
+            idxYN = idxYN + 1;
+        end
+        % Left button.
+    elseif strcmp(keyPressed,buttonLeft)
+        if idxYN > 1
+            idxYN = idxYN - 1;
+        end
+        % Down button.
+    elseif strcmp(keyPressed,buttonDown)
         break;
 
         % Close the PTB. Force quit the experiment.
@@ -221,6 +278,17 @@ while true
         % Show a message to press a valid key press.
         fprintf('Press a key either (%s) or (%s) or (%s) or (%s) \n',buttonDown,buttonUp,buttonRight);
     end
+
+    % Update the image with an updated marker position. Again, it should be
+    % the same image with different position of the text.
+    updatedPositionMarker = markerPositionYNOptions{idxYN};
+    textPositions(5,:) = updatedPositionMarker;
+    testImageWithText = insertText(testImage,textPositions,texts,...
+        'font','newyork','fontsize',40,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','black','AnchorPoint','LeftCenter');
+
+    % Display the test image with updated texts.
+    [testImageTexture testImageWindowRect rng] = MakeImageTexture(testImageWithText, window, resizedWindowRect,'verbose',false);
+    FlipImageTexture(testImageTexture,window,windowRect,'verbose',false);
 
     % Make a tiny time delay every after key press.
     pause(options.postKeyPressDelaySec);
@@ -285,6 +353,18 @@ if strcmp(isSecondaryHue,'yes')
             % Show a message to press a valid key press.
             fprintf('Press a key either (%s) or (%s) or (%s) or (%s) \n',buttonDown,buttonUp,buttonRight);
         end
+
+        % Update the image with an updated marker position. Again, it should be
+        % the same image with different position of the text.
+        texts = 
+        updatedPositionMarker = 
+        textPositions(5,:) = updatedPositionMarker;
+        testImageWithText = insertText(testImage,textPositions,texts,...
+            'font','newyork','fontsize',40,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','black','AnchorPoint','LeftCenter');
+
+        % Display the test image with updated texts.
+        [testImageTexture testImageWindowRect rng] = MakeImageTexture(testImageWithText, window, resizedWindowRect,'verbose',false);
+        FlipImageTexture(testImageTexture,window,windowRect,'verbose',false);
 
         % Make a tiny time delay every after key press.
         pause(options.postKeyPressDelaySec);
