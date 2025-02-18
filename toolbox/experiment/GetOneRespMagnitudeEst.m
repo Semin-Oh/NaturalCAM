@@ -492,9 +492,10 @@ end
 
 %% We might want to make this part as a separate function later on.
 %
-% Convert Hue Selection and Proportions to a Hue 400 Score
+% Convert Hue Selection and Proportions to a Hue 400 Score.
 function hueScore = computeHueScore(selectedHues, proportions)
-% Assign values to unique hues
+
+% Assign values to unique hues.
 hue_values = struct('Red', 0, 'Yellow', 100, 'Green', 200, 'Blue', 300);
 
 % Convert selected hues to corresponding values
@@ -503,14 +504,14 @@ for i = 1:length(selectedHues)
     hue_numeric(i) = hue_values.(selectedHues{i});
 end
 
-% Compute the weighted sum
+% Compute the weighted sum.
 hueScore = sum(hue_numeric .* (proportions / 100));
 
-% Ensure circularity: Convert scores above 400 to within 0-400 range
+% Ensure circularity: Convert scores above 400 to within 0-400 range.
 if hueScore >= 400
     hueScore = hueScore - 400;
 end
 
-% Display the result
+% Display the result.
 fprintf('Hue 400 Score: %.2f\n', hueScore);
 end
