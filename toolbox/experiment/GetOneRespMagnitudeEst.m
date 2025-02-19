@@ -192,19 +192,19 @@ while true
     % Evaluation happens here.
     %
     % Up button.
-    if strcmp(keyPressed,buttonUp)
+    if strcmp(keyPressed,buttonRight)
         if idxHue < nUniqueHues
             idxHue = idxHue + 1;
         end
 
         % Down button.
-    elseif strcmp(keyPressed,buttonDown)
+    elseif strcmp(keyPressed,buttonLeft)
         if idxHue > 2
             idxHue = idxHue - 1;
         end
 
         % Right button.
-    elseif strcmp(keyPressed,buttonRight)
+    elseif strcmp(keyPressed,buttonDown)
         break;
 
         % Close the PTB. Force quit the experiment.
@@ -219,7 +219,7 @@ while true
     % Update the marker on the image. Marker is basically texts, so
     % we update the text and make a new image texture.
     textPosition_marker_updated = textPositions_marker{idxHue};
-    textPositions = [textPositions_UH textPosition_marker_updated];
+    textPositions = [textPositions_UH; textPosition_marker_updated];
     testImageWithText = insertText(testImage,textPositions,texts,...
         'font',options.font,'fontsize',40,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','black','AnchorPoint','LeftCenter');
 
@@ -251,7 +251,7 @@ textPosition_no = textPosition_green;
 textPosition_secondHue(2) = textPosition_secondHue(2) + shiftPositionVert;
 textPosition_yes(2) = textPosition_yes(2) + shiftPositionVert*2;
 textPosition_no(2) = textPosition_no(2) + shiftPositionVert*2;
-textPositions_question = {textPosition_secondHue textPosition_yes textPosition_no};
+textPositions_question = [textPosition_secondHue; textPosition_yes; textPosition_no];
 
 % Set the position of the marker and merge all of them.
 textPosition_marker_yes = textPosition_yes;
@@ -261,7 +261,7 @@ textPosition_marker_no(2) = textPosition_marker_no(2) + shiftPositionVert;
 
 textPositions_markerYN = {textPosition_marker_yes textPosition_marker_no};
 textPosition_marker_initial = textPositions_markerYN{1};
-textPositions = [textPositions_UH textPositions_question textPosition_marker_initial];
+textPositions = [textPositions_UH; textPositions_question; textPosition_marker_initial];
 
 % Update the texts on the image.
 testImageWithText = insertText(testImage,textPositions,texts,...
@@ -311,7 +311,7 @@ while true
     % Update the image with an updated marker position. Again, it should be
     % the same image with different position of the text.
     textPosition_marker_updated = textPositions_markerYN{idxYN};
-    textPositions = [uniqueHues textPositions_question textPosition_marker_updated];
+    textPositions = [textPositions_UH; textPositions_question; textPosition_marker_updated];
     testImageWithText = insertText(testImage,textPositions,texts,...
         'font',options.font,'fontsize',40,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','black','AnchorPoint','LeftCenter');
 
@@ -343,11 +343,12 @@ if strcmp(isSecondaryHue,'yes')
 
     % Set secondary hue options differently over the dominant hue.
     idxSecondHue = 1;
-    switch selectedHues
-        case or('Red','Green')
+    % When either red or green was chosen as a dominant hue.
+    if ismember(selectedHues,{'red','green'})
             secondaryHueOptions = {'Yellow','Blue'};
             textPositions_marker_secondHue = {textPosition_marker_yellow textPosition_marker_blue};
-        case or('Yellow','Blue')
+    % Otherwise, it should be either yellow or blue was chosen.
+    else 
             secondaryHueOptions = {'Red','Green'};
             textPositions_marker_secondHue = {textPosition_marker_red textPosition_marker_green};
     end
@@ -363,17 +364,17 @@ if strcmp(isSecondaryHue,'yes')
 
         % Up button.
         nSecondHueOptions = length(secondaryHueOptions);
-        if strcmp(keyPressed,buttonUp)
+        if strcmp(keyPressed,buttonRight)
             if (idxSecondHue < nSecondHueOptions)
                 idxSecondHue = idxSecondHue + 1;
             end
             % Down button.
-        elseif strcmp(keyPressed,buttonDown)
+        elseif strcmp(keyPressed,buttonLeft)
             if (idxSecondHue > 1)
                 idxSecondHue = idxSecondHue - 1;
             end
             % Right button.
-        elseif strcmp(keyPressed,buttonRight)
+        elseif strcmp(keyPressed,buttonDown)
             break;
 
             % Close the PTB. Force quit the experiment.
@@ -389,7 +390,7 @@ if strcmp(isSecondaryHue,'yes')
         % the same image with different position of the text.
         texts = [uniqueHues text_select];
         textPosition_marker_updated = textPositions_marker_secondHue{idxSecondHue};
-        textPositions = [textPositions_UH textPosition_marker_updated];
+        textPositions = [textPositions_UH; textPosition_marker_updated];
         testImageWithText = insertText(testImage,textPositions,texts,...
             'font',options.font,'fontsize',40,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','black','AnchorPoint','LeftCenter');
 
@@ -419,7 +420,7 @@ textPosition_prob2 = textPositions_UH{idx_selectedHue2};
 
 textPosition_prob1(2) = textPosition_prob1(2) + shiftPositionVert;
 textPosition_prob2(2) = textPosition_prob2(2) + shiftPositionVert;
-textPositions_probs = {textPosition_prob1 textPosition_prob2};
+textPositions_probs = [textPosition_prob1; textPosition_prob2];
 
 % Evaluation happens in this loop.
 if strcmp(isSecondaryHue,'yes')
@@ -479,7 +480,7 @@ end
 % Dislpay the test image with an updated proportions. This would look like
 % sort of a real time control.
 texts = [uniqueHues string(prob1) string(prob2)];
-textPositions = [textPositions_UH textPositions_probs];
+textPositions = [textPositions_UH; textPositions_probs];
 testImageWithText = insertText(testImage,textPositions,texts,...
     'font',options.font,'fontsize',40,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','black','AnchorPoint','LeftCenter');
 
