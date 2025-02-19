@@ -32,6 +32,8 @@ switch sysInfo.userShortName
         % EIZO computer at the color lab.
         baseFiledir = '~/desktop';
     otherwise
+        % Semin's laptop.
+        baseFiledir = 'C:\Users\ohsem\Documents\MATLAB';
 end
 
 % Set repository name.
@@ -59,7 +61,7 @@ try
     %% Load the test images.
     %
     % Get the directory where the test images are saved.
-    testImageFiledir = fullfile(testFiledir,'experiment','images');
+    testImageFiledir = fullfile(testFiledir,'images');
 
     % Get available images.
     imageNameContent = dir(testImageFiledir);
@@ -67,7 +69,7 @@ try
     imageNames = imageNameList(~startsWith(imageNameList,'.'));
 
     % Count the number of available images.
-    expParmas.nTestImages = length(imageNames);
+    expParams.nTestImages = length(imageNames);
 
     % Load the images here. We will read out as an image format.
     idxImageName = 1;
