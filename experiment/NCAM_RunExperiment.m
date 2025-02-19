@@ -25,15 +25,19 @@ switch sysInfo.userShortName
     case 'semin'
         % Office computer.
         baseFiledir = '/Users/semin/Dropbox (Personal)/JLU/2) Projects';
+        font = 'arial';
     case 'gegenfurtner'
         % Lab Linux computer Dropbox directory.
         baseFiledir = '/home/gegenfurtner/Dropbox/JLU/2) Projects';
+        font = 'DejaVuSans';
     case 'colorlab'
         % EIZO computer at the color lab.
         baseFiledir = '~/desktop';
+        font = 'arial';
     otherwise
         % Semin's laptop.
         baseFiledir = 'C:\Users\ohsem\Documents\MATLAB';
+        font = 'arial';
 end
 
 % Set repository name.
@@ -111,10 +115,9 @@ try
     ratioMessageInitialVert = 0.03;
 
     % Set the font.
-    instructionImageFont = 'DejaVuSans';
     initialInstructionImage = insertText(nullImage,[imageSize(2)*ratioMessageInitialHorz imageSize(1)/2-imageSize(1)*ratioMessageInitialVert; imageSize(2)*ratioMessageInitialHorz imageSize(1)/2+imageSize(1)*ratioMessageInitialVert],...
         {messageInitialImage_1stLine messageInitialImage_2ndLine},...
-        'fontsize',40,'Font',instructionImageFont,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','white','AnchorPoint','LeftCenter');
+        'fontsize',40,'Font',font,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','white','AnchorPoint','LeftCenter');
 
     % Display an image texture of the initial image.
     [initialInstructionImageTexture initialInstructionImageWindowRect rng] = MakeImageTexture(initialInstructionImage, window, windowRect,'verbose',false);
@@ -151,7 +154,8 @@ try
            
             % One evaluation happens here using Magnitude estimation method.
             data.hueScore(ii,rr) = GetOneRespMagnitudeEst(testImage.testImage{ii},window,windowRect,...
-                'expKeyType',expParams.expKeyType,'postKeyPressDelaySec',expParams.postKeyPressDelaySec,'verbose',true);
+                'expKeyType',expParams.expKeyType,'postKeyPressDelaySec',expParams.postKeyPressDelaySec,...
+                'font',font,'verbose',true);
 
             % Display a null image again and pause for a second before
             % displaying the next test image.
@@ -173,7 +177,7 @@ try
 
     afterSessionInstructionImage = insertText(initialImageBg,[imageSize(2)*ratioMessageInitialHorz imageSize(1)/2-imageSize(1)*ratioMessageInitialVert; imageSize(2)*ratioMessageInitialHorz imageSize(1)/2+imageSize(1)*ratioMessageInitialVert],...
         {messageAfterSessionImage_1stLine messageAfterSessionImage_2ndLine},...
-        'fontsize',40,'Font',instructionImageFont,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','black','AnchorPoint','LeftCenter');
+        'fontsize',40,'Font',font,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','black','AnchorPoint','LeftCenter');
 
     % Display an image texture of the initial image.
     [afterSessionImageTexture afterSessionImageWindowRect rng] = MakeImageTexture(afterSessionInstructionImage, window, windowRect,'verbose',false);
