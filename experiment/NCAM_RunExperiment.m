@@ -51,9 +51,9 @@ try
     % Experimental variables.
     expParams.nRepeat = 1;
     expParams.postIntervalDelaySec = 2;
-    expParams.postColorCorrectDelaySec = 0.1;
+    expParams.postKeyPressDelaySec = 0.1;
     expParams.subjectName = subjectName;
-    expParams.expKeyType = 'keyboard';
+    expParams.expKeyType = 'gamepad';
 
     % etc.
     SAVETHERESULTS = true;
@@ -72,10 +72,11 @@ try
     expParams.nTestImages = length(imageNames);
 
     % Load the images here. We will read out as an image format.
-    idxImageName = 1;
-    imageName = imageNames{idxImageName};
+    for ii = 1:expParams.nTestImages
+    imageName = imageNames{ii};
     testImageFilename = GetMostRecentFileName(testImageFiledir,imageName);
-    images = imread(testImageFilename);
+    testImage.testImage{ii} = imread(testImageFilename);
+    end
 
     % Set the random order of displaying the test images.
     %
@@ -110,11 +111,11 @@ try
     ratioMessageInitialVert = 0.03;
 
     % Set the font.
-    instructionImageFont = 'Arial';
-    initialImageBg = ones(size(nullImage))*0.5;
+    instructionImageFont = 'DejaVuSans';
+    initialImageBg = zeros(size(nullImage));
     initialInstructionImage = insertText(initialImageBg,[imageSize(2)*ratioMessageInitialHorz imageSize(1)/2-imageSize(1)*ratioMessageInitialVert; imageSize(2)*ratioMessageInitialHorz imageSize(1)/2+imageSize(1)*ratioMessageInitialVert],...
         {messageInitialImage_1stLine messageInitialImage_2ndLine},...
-        'fontsize',40,'Font',instructionImageFont,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','black','AnchorPoint','LeftCenter');
+        'fontsize',40,'Font',instructionImageFont,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','white','AnchorPoint','LeftCenter');
 
     % Display an image texture of the initial image.
     [initialInstructionImageTexture initialInstructionImageWindowRect rng] = MakeImageTexture(initialInstructionImage, window, windowRect,'verbose',false);
@@ -138,7 +139,7 @@ try
     % Display a null image. We will not include the null image texture in
     % the 'activeTextures' as we will recall it every after test image
     % display.
-    [nullImageTexture nullImageWindowRect rng] = MakeImageTexture(images.nullImage, window, windowRect, 'verbose', false);
+    [nullImageTexture nullImageWindowRect rng] = MakeImageTexture(nullImage, window, windowRect, 'verbose', false);
     FlipImageTexture(nullImageTexture, window, windowRect,'verbose',false);
 
     % First loop for the number of trials.
@@ -150,12 +151,12 @@ try
             idxImageName = expParams.randOrder(ii,rr);
            
             % One evaluation happens here using Magnitude estimation method.
-            data.hueScore(ii,rr) = GetOneRespMagnitudeEst(images.testImage,window,windowRect,...
-                'expKeyType',expParams.expKeyType,'postColorCorrectDelaySec',expParams.postColorCorrectDelaySec,'verbose',true);
+            data.hueScore(ii,rr) = GetOneRespMagnitudeEst(testImage.testImage{ii},window,windowRect,...
+                'expKeyType',expParams.expKeyType,'postKeyPressDelaySec',expParams.postKeyPressDelaySec,'verbose',true);
 
             % Display a null image again and pause for a second before
             % displaying the next test image.
-            [nullImageTexture nullImageWindowRect rng] = MakeImageTexture(images.nullImage, window, windowRect, 'verbose', false);
+            [nullImageTexture nullImageWindowRect rng] = MakeImageTexture(nullImage, window, windowRect, 'verbose', false);
             FlipImageTexture(nullImageTexture, window, windowRect,'verbose',false);
             pause(expParams.postIntervalDelaySec);
 
@@ -195,7 +196,7 @@ try
             end
 
             % Save out the image and experiment params in the structure.
-            data.imageParams = images.imageParams;
+            data.imageParams = testImage.imageParams;
             [~, testImageFilename, ~] = fileparts(testImageFilename);
             data.imageParams.testImageFilename = testImageFilename;
             data.expParams = expParams;

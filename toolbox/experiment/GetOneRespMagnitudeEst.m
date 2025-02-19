@@ -53,6 +53,7 @@ arguments
     options.expKeyType = 'gamepad';
     options.postKeyPressDelaySec = 0.5;
     options.stepSizeProp = 5;
+    options.font = 'DejaVuSans'
     options.verbose = true;
 end
 
@@ -109,7 +110,7 @@ textPosition_red = [1 positionVert];
 textPosition_green = [positionHorz*0.8 positionVert];
 textPosition_yellow = [positionHorz*2 positionVert];
 textPosition_blue = [positionHorz*3 positionVert];
-textPositions_UH = {textPosition_red textPosition_green textPosition_yellow textPosition_blue};
+textPositions_UH = [textPosition_red; textPosition_green; textPosition_yellow; textPosition_blue];
 
 % Set the positions of the marker for each unique hue. We will place it
 % right below each unique hue text with another text 'select'.
@@ -123,19 +124,19 @@ textPosition_marker_green = textPosition_green;
 textPosition_marker_yellow = textPosition_yellow;
 textPosition_marker_blue = textPosition_blue;
 
-textPosition_marker_red = textPosition_marker_red(2) + shiftPositionVert;
-textPosition_marker_green = textPosition_marker_green(2) + shiftPositionVert;
-textPosition_marker_yellow = textPosition_marker_yellow(2) + shiftPositionVert;
-textPosition_marker_blue = textPosition_marker_blue(2) + shiftPositionVert;
+textPosition_marker_red(2) = textPosition_marker_red(2) + shiftPositionVert;
+textPosition_marker_green(2) = textPosition_marker_green(2) + shiftPositionVert;
+textPosition_marker_yellow(2) = textPosition_marker_yellow(2) + shiftPositionVert;
+textPosition_marker_blue(2) = textPosition_marker_blue(2) + shiftPositionVert;
 textPositions_marker = {textPosition_marker_red textPosition_marker_green textPosition_marker_yellow textPosition_marker_blue};
-textPosition_marker_initial = textPositions_marker(1);
+textPosition_marker_initial = textPositions_marker{1};
 
 % Collect all the positions in a variable.
-textPositions = [textPositions_UH textPosition_marker_initial];
+textPositions = [textPositions_UH; textPosition_marker_initial];
 
 % Add text to the test image for evaluation.
 testImageWithText = insertText(testImage,textPositions,texts,...
-    'font','newyork','fontsize',40,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','black','AnchorPoint','LeftCenter');
+    'font',options.font,'fontsize',40,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','black','AnchorPoint','LeftCenter');
 
 % Display the resized test image.
 [testImageTexture testImageWindowRect rng] = MakeImageTexture(testImageWithText, window, resizedWindowRect,'verbose',false);
@@ -220,7 +221,7 @@ while true
     textPosition_marker_updated = textPositions_marker{idxHue};
     textPositions = [textPositions_UH textPosition_marker_updated];
     testImageWithText = insertText(testImage,textPositions,texts,...
-        'font','newyork','fontsize',40,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','black','AnchorPoint','LeftCenter');
+        'font',options.font,'fontsize',40,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','black','AnchorPoint','LeftCenter');
 
     % Display the test image with updated texts.
     [testImageTexture testImageWindowRect rng] = MakeImageTexture(testImageWithText, window, resizedWindowRect,'verbose',false);
@@ -264,7 +265,7 @@ textPositions = [textPositions_UH textPositions_question textPosition_marker_ini
 
 % Update the texts on the image.
 testImageWithText = insertText(testImage,textPositions,texts,...
-    'font','newyork','fontsize',40,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','black','AnchorPoint','LeftCenter');
+    'font',options.font,'fontsize',40,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','black','AnchorPoint','LeftCenter');
 
 % Display the test image with updated texts.
 [testImageTexture testImageWindowRect rng] = MakeImageTexture(testImageWithText, window, resizedWindowRect,'verbose',false);
@@ -312,7 +313,7 @@ while true
     textPosition_marker_updated = textPositions_markerYN{idxYN};
     textPositions = [uniqueHues textPositions_question textPosition_marker_updated];
     testImageWithText = insertText(testImage,textPositions,texts,...
-        'font','newyork','fontsize',40,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','black','AnchorPoint','LeftCenter');
+        'font',options.font,'fontsize',40,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','black','AnchorPoint','LeftCenter');
 
     % Display the test image with updated texts.
     [testImageTexture testImageWindowRect rng] = MakeImageTexture(testImageWithText, window, resizedWindowRect,'verbose',false);
@@ -390,7 +391,7 @@ if strcmp(isSecondaryHue,'yes')
         textPosition_marker_updated = textPositions_marker_secondHue{idxSecondHue};
         textPositions = [textPositions_UH textPosition_marker_updated];
         testImageWithText = insertText(testImage,textPositions,texts,...
-            'font','newyork','fontsize',40,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','black','AnchorPoint','LeftCenter');
+            'font',options.font,'fontsize',40,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','black','AnchorPoint','LeftCenter');
 
         % Display the test image with updated texts.
         [testImageTexture testImageWindowRect rng] = MakeImageTexture(testImageWithText, window, resizedWindowRect,'verbose',false);
@@ -480,7 +481,7 @@ end
 texts = [uniqueHues string(prob1) string(prob2)];
 textPositions = [textPositions_UH textPositions_probs];
 testImageWithText = insertText(testImage,textPositions,texts,...
-    'font','newyork','fontsize',40,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','black','AnchorPoint','LeftCenter');
+    'font',options.font,'fontsize',40,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','black','AnchorPoint','LeftCenter');
 
 % Display the test image with updated texts.
 [testImageTexture testImageWindowRect rng] = MakeImageTexture(testImageWithText, window, resizedWindowRect,'verbose',false);
