@@ -105,27 +105,32 @@ try
     [window windowRect] = OpenPlainScreen(initialScreenSetting);
     
     % Make a null image here. We set a null image as uniform black screen.
-    nullImage = zeros(windowRect(3),windowRect(4),3);
+    dispResolution = [windowRect(3) windowRect(4)];
+    nullImage = zeros([displayResolution 3]);
+    nullImageSize = size(nullImage);
+    
+    % Set the texts to display.
+    text_1stLine = 'Press any button';
+    text_2ndLine = 'To start the experiment';
+    texts = {text_1stLine text_2ndLine};
+    
+    % Set the text position.
+    textPositionRatioHorz = 0.49;
+    textPositionRatioVert = 0.03;
+    textPositions = [nullImageSize(2)*textPositionRatioHorz nullImageSize(1)/2-nullImageSize(1)*textPositionRatioVert;
+        nullImageSize(2)*textPositionRatioHorz nullImageSize(1)/2+nullImageSize(1)*textPositionRatioVert];
 
-    % Set the initial screen with written instruction.
-    imageSize = size(nullImage);
-    messageInitialImage_1stLine = 'Press any button';
-    messageInitialImage_2ndLine = 'To start the experiment';
-    ratioMessageInitialHorz = 0.49;
-    ratioMessageInitialVert = 0.03;
-
-    % Set the font.
-    initialInstructionImage = insertText(nullImage,[imageSize(2)*ratioMessageInitialHorz imageSize(1)/2-imageSize(1)*ratioMessageInitialVert; imageSize(2)*ratioMessageInitialHorz imageSize(1)/2+imageSize(1)*ratioMessageInitialVert],...
-        {messageInitialImage_1stLine messageInitialImage_2ndLine},...
+    % Add text into the image.
+    nullImageWithTexts = insertText(nullImage,textPositions,texts,...
         'fontsize',40,'Font',font,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','white','AnchorPoint','LeftCenter');
 
     % Display an image texture of the initial image.
-    [initialInstructionImageTexture initialInstructionImageWindowRect rng] = MakeImageTexture(initialInstructionImage, window, windowRect,'verbose',false);
-    FlipImageTexture(initialInstructionImageTexture, window, windowRect,'verbose',false);
+    [nullImageWithTextsTexture nullImageWithTextsWindowRect rng] = MakeImageTexture(nullImageWithTexts, window, windowRect,'verbose',false);
+    FlipImageTexture(nullImageWithTextsTexture, window, windowRect,'verbose',false);
 
     % Get the PTB texture info in an array.
     activeTextures = [];
-    activeTextures(end+1) = initialInstructionImageTexture;
+    activeTextures(end+1) = nullImageWithTextsTexture;
 
     % Get any key press to proceed.
     switch (expParams.expKeyType)
@@ -175,7 +180,7 @@ try
     messageAfterSessionImage_1stLine = 'Session completed';
     messageAfterSessionImage_2ndLine = 'Wait for the next session started';
 
-    afterSessionInstructionImage = insertText(initialImageBg,[imageSize(2)*ratioMessageInitialHorz imageSize(1)/2-imageSize(1)*ratioMessageInitialVert; imageSize(2)*ratioMessageInitialHorz imageSize(1)/2+imageSize(1)*ratioMessageInitialVert],...
+    afterSessionInstructionImage = insertText(initialImageBg,[nullImageSize(2)*textPositionRatioHorz nullImageSize(1)/2-nullImageSize(1)*textPositionRatioVert; nullImageSize(2)*textPositionRatioHorz nullImageSize(1)/2+nullImageSize(1)*textPositionRatioVert],...
         {messageAfterSessionImage_1stLine messageAfterSessionImage_2ndLine},...
         'fontsize',40,'Font',font,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','black','AnchorPoint','LeftCenter');
 
