@@ -49,7 +49,7 @@ arguments
     testImage
     window (1,1)
     windowRect (1,4)
-    options.testImageSizeRatio (1,1) = 0.4;
+    options.testImageSizeRatio (1,1) = 0.2;
     options.expKeyType = 'gamepad';
     options.postKeyPressDelaySec = 0.5;
     options.stepSizeProp = 5;
@@ -57,12 +57,34 @@ arguments
     options.verbose = true;
 end
 
-%% Define unique hues.
+% Define unique hues.
 uniqueHues = {'Red', 'Green', 'Yellow', 'Blue'};
 numUniqueHues = [0 100 200 300 400];
 selectedHues = {};
 
-%% Define the image direction and resize it to fit in the screen.
+% Set the available key options here over different key type either
+% keyboard or gamepad.
+switch options.expKeyType
+    case 'gamepad'
+        buttonDown = 'down';
+        buttonUp = 'up';
+        buttonLeft = 'left';
+        buttonRight = 'right';
+        buttonReset = 'sideright';
+        % buttonStepSize = '';
+        buttonQuit = 'sideleft';
+
+    case 'keyboard'
+        buttonDown = 'DownArrow';
+        buttonUp = 'UpArrow';
+        buttonLeft = 'LeftArrow';
+        buttonRight = 'RightArrow';
+        buttonReset = 'r';
+        buttonStepSize = 's';
+        buttonQuit = 'q';
+end
+
+%% Resize the test image over its direction.
 testImageSize = size(testImage);
 imageHeight = testImageSize(1);
 imageWidth = testImageSize(2);
@@ -92,9 +114,9 @@ switch imageType
 end
 
 % Define the desired size for image placement.
-[xCenter, yCenter] = RectCenter(windowRect);
-resizedWindowRect = [xCenter - resizedImageWidth/2, yCenter - resizedImageHeight/2, ...
-    xCenter + resizedImageWidth/2, yCenter + resizedImageHeight/2];
+[centerWidth, centerHeight] = RectCenter(windowRect);
+resizedWindowRect = [centerWidth - resizedImageWidth/2, centerHeight - resizedImageHeight/2, ...
+    centerWidth + resizedImageWidth/2, centerHeight + resizedImageHeight/2];
 
 % Set the string and location on the test image.
 text_select = 'select';
@@ -139,8 +161,8 @@ testImageWithText = insertText(testImage,textPositions,texts,...
     'font',options.font,'fontsize',40,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','black','AnchorPoint','LeftCenter');
 
 % Display the resized test image.
-[testImageTexture testImageWindowRect rng] = MakeImageTexture(testImageWithText, window, resizedWindowRect,'verbose',false);
-FlipImageTexture(testImageTexture,window,windowRect,'verbose',false);
+[testImageTexture testImageWindowRect rng] = MakeImageTexture(testImageWithText, window, windowRect,'verbose',false);
+FlipImageTexture(testImageTexture,window,testImageWindowRect,'verbose',false);
 
 % Close the other textures except the one currently on. For now, we
 % randonly create an array of the textures with the number from 1 to 100,
@@ -150,28 +172,6 @@ FlipImageTexture(testImageTexture,window,windowRect,'verbose',false);
 texturesToClose = linspace(1,100,100);
 texturesToClose = setdiff(texturesToClose,testImageTexture);
 CloseImageTexture('whichTexture',texturesToClose);
-
-%% Set the available key options here over different key type either
-% keyboard or gamepad.
-switch options.expKeyType
-    case 'gamepad'
-        buttonDown = 'down';
-        buttonUp = 'up';
-        buttonLeft = 'left';
-        buttonRight = 'right';
-        buttonReset = 'sideright';
-        % buttonStepSize = '';
-        buttonQuit = 'sideleft';
-
-    case 'keyboard'
-        buttonDown = 'DownArrow';
-        buttonUp = 'UpArrow';
-        buttonLeft = 'LeftArrow';
-        buttonRight = 'RightArrow';
-        buttonReset = 'r';
-        buttonStepSize = 's';
-        buttonQuit = 'q';
-end
 
 %% Choose a dominant hue.
 %
@@ -224,8 +224,8 @@ while true
         'font',options.font,'fontsize',40,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','black','AnchorPoint','LeftCenter');
 
     % Display the test image with updated texts.
-    [testImageTexture testImageWindowRect rng] = MakeImageTexture(testImageWithText, window, resizedWindowRect,'verbose',false);
-    FlipImageTexture(testImageTexture,window,windowRect,'verbose',false);
+    [testImageTexture testImageWindowRect rng] = MakeImageTexture(testImageWithText, window, windowRect,'verbose',false);
+    FlipImageTexture(testImageTexture,window,testImageWindowRect,'verbose',false);
 
     % Make a tiny time delay every after key press.
     pause(options.postKeyPressDelaySec);
@@ -268,7 +268,7 @@ testImageWithText = insertText(testImage,textPositions,texts,...
     'font',options.font,'fontsize',40,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','black','AnchorPoint','LeftCenter');
 
 % Display the test image with updated texts.
-[testImageTexture testImageWindowRect rng] = MakeImageTexture(testImageWithText, window, resizedWindowRect,'verbose',false);
+[testImageTexture testImageWindowRect rng] = MakeImageTexture(testImageWithText, window, windowRect,'verbose',false);
 FlipImageTexture(testImageTexture,window,windowRect,'verbose',false);
 
 % Answer options to add the secondary hue.
@@ -316,7 +316,7 @@ while true
         'font',options.font,'fontsize',40,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','black','AnchorPoint','LeftCenter');
 
     % Display the test image with updated texts.
-    [testImageTexture testImageWindowRect rng] = MakeImageTexture(testImageWithText, window, resizedWindowRect,'verbose',false);
+    [testImageTexture testImageWindowRect rng] = MakeImageTexture(testImageWithText, window, windowRect,'verbose',false);
     FlipImageTexture(testImageTexture,window,windowRect,'verbose',false);
 
     % Make a tiny time delay every after key press.
@@ -395,7 +395,7 @@ if strcmp(isSecondaryHue,'yes')
             'font',options.font,'fontsize',40,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','black','AnchorPoint','LeftCenter');
 
         % Display the test image with updated texts.
-        [testImageTexture testImageWindowRect rng] = MakeImageTexture(testImageWithText, window, resizedWindowRect,'verbose',false);
+        [testImageTexture testImageWindowRect rng] = MakeImageTexture(testImageWithText, window, windowRect,'verbose',false);
         FlipImageTexture(testImageTexture,window,windowRect,'verbose',false);
 
         % Make a tiny time delay every after key press.
@@ -485,7 +485,7 @@ testImageWithText = insertText(testImage,textPositions,texts,...
     'font',options.font,'fontsize',40,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','black','AnchorPoint','LeftCenter');
 
 % Display the test image with updated texts.
-[testImageTexture testImageWindowRect rng] = MakeImageTexture(testImageWithText, window, resizedWindowRect,'verbose',false);
+[testImageTexture testImageWindowRect rng] = MakeImageTexture(testImageWithText, window, windowRect,'verbose',false);
 FlipImageTexture(testImageTexture,window,windowRect,'verbose',false);
 
 % Convert the evaluation into hue-400 score.
