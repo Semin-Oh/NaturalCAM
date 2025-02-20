@@ -102,7 +102,7 @@ imageTexture = Screen('MakeTexture', window, image);
 
 % Set the position of the image in ratio.
 anchorScreen = [windowRect(3)*options.ratioHorintalScreen windowRect(4)*options.ratioVerticalScreen];
-imageSizeHalf = [size(image,1) size(image,2)];
+imageSizeHalf = [size(image,1) size(image,2)]./2;
 
 % Make image windowRect for placing it at the center of the screen.
 imageWindowRect = [anchorScreen(1)-imageSizeHalf(1) anchorScreen(2)-imageSizeHalf(2) ...

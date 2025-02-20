@@ -105,8 +105,7 @@ try
     [window windowRect] = OpenPlainScreen(initialScreenSetting);
     
     % Make a null image here. We set a null image as uniform black screen.
-    dispResolution = [windowRect(3) windowRect(4)];
-    nullImage = zeros([displayResolution 3]);
+    nullImage = zeros(windowRect(4), windowRect(3), 3);
     nullImageSize = size(nullImage);
     
     % Set the texts to display.
@@ -120,9 +119,19 @@ try
     textPositions = [nullImageSize(2)*textPositionRatioHorz nullImageSize(1)/2-nullImageSize(1)*textPositionRatioVert;
         nullImageSize(2)*textPositionRatioHorz nullImageSize(1)/2+nullImageSize(1)*textPositionRatioVert];
 
+    % Define the font.
+    switch sysInfo.userShortName
+        % For Linux.
+        case 'gegenfurtner'
+            font = 'Ubuntu-B';
+            % The others.
+        otherwise
+            font = 'arial';
+    end
+
     % Add text into the image.
     nullImageWithTexts = insertText(nullImage,textPositions,texts,...
-        'fontsize',40,'Font',font,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','white','AnchorPoint','LeftCenter');
+        'fontsize',40,'Font',font,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','white','AnchorPoint','LeftTop');
 
     % Display an image texture of the initial image.
     [nullImageWithTextsTexture nullImageWithTextsWindowRect rng] = MakeImageTexture(nullImageWithTexts, window, windowRect,'verbose',false);
