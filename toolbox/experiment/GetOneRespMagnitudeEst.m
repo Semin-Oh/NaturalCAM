@@ -97,6 +97,8 @@ elseif imageHeightToWidthRatio > 1
     imageType = 'portrait';
 end
 
+
+%% THIS PART SHOULD BE CHANGED TO MAKE RESIZED IMAGE CORRECTLY
 % Set the desired image size. We set it differently over the direction of
 % the test image.
 displayResolutionWidth = windowRect(3);
@@ -114,9 +116,8 @@ switch imageType
 end
 
 % Define the desired size for image placement.
-[centerWidth, centerHeight] = RectCenter(windowRect);
-resizedWindowRect = [centerWidth - resizedImageWidth/2, centerHeight - resizedImageHeight/2, ...
-    centerWidth + resizedImageWidth/2, centerHeight + resizedImageHeight/2];
+predefinedImageSquare = zeros(predefinedImageSquareSize,predefinedImageSquareSize,3);
+
 
 % Set the string and location on the test image.
 text_select = 'select';
