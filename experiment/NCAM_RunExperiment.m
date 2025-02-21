@@ -62,7 +62,7 @@ try
     % Experimental variables.
     expParams.nRepeat = 1;
     expParams.postIntervalDelaySec = 2;
-    expParams.postKeyPressDelaySec = 0.1;
+    expParams.postKeyPressDelaySec = 0.5;
     expParams.subjectName = subjectName;
     expParams.expKeyType = 'gamepad';
 
@@ -196,7 +196,7 @@ try
     messageAfterSessionImage_1stLine = 'Session completed';
     messageAfterSessionImage_2ndLine = 'Wait for the next session started';
 
-    afterSessionInstructionImage = insertText(initialImageBg,[nullImageSize(2)*textPositionRatioHorz nullImageSize(1)/2-nullImageSize(1)*textPositionRatioVert; nullImageSize(2)*textPositionRatioHorz nullImageSize(1)/2+nullImageSize(1)*textPositionRatioVert],...
+    afterSessionInstructionImage = insertText(nullImage,[nullImageSize(2)*textPositionRatioHorz nullImageSize(1)/2-nullImageSize(1)*textPositionRatioVert; nullImageSize(2)*textPositionRatioHorz nullImageSize(1)/2+nullImageSize(1)*textPositionRatioVert],...
         {messageAfterSessionImage_1stLine messageAfterSessionImage_2ndLine},...
         'fontsize',40,'Font',font,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','black','AnchorPoint','LeftCenter');
 
