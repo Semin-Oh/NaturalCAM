@@ -97,27 +97,42 @@ elseif imageHeightToWidthRatio > 1
     imageType = 'portrait';
 end
 
-
 %% THIS PART SHOULD BE CHANGED TO MAKE RESIZED IMAGE CORRECTLY
 % Set the desired image size. We set it differently over the direction of
 % the test image.
 displayResolutionWidth = windowRect(3);
-predefinedImageSquareSize = displayResolutionWidth * options.testImageSizeRatio;
+sizeBGImage = displayResolutionWidth * options.testImageSizeRatio;
 switch imageType
     case 'landscape'
-        resizedImageWidth = predefinedImageSquareSize;
-        resizedImageHeight = resizedImageWidth * imageHeightToWidthRatio;
+        resizedImageWidth = sizeBGImage;
+        resizedImageHeight = round(resizedImageWidth * imageHeightToWidthRatio);
     case 'portrait'
-        resizedImageHeight = predefinedImageSquareSize;
-        resizedImageWidth = resizedImageHeight * 1/imageHeightToWidthRatio;
+        resizedImageHeight = sizeBGImage;
+        resizedImageWidth = round(resizedImageHeight * 1/imageHeightToWidthRatio);
     otherwise
-        resizedImageHeight = predefinedImageSquareSize;
-        resizedImageWidth = predefinedImageSquareSize;
+        resizedImageHeight = sizeBGImage;
+        resizedImageWidth = sizeBGImage;
 end
 
 % Define the desired size for image placement.
-predefinedImageSquare = zeros(predefinedImageSquareSize,predefinedImageSquareSize,3);
+bGImage = zeros(sizeBGImage,sizeBGImage,3,'uint8');
+testImageResized = imresize(testImage, [resizedImageHeight resizedImageWidth]);
 
+% Define the pixel position to center the test image.
+testImageOnBG = bGImage;
+switch imageType
+    case 'landscape'
+        pixelStart = (sizeBGImage/2) - resizedImageHeight/2;
+        pixelEnd   = (sizeBGImage/2) + resizedImageHeight/2;
+        testImageOnBG(pixelStart:pixelEnd, :, :) = testImageResized;
+    case 'portrait'
+        pixelStart = (sizeBGImage/2) - resizedImageWidth/2;
+        pixelEnd   = (sizeBGImage/2) + resizedImageWidth/2;
+        testImageOnBG(:, pixelStart:pixelEnd, :) = testImageResized;
+end
+
+% Display the result.
+imshow(testImageResized);
 
 % Set the string and location on the test image.
 text_select = 'select';
