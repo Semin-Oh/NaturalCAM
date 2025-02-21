@@ -227,19 +227,19 @@ while true
 
     % Evaluation happens here.
     %
-    % Up button.
+    % Right button.
     if strcmp(keyPressed,buttonRight)
         if idxHue < nUniqueHues
             idxHue = idxHue + 1;
         end
 
-        % Down button.
+        % Left button.
     elseif strcmp(keyPressed,buttonLeft)
         if idxHue >= 2
             idxHue = idxHue - 1;
         end
 
-        % Right button.
+        % Down button.
     elseif strcmp(keyPressed,buttonDown)
         break;
 
@@ -323,7 +323,7 @@ while true
 
     % Right button.
     if strcmp(keyPressed,buttonRight)
-        if idxYN <= length(idxYNOptions)
+        if idxYN < length(idxYNOptions)
             idxYN = idxYN + 1;
         end
         % Left button.

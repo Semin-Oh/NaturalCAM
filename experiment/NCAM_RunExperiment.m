@@ -62,7 +62,7 @@ try
     % Experimental variables.
     expParams.nRepeat = 1;
     expParams.postIntervalDelaySec = 2;
-    expParams.postKeyPressDelaySec = 0.5;
+    expParams.postKeyPressDelaySec = 0.1;
     expParams.subjectName = subjectName;
     expParams.expKeyType = 'gamepad';
 
