@@ -84,9 +84,9 @@ try
 
     % Load the images here. We will read out as an image format.
     for ii = 1:expParams.nTestImages
-    imageName = imageNames{ii};
-    testImageFilename = GetMostRecentFileName(testImageFiledir,imageName);
-    testImage.testImage{ii} = imread(testImageFilename);
+        imageName = imageNames{ii};
+        testImageFilename = GetMostRecentFileName(testImageFiledir,imageName);
+        testImage.testImage{ii} = imread(testImageFilename);
     end
 
     % Set the random order of displaying the test images.
@@ -110,16 +110,16 @@ try
     % Open the PTB screen. We will display an uniform black screen.
     initialScreenSetting = [0 0 0]';
     [window windowRect] = OpenPlainScreen(initialScreenSetting);
-    
+
     % Make a null image here. We set a null image as uniform black screen.
     nullImage = zeros(windowRect(4), windowRect(3), 3);
     nullImageSize = size(nullImage);
-    
+
     % Set the texts to display.
     text_1stLine = 'Press any button';
     text_2ndLine = 'To start the experiment';
     texts = {text_1stLine text_2ndLine};
-    
+
     % Set the text position.
     textPositionRatioHorz = 0.49;
     textPositionRatioVert = 0.03;
@@ -172,7 +172,7 @@ try
         % together in randomized order.
         for ii = 1:expParams.nTestImages
             idxImageName = expParams.randOrder(ii,rr);
-           
+
             % One evaluation happens here using Magnitude estimation method.
             data.hueScore(ii,rr) = GetOneRespMagnitudeEst(testImage.testImage{ii},window,windowRect,...
                 'expKeyType',expParams.expKeyType,'postKeyPressDelaySec',expParams.postKeyPressDelaySec,...
