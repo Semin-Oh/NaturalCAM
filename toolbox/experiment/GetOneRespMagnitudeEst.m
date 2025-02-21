@@ -323,7 +323,7 @@ while true
 
     % Right button.
     if strcmp(keyPressed,buttonRight)
-        if idxYN < length(idxYNOptions)
+        if idxYN <= length(idxYNOptions)
             idxYN = idxYN + 1;
         end
         % Left button.
