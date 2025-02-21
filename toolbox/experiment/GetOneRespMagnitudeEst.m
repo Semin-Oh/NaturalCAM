@@ -159,9 +159,9 @@ texts = [uniqueHues text_select];
 
 % TEXT POSITION WILL BE DECIDED RELATING TO THE LOCATION OF THE PRE-DEFINED
 % SQUARE. For now, we are displaying all the texts horizontally.
-positionHorz = windowRect(3)/2;
-positionVert = windowRect(4)/2;
-positionHorzGap = 100;
+positionHorz = sizeBGImage/2;
+positionVert = sizeBGImage*0.1;
+positionHorzGap = 150;
 
 % Set the positions of unique hue text.
 textPosition_red = [positionHorz positionVert];
@@ -235,7 +235,7 @@ while true
 
         % Down button.
     elseif strcmp(keyPressed,buttonLeft)
-        if idxHue > 2
+        if idxHue >== 2
             idxHue = idxHue - 1;
         end
 
@@ -470,15 +470,15 @@ if strcmp(isSecondaryHue,'yes')
         end
 
         % Evaluation happens here.
-        if strcmp(keyPressed,buttonUp)
+        if strcmp(keyPressed,buttonRight)
             if prop1 < 100
                 prop1 = prop1 + options.stepSizeProp;
             end
-        elseif strcmp(keyPressed,buttonDown)
+        elseif strcmp(keyPressed,buttonLeft)
             if prop1 > 0
                 prop1 = prop1 - options.stepSizeProp;
             end
-        elseif strcmp(keyPressed,buttonRight)
+        elseif strcmp(keyPressed,buttonDown)
             break;
 
             % Close the PTB. Force quit the experiment.
@@ -487,7 +487,7 @@ if strcmp(isSecondaryHue,'yes')
             break;
         else
             % Show a message to press a valid key press.
-            fprintf('Press a key either (%s) or (%s) or (%s) or (%s) \n',buttonDown,buttonUp,buttonRight,buttonLeft);
+            fprintf('Press a key either (%s) or (%s) or (%s) or (%s) \n',buttonDown,buttonRight,buttonLeft);
         end
 
         % Set the proportion of the dominant hue in the right range.
