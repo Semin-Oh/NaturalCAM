@@ -86,9 +86,9 @@ end
 
 %% Resize the test image over its direction.
 testImageSize = size(testImage);
-imageHeight = testImageSize(1);
-imageWidth = testImageSize(2);
-imageHeightToWidthRatio = imageHeight/imageWidth;
+testImageHeight = testImageSize(1);
+testImageWidth = testImageSize(2);
+imageHeightToWidthRatio = testImageHeight/testImageWidth;
 if imageHeightToWidthRatio == 1
     imageType = 'square';
 elseif imageHeightToWidthRatio < 1
@@ -119,20 +119,38 @@ bGImage = zeros(sizeBGImage,sizeBGImage,3,'uint8');
 testImageResized = imresize(testImage, [resizedImageHeight resizedImageWidth]);
 
 % Define the pixel position to center the test image.
-testImageOnBG = bGImage;
+testImageResizedOnBG = bGImage;
 switch imageType
     case 'landscape'
         pixelStart = (sizeBGImage/2) - resizedImageHeight/2;
         pixelEnd   = (sizeBGImage/2) + resizedImageHeight/2;
-        testImageOnBG(pixelStart:pixelEnd, :, :) = testImageResized;
+        testImageResizedOnBG(pixelStart:pixelEnd, :, :) = testImageResized;
     case 'portrait'
         pixelStart = (sizeBGImage/2) - resizedImageWidth/2;
         pixelEnd   = (sizeBGImage/2) + resizedImageWidth/2;
-        testImageOnBG(:, pixelStart:pixelEnd, :) = testImageResized;
+        testImageResizedOnBG(:, pixelStart:pixelEnd, :) = testImageResized;
 end
+resizedImageOnBGSize = size(testImageResizedOnBG);
+resizedImageOnBGHeight = resizedImageOnBGSize(1);
+resizedImageOnBGWidth = resizedImageOnBGSize(2);
 
-% Display the result.
-imshow(testImageResized);
+% Check out how we did.
+if (options.verbose)
+    % Original test image.
+    figure;
+    subplot(1,3,1);
+    imshow(testImage);
+    title(sprintf('Original (%d x %d)',testImageHeight,testImageWidth));
+
+    % Resized test image.
+    subplot(1,3,2);
+    imshow(testImageResized);
+    title(sprintf('Resized (%d x %d)',resizedImageHeight,resizedImageWidth));
+
+    % Final test image on the background.
+    subplot(1,3,3);
+    imshow(sprintf('Resized on BG (%d x %d)',resizedImageOnBGHeight,resizedImageOnBGWidth));
+end
 
 % Set the string and location on the test image.
 text_select = 'select';
@@ -361,12 +379,12 @@ if strcmp(isSecondaryHue,'yes')
     idxSecondHue = 1;
     % When either red or green was chosen as a dominant hue.
     if ismember(selectedHues,{'red','green'})
-            secondaryHueOptions = {'Yellow','Blue'};
-            textPositions_marker_secondHue = {textPosition_marker_yellow textPosition_marker_blue};
-    % Otherwise, it should be either yellow or blue was chosen.
-    else 
-            secondaryHueOptions = {'Red','Green'};
-            textPositions_marker_secondHue = {textPosition_marker_red textPosition_marker_green};
+        secondaryHueOptions = {'Yellow','Blue'};
+        textPositions_marker_secondHue = {textPosition_marker_yellow textPosition_marker_blue};
+        % Otherwise, it should be either yellow or blue was chosen.
+    else
+        secondaryHueOptions = {'Red','Green'};
+        textPositions_marker_secondHue = {textPosition_marker_red textPosition_marker_green};
     end
 
     while true
