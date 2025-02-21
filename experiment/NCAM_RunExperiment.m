@@ -17,6 +17,13 @@
 %% Initialize.
 close all; clear;
 
+% Add path when using Linux computer.
+pathProject = '/home/gegenfurtner/Documents/MATLAB';
+if isfolder(pathProject)
+    addpath(genpath(pathProject));
+    disp('Project repository has been added to path');
+end
+
 %% Add the repository to the path.
 sysInfo = GetComputerInfo();
 

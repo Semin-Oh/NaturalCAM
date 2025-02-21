@@ -49,7 +49,7 @@ arguments
     testImage
     window (1,1)
     windowRect (1,4)
-    options.testImageSizeRatio (1,1) = 0.2;
+    options.testImageSizeRatio (1,1) = 0.1;
     options.expKeyType = 'gamepad';
     options.postKeyPressDelaySec = 0.5;
     options.stepSizeProp = 5;
@@ -105,10 +105,10 @@ sizeBGImage = displayResolutionWidth * options.testImageSizeRatio;
 switch imageType
     case 'landscape'
         resizedImageWidth = sizeBGImage;
-        resizedImageHeight = round(resizedImageWidth * imageHeightToWidthRatio);
+        resizedImageHeight = resizedImageWidth * imageHeightToWidthRatio;
     case 'portrait'
         resizedImageHeight = sizeBGImage;
-        resizedImageWidth = round(resizedImageHeight * 1/imageHeightToWidthRatio);
+        resizedImageWidth = resizedImageHeight * 1/imageHeightToWidthRatio;
     otherwise
         resizedImageHeight = sizeBGImage;
         resizedImageWidth = sizeBGImage;
@@ -126,8 +126,8 @@ switch imageType
         pixelEnd   = (sizeBGImage/2) + resizedImageHeight/2;
         testImageResizedOnBG(pixelStart:pixelEnd, :, :) = testImageResized;
     case 'portrait'
-        pixelStart = (sizeBGImage/2) - resizedImageWidth/2;
-        pixelEnd   = (sizeBGImage/2) + resizedImageWidth/2;
+        pixelStart = (sizeBGImage/2 - resizedImageWidth/2);
+        pixelEnd   = pixelStart + resizedImageWidth;
         testImageResizedOnBG(:, pixelStart:pixelEnd, :) = testImageResized;
 end
 resizedImageOnBGSize = size(testImageResizedOnBG);
@@ -149,7 +149,8 @@ if (options.verbose)
 
     % Final test image on the background.
     subplot(1,3,3);
-    imshow(sprintf('Resized on BG (%d x %d)',resizedImageOnBGHeight,resizedImageOnBGWidth));
+    imshow(testImageResizedOnBG);
+    title(sprintf('Resized on BG (%d x %d)',resizedImageOnBGHeight,resizedImageOnBGWidth));
 end
 
 % Set the string and location on the test image.
@@ -191,7 +192,7 @@ textPosition_marker_initial = textPositions_marker{1};
 textPositions = [textPositions_UH; textPosition_marker_initial];
 
 % Add text to the test image for evaluation.
-testImageWithText = insertText(testImage,textPositions,texts,...
+testImageWithText = insertText(testImageResizedOnBG,textPositions,texts,...
     'font',options.font,'fontsize',40,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','black','AnchorPoint','LeftCenter');
 
 % Display the resized test image.
@@ -254,7 +255,7 @@ while true
     % we update the text and make a new image texture.
     textPosition_marker_updated = textPositions_marker{idxHue};
     textPositions = [textPositions_UH; textPosition_marker_updated];
-    testImageWithText = insertText(testImage,textPositions,texts,...
+    testImageWithText = insertText(testImageResizedOnBG,textPositions,texts,...
         'font',options.font,'fontsize',40,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','black','AnchorPoint','LeftCenter');
 
     % Display the test image with updated texts.
@@ -298,12 +299,12 @@ textPosition_marker_initial = textPositions_markerYN{1};
 textPositions = [textPositions_UH; textPositions_question; textPosition_marker_initial];
 
 % Update the texts on the image.
-testImageWithText = insertText(testImage,textPositions,texts,...
+testImageWithText = insertText(testImageResizedOnBG,textPositions,texts,...
     'font',options.font,'fontsize',40,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','black','AnchorPoint','LeftCenter');
 
 % Display the test image with updated texts.
 [testImageTexture testImageWindowRect rng] = MakeImageTexture(testImageWithText, window, windowRect,'verbose',false);
-FlipImageTexture(testImageTexture,window,windowRect,'verbose',false);
+FlipImageTexture(testImageTexture,window,testImageWindowRect,'verbose',false);
 
 % Answer options to add the secondary hue.
 YNOptions = {'yes','no'};
@@ -346,12 +347,12 @@ while true
     % the same image with different position of the text.
     textPosition_marker_updated = textPositions_markerYN{idxYN};
     textPositions = [textPositions_UH; textPositions_question; textPosition_marker_updated];
-    testImageWithText = insertText(testImage,textPositions,texts,...
+    testImageWithText = insertText(testImageResizedOnBG,textPositions,texts,...
         'font',options.font,'fontsize',40,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','black','AnchorPoint','LeftCenter');
 
     % Display the test image with updated texts.
     [testImageTexture testImageWindowRect rng] = MakeImageTexture(testImageWithText, window, windowRect,'verbose',false);
-    FlipImageTexture(testImageTexture,window,windowRect,'verbose',false);
+    FlipImageTexture(testImageTexture,window,testImageWindowRect,'verbose',false);
 
     % Make a tiny time delay every after key press.
     pause(options.postKeyPressDelaySec);
@@ -425,12 +426,12 @@ if strcmp(isSecondaryHue,'yes')
         texts = [uniqueHues text_select];
         textPosition_marker_updated = textPositions_marker_secondHue{idxSecondHue};
         textPositions = [textPositions_UH; textPosition_marker_updated];
-        testImageWithText = insertText(testImage,textPositions,texts,...
+        testImageWithText = insertText(testImageResizedOnBG,textPositions,texts,...
             'font',options.font,'fontsize',40,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','black','AnchorPoint','LeftCenter');
 
         % Display the test image with updated texts.
         [testImageTexture testImageWindowRect rng] = MakeImageTexture(testImageWithText, window, windowRect,'verbose',false);
-        FlipImageTexture(testImageTexture,window,windowRect,'verbose',false);
+        FlipImageTexture(testImageTexture,window,testImageWindowRect,'verbose',false);
 
         % Make a tiny time delay every after key press.
         pause(options.postKeyPressDelaySec);
@@ -515,12 +516,12 @@ end
 % sort of a real time control.
 texts = [uniqueHues string(prob1) string(prob2)];
 textPositions = [textPositions_UH; textPositions_probs];
-testImageWithText = insertText(testImage,textPositions,texts,...
+testImageWithText = insertText(testImageResizedOnBG,textPositions,texts,...
     'font',options.font,'fontsize',40,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','black','AnchorPoint','LeftCenter');
 
 % Display the test image with updated texts.
 [testImageTexture testImageWindowRect rng] = MakeImageTexture(testImageWithText, window, windowRect,'verbose',false);
-FlipImageTexture(testImageTexture,window,windowRect,'verbose',false);
+FlipImageTexture(testImageTexture,window,testImageWindowRect,'verbose',false);
 
 % Convert the evaluation into hue-400 score.
 evaluation = computeHueScore(selctedHues,proportions);
