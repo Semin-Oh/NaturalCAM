@@ -235,7 +235,7 @@ while true
 
         % Down button.
     elseif strcmp(keyPressed,buttonLeft)
-        if idxHue >== 2
+        if idxHue >= 2
             idxHue = idxHue - 1;
         end
 
