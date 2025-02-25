@@ -141,12 +141,12 @@ resizedImageOnBGWidth = resizedImageOnBGSize(2);
 %     subplot(1,3,1);
 %     imshow(testImage);
 %     title(sprintf('Original (%d x %d)',testImageHeight,testImageWidth));
-% 
+%
 %     % Resized test image.
 %     subplot(1,3,2);
 %     imshow(testImageResized);
 %     title(sprintf('Resized (%d x %d)',resizedImageHeight,resizedImageWidth));
-% 
+%
 %     % Final test image on the background.
 %     subplot(1,3,3);
 %     imshow(testImageResizedOnBG);
@@ -383,7 +383,7 @@ pause(secDelayBTWQuestions);
 %
 % This part is only running when the secondary hue is mixed.
 if strcmp(isSecondaryHue,'yes')
-    
+
     % First, display the initial hue selection screen again.
     texts = [uniqueHues text_select];
     textPositions = [textPositions_UH; textPosition_marker_initial];
@@ -466,23 +466,22 @@ end
 pause(secDelayBTWQuestions);
 
 %% AS a final step, evaluate two unique hues in proportion.
-%
-% Get the index of the selected hues. This part runs only if the secondary
-% hue was selected.
-idx_selectedHue1 = find(strcmp(uniqueHues,selectedHues{1}));
-idx_selectedHue2 = find(strcmp(uniqueHues,selectedHues{2}));
-
-% Set the text positions of the proportions of two unique hues.
-textPosition_prob1 = textPositions_UH(idx_selectedHue1,:);
-textPosition_prob2 = textPositions_UH(idx_selectedHue2,:);
-
-textPosition_prob1(2) = textPosition_prob1(2) + shiftPositionVert;
-textPosition_prob2(2) = textPosition_prob2(2) + shiftPositionVert;
-textPositions_probs = [textPosition_prob1; textPosition_prob2];
-
-% Evaluation happens in this loop.
 if strcmp(isSecondaryHue,'yes')
 
+    % Get the index of the selected hues. This part runs only if the secondary
+    % hue was selected.
+    idx_selectedHue1 = find(strcmp(uniqueHues,selectedHues{1}));
+    idx_selectedHue2 = find(strcmp(uniqueHues,selectedHues{2}));
+
+    % Set the text positions of the proportions of two unique hues.
+    textPosition_prob1 = textPositions_UH(idx_selectedHue1,:);
+    textPosition_prob2 = textPositions_UH(idx_selectedHue2,:);
+
+    textPosition_prob1(2) = textPosition_prob1(2) + shiftPositionVert;
+    textPosition_prob2(2) = textPosition_prob2(2) + shiftPositionVert;
+    textPositions_probs = [textPosition_prob1; textPosition_prob2];
+
+    % Evaluation happens in this loop.
     while true
         % Get a key press here.
         switch options.expKeyType
@@ -526,25 +525,28 @@ if strcmp(isSecondaryHue,'yes')
         % Make a tiny time delay every after key press.
         pause(options.postKeyPressDelaySec);
     end
+
+    % Sanity check.
+    proportions = [prop1 prop2];
+    sumProps = sum(proportions);
+    if ~(sumProps == 100)
+        error('The sum of the proportion does not make sense!')
+    end
+
+    % Dislpay the test image with an updated proportions. This would look like
+    % sort of a real time control.
+    texts = [uniqueHues num2str(prop1) num2str(prop2)];
+    textPositions = [textPositions_UH; textPositions_probs];
+    testImageWithText = insertText(testImageResizedOnBG,textPositions,texts,...
+        'font',options.font,'fontsize',40,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','white','AnchorPoint','LeftCenter');
+
+    % Display the test image with updated texts.
+    [testImageTexture testImageWindowRect rng] = MakeImageTexture(testImageWithText, window, windowRect,'verbose',false);
+    FlipImageTexture(testImageTexture,window,testImageWindowRect,'verbose',false);
+else
+    % When only one unique hue was selected. It gives the result of 100.
+    proportions = prop1;
 end
-
-% Sanity check.
-proportions = [prop1 prop2];
-sumProps = sum(proportions);
-if ~(sumProps == 100)
-    error('The sum of the proportion does not make sense!')
-end
-
-% Dislpay the test image with an updated proportions. This would look like
-% sort of a real time control.
-texts = [uniqueHues num2str(prop1) num2str(prop2)];
-textPositions = [textPositions_UH; textPositions_probs];
-testImageWithText = insertText(testImageResizedOnBG,textPositions,texts,...
-    'font',options.font,'fontsize',40,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','white','AnchorPoint','LeftCenter');
-
-% Display the test image with updated texts.
-[testImageTexture testImageWindowRect rng] = MakeImageTexture(testImageWithText, window, windowRect,'verbose',false);
-FlipImageTexture(testImageTexture,window,testImageWindowRect,'verbose',false);
 
 % Convert the evaluation into hue-400 score.
 evaluation = computeHueScore(selectedHues,proportions);
