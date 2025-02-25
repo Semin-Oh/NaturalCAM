@@ -268,6 +268,10 @@ while true
 end
 selectedHues = uniqueHues(idxHue);
 
+% Make a delay between the selection.
+secDelayBTWQuestions = 0.5;
+pause(secDelayBTWQuestions);
+
 %% Ask if subject wants to add a secondary hue.
 %
 % Add some more texts to display.
@@ -296,8 +300,8 @@ textPosition_marker_yes(2) = textPosition_marker_yes(2) + shiftPositionVert;
 textPosition_marker_no(2) = textPosition_marker_no(2) + shiftPositionVert;
 
 textPositions_markerYN = {textPosition_marker_yes textPosition_marker_no};
-textPosition_marker_initial = textPositions_markerYN{1};
-textPositions = [textPositions_UH; textPositions_question; textPosition_marker_initial];
+textPosition_marker_initial_YN = textPositions_markerYN{1};
+textPositions = [textPositions_UH; textPositions_question; textPosition_marker_initial_YN];
 
 % Update the texts on the image.
 testImageWithText = insertText(testImageResizedOnBG,textPositions,texts,...
@@ -328,10 +332,10 @@ while true
         end
         % Left button.
     elseif strcmp(keyPressed,buttonLeft)
-        if idxYN > 1
+        if idxYN >= 2
             idxYN = idxYN - 1;
         end
-        % Down button.
+        % Down button.isSecondaryHue = YNOptions{idxYN};
     elseif strcmp(keyPressed,buttonDown)
         break;
 
@@ -341,7 +345,7 @@ while true
         break;
     else
         % Show a message to press a valid key press.
-        fprintf('Press a key either (%s) or (%s) or (%s) or (%s) \n',buttonDown,buttonUp,buttonRight);
+        fprintf('Press a key either (%s) or (%s) or (%s) or (%s) \n',buttonLeft,buttonRight,buttonDown);
     end
 
     % Update the image with an updated marker position. Again, it should be
@@ -372,12 +376,28 @@ switch isSecondaryHue
         prop2 = 0;
 end
 
+% Make a delay between the selection.
+pause(secDelayBTWQuestions);
+
 %% Choose which secondary hue to select.
 %
 % This part is only running when the secondary hue is mixed.
 if strcmp(isSecondaryHue,'yes')
+    
+    % First, display the initial hue selection screen again.
+    texts = [uniqueHues text_select];
+    textPositions = [textPositions_UH; textPosition_marker_initial];
+    testImageWithText = insertText(testImageResizedOnBG,textPositions,texts,...
+        'font',options.font,'fontsize',40,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','white','AnchorPoint','LeftCenter');
 
-    % Set secondary hue options differently over the dominant hue.
+    % Flip the screen.
+    [testImageTexture testImageWindowRect rng] = MakeImageTexture(testImageWithText, window, windowRect,'verbose',false);
+    FlipImageTexture(testImageTexture,window,testImageWindowRect,'verbose',false);
+
+    % Make a tiny time delay every after key press.
+    pause(options.postKeyPressDelaySec);
+
+    % From here, evaluate the secondary hue.
     idxSecondHue = 1;
     % When either red or green was chosen as a dominant hue.
     if ismember(selectedHues,{'red','green'})
@@ -441,6 +461,9 @@ if strcmp(isSecondaryHue,'yes')
     % Add the chosen secondary hue to the selected hues.
     selectedHues{end+1} = secondaryHueOptions{idxSecondHue};
 end
+
+% Make a delay between the selection.
+pause(secDelayBTWQuestions);
 
 %% AS a final step, evaluate two unique hues in proportion.
 %
@@ -514,7 +537,7 @@ end
 
 % Dislpay the test image with an updated proportions. This would look like
 % sort of a real time control.
-texts = [uniqueHues num2str(prop1) num2str(prop1)];
+texts = [uniqueHues num2str(prop1) num2str(prop2)];
 textPositions = [textPositions_UH; textPositions_probs];
 testImageWithText = insertText(testImageResizedOnBG,textPositions,texts,...
     'font',options.font,'fontsize',40,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','white','AnchorPoint','LeftCenter');
