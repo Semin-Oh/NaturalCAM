@@ -134,24 +134,24 @@ resizedImageOnBGSize = size(testImageResizedOnBG);
 resizedImageOnBGHeight = resizedImageOnBGSize(1);
 resizedImageOnBGWidth = resizedImageOnBGSize(2);
 
-% Check out how we did.
-if (options.verbose)
-    % Original test image.
-    figure;
-    subplot(1,3,1);
-    imshow(testImage);
-    title(sprintf('Original (%d x %d)',testImageHeight,testImageWidth));
-
-    % Resized test image.
-    subplot(1,3,2);
-    imshow(testImageResized);
-    title(sprintf('Resized (%d x %d)',resizedImageHeight,resizedImageWidth));
-
-    % Final test image on the background.
-    subplot(1,3,3);
-    imshow(testImageResizedOnBG);
-    title(sprintf('Resized on BG (%d x %d)',resizedImageOnBGHeight,resizedImageOnBGWidth));
-end
+% Check out how we did. Disabled for now.
+% if (options.verbose)
+%     % Original test image.
+%     figure;
+%     subplot(1,3,1);
+%     imshow(testImage);
+%     title(sprintf('Original (%d x %d)',testImageHeight,testImageWidth));
+% 
+%     % Resized test image.
+%     subplot(1,3,2);
+%     imshow(testImageResized);
+%     title(sprintf('Resized (%d x %d)',resizedImageHeight,resizedImageWidth));
+% 
+%     % Final test image on the background.
+%     subplot(1,3,3);
+%     imshow(testImageResizedOnBG);
+%     title(sprintf('Resized on BG (%d x %d)',resizedImageOnBGHeight,resizedImageOnBGWidth));
+% end
 
 % Set the string and location on the test image.
 text_select = 'select';
