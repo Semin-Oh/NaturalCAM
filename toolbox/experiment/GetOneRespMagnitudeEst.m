@@ -386,8 +386,9 @@ if strcmp(isSecondaryHue,'yes')
 
     % From here, evaluate the secondary hue.
     idxSecondHue = 1;
+
     % When either red or green was chosen as a dominant hue.
-    if ismember(selectedHues,{'red','green'})
+    if ismember(selectedHues,{'Red','Green'})
         secondaryHueOptions = {'Yellow','Blue'};
         textPositions_marker_secondHue = {textPosition_marker_yellow textPosition_marker_blue};
         % Otherwise, it should be either yellow or blue was chosen.
