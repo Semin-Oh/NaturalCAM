@@ -384,19 +384,6 @@ pause(secDelayBTWQuestions);
 % This part is only running when the secondary hue is mixed.
 if strcmp(isSecondaryHue,'yes')
 
-    % First, display the initial hue selection screen again.
-    texts = [uniqueHues text_select];
-    textPositions = [textPositions_UH; textPosition_marker_initial];
-    testImageWithText = insertText(testImageResizedOnBG,textPositions,texts,...
-        'font',options.font,'fontsize',40,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','white','AnchorPoint','LeftCenter');
-
-    % Flip the screen.
-    [testImageTexture testImageWindowRect rng] = MakeImageTexture(testImageWithText, window, windowRect,'verbose',false);
-    FlipImageTexture(testImageTexture,window,testImageWindowRect,'verbose',false);
-
-    % Make a tiny time delay every after key press.
-    pause(options.postKeyPressDelaySec);
-
     % From here, evaluate the secondary hue.
     idxSecondHue = 1;
     % When either red or green was chosen as a dominant hue.
@@ -408,6 +395,20 @@ if strcmp(isSecondaryHue,'yes')
         secondaryHueOptions = {'Red','Green'};
         textPositions_marker_secondHue = {textPosition_marker_red textPosition_marker_green};
     end
+
+    % First, display the initial hue selection screen again.
+    texts = [uniqueHues text_select];
+    textPosition_marker_initial_SH = textPositions_marker_secondHue{1};
+    textPositions = [textPositions_UH; textPosition_marker_initial_SH];
+    testImageWithText = insertText(testImageResizedOnBG,textPositions,texts,...
+        'font',options.font,'fontsize',40,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','white','AnchorPoint','LeftCenter');
+
+    % Flip the screen.
+    [testImageTexture testImageWindowRect rng] = MakeImageTexture(testImageWithText, window, windowRect,'verbose',false);
+    FlipImageTexture(testImageTexture,window,testImageWindowRect,'verbose',false);
+
+    % Make a tiny time delay every after key press.
+    pause(options.postKeyPressDelaySec);
 
     while true
         % Get a key press here.
@@ -481,6 +482,19 @@ if strcmp(isSecondaryHue,'yes')
     textPosition_prob2(2) = textPosition_prob2(2) + shiftPositionVert;
     textPositions_probs = [textPosition_prob1; textPosition_prob2];
 
+    % First, display the initial hue selection screen with probs.
+    texts = [uniqueHues num2str(prop1) num2str(prop2)];
+    textPositions = [textPositions_UH; textPositions_probs];
+    testImageWithText = insertText(testImageResizedOnBG,textPositions,texts,...
+        'font',options.font,'fontsize',40,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','white','AnchorPoint','LeftCenter');
+
+    % Flip the screen.
+    [testImageTexture testImageWindowRect rng] = MakeImageTexture(testImageWithText, window, windowRect,'verbose',false);
+    FlipImageTexture(testImageTexture,window,testImageWindowRect,'verbose',false);
+
+    % Make a tiny time delay every after key press.
+    pause(options.postKeyPressDelaySec);
+
     % Evaluation happens in this loop.
     while true
         % Get a key press here.
@@ -522,27 +536,27 @@ if strcmp(isSecondaryHue,'yes')
         % Set the proportion of the secondary hue.
         prop2 = 100 - prop1;
 
+        % Sanity check.
+        proportions = [prop1 prop2];
+        sumProps = sum(proportions);
+        if ~(sumProps == 100)
+            error('The sum of the proportion does not make sense!')
+        end
+
+        % Dislpay the test image with an updated proportions. This would look like
+        % sort of a real time control.
+        texts = [uniqueHues num2str(prop1) num2str(prop2)];
+        textPositions = [textPositions_UH; textPositions_probs];
+        testImageWithText = insertText(testImageResizedOnBG,textPositions,texts,...
+            'font',options.font,'fontsize',40,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','white','AnchorPoint','LeftCenter');
+
+        % Display the test image with updated texts.
+        [testImageTexture testImageWindowRect rng] = MakeImageTexture(testImageWithText, window, windowRect,'verbose',false);
+        FlipImageTexture(testImageTexture,window,testImageWindowRect,'verbose',false);
+
         % Make a tiny time delay every after key press.
         pause(options.postKeyPressDelaySec);
     end
-
-    % Sanity check.
-    proportions = [prop1 prop2];
-    sumProps = sum(proportions);
-    if ~(sumProps == 100)
-        error('The sum of the proportion does not make sense!')
-    end
-
-    % Dislpay the test image with an updated proportions. This would look like
-    % sort of a real time control.
-    texts = [uniqueHues num2str(prop1) num2str(prop2)];
-    textPositions = [textPositions_UH; textPositions_probs];
-    testImageWithText = insertText(testImageResizedOnBG,textPositions,texts,...
-        'font',options.font,'fontsize',40,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','white','AnchorPoint','LeftCenter');
-
-    % Display the test image with updated texts.
-    [testImageTexture testImageWindowRect rng] = MakeImageTexture(testImageWithText, window, windowRect,'verbose',false);
-    FlipImageTexture(testImageTexture,window,testImageWindowRect,'verbose',false);
 else
     % When only one unique hue was selected. It gives the result of 100.
     proportions = prop1;
