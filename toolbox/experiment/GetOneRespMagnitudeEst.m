@@ -70,8 +70,6 @@ switch options.expKeyType
         buttonUp = 'up';
         buttonLeft = 'left';
         buttonRight = 'right';
-        buttonReset = 'sideright';
-        % buttonStepSize = '';
         buttonQuit = 'sideleft';
 
     case 'keyboard'
@@ -79,8 +77,6 @@ switch options.expKeyType
         buttonUp = 'UpArrow';
         buttonLeft = 'LeftArrow';
         buttonRight = 'RightArrow';
-        buttonReset = 'r';
-        buttonStepSize = 's';
         buttonQuit = 'q';
 end
 

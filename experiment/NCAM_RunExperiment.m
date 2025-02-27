@@ -32,19 +32,15 @@ switch sysInfo.userShortName
     case 'semin'
         % Office computer.
         baseFiledir = '/Users/semin/Dropbox (Personal)/JLU/2) Projects';
-        font = 'arial';
     case 'gegenfurtner'
         % Lab Linux computer Dropbox directory.
         baseFiledir = '/home/gegenfurtner/Dropbox/JLU/2) Projects';
-        font = 'DejaVuSans';
     case 'colorlab'
         % EIZO computer at the color lab.
         baseFiledir = '~/desktop';
-        font = 'arial';
     otherwise
         % Semin's laptop.
         baseFiledir = 'C:\Users\ohsem\Documents\MATLAB';
-        font = 'arial';
 end
 
 % Set repository name.
