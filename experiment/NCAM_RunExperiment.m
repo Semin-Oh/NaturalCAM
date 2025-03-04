@@ -68,7 +68,8 @@ try
     %% Load the test images.
     %
     % Get the directory where the test images are saved.
-    testImageFiledir = fullfile(testFiledir,'images');
+    testImageFiledir = fullfile(testFiledir,'images','temp');
+    testImageArrowFiledir = fullfile(testFiledir,'images','arrow');
 
     % Get available images.
     imageNameContent = dir(testImageFiledir);
@@ -86,7 +87,9 @@ try
         testImage.testImage{ii} = imread(testImageFilename);
     
         % Read out test image with an arrow on it.
-        testImageArrowFilename = GetMostRecentFileName(testImageFiledir,append(imageName,'_arrow'));
+        [dummy imageNameOnly imageType] = fileparts(imageName);
+        imageArrowName = append(imageNameOnly,'_arrow',imageType);
+        testImageArrowFilename = GetMostRecentFileName(testImageArrowFiledir,imageArrowName);
         if isfile(testImageArrowFilename)
             testImage.testImageArrow{ii} = imread(testImageArrowFilename);
         end

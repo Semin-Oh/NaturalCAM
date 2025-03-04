@@ -1,4 +1,4 @@
-function [evaluation] = GetOneRespMagnitudeEst(testImage,window,windowRect,options)
+function [evaluation] = GetOneRespMagnitudeEst(testImage,testImageArrow,window,windowRect,options)
 % This routine does one evaulation using Magnitude Estimation method.
 % This is written for the NCAM DNN project.
 %
@@ -47,6 +47,7 @@ function [evaluation] = GetOneRespMagnitudeEst(testImage,window,windowRect,optio
 %% Set variables.
 arguments
     testImage
+    testImageArrow
     window (1,1)
     windowRect (1,4)
     options.testImageSizeRatio (1,1) = 0.1;
@@ -149,7 +150,7 @@ resizedImageOnBGWidth = resizedImageOnBGSize(2);
 %     subplot(1,3,1);
 %     imshow(testImage);
 %     title(sprintf('Original (%d x %d)',testImageHeight,testImageWidth));
-%
+%waitsecs
 %     % Resized test image.
 %     subplot(1,3,2);
 %     imshow(testImageResized);
@@ -169,13 +170,13 @@ resizedImageOnBGWidth = resizedImageOnBGSize(2);
 [testImageArrowTexture testImageWindowRect rng] = MakeImageTexture(testImageArrowResizedOnBG, window, windowRect,'verbose',false);
 
 % Flip the test image one another to make an effect of flashing arrow.
-secIntvFlashingArrow = 0.5;
-nFlashes = 3;
+secIntvFlashingArrow = 1;
+nFlashes = 5;
 for ff = 1:nFlashes
     % Test image.
     FlipImageTexture(testImageTexture,window,testImageWindowRect,'verbose',false);
     % Wait for a bit.
-    waitsecs(secIntvFlashingArrow);
+    pause(secIntvFlashingArrow);
     % Test image with arrow.
     FlipImageTexture(testImageArrowTexture,window,testImageWindowRect,'verbose',false);
 end
