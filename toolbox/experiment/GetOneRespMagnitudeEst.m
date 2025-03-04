@@ -93,7 +93,8 @@ elseif imageHeightToWidthRatio > 1
     imageType = 'portrait';
 end
 
-%% THIS PART SHOULD BE CHANGED TO MAKE RESIZED IMAGE CORRECTLY
+%% Resize the test image to fit in the screen.
+%
 % Set the desired image size. We set it differently over the direction of
 % the test image.
 displayResolutionWidth = windowRect(3);
@@ -112,7 +113,12 @@ end
 
 % Define the desired size for image placement.
 bGImage = zeros(sizeBGImage,sizeBGImage,3,'uint8');
+
+% Resize the test image.
 testImageResized = imresize(testImage, [resizedImageHeight resizedImageWidth]);
+
+% Resize the test image with an arrow.
+testImageArrowResized = imresize(testImageArrow, [resizedImageHeight resizedImageWidth]);
 
 % Define the pixel position to center the test image.
 testImageResizedOnBG = bGImage;
@@ -120,11 +126,17 @@ switch imageType
     case 'landscape'
         pixelStart = (sizeBGImage/2) - resizedImageHeight/2;
         pixelEnd   = (sizeBGImage/2) + resizedImageHeight/2;
+        % Test image.
         testImageResizedOnBG(pixelStart:pixelEnd, :, :) = testImageResized;
+        % Test image with an arrow.
+        testImageArrowResizedOnBG(pixelStart:pixelEnd, :, :) = testImageArrowResized;
     case 'portrait'
         pixelStart = (sizeBGImage/2 - resizedImageWidth/2);
         pixelEnd   = pixelStart + resizedImageWidth;
+        % Test image.
         testImageResizedOnBG(:, pixelStart:pixelEnd, :) = testImageResized;
+        % Test image with an arrow.
+        testImageArrowResizedOnBG(:, pixelStart:pixelEnd, :) = testImageArrowResized;
 end
 resizedImageOnBGSize = size(testImageResizedOnBG);
 resizedImageOnBGHeight = resizedImageOnBGSize(1);
@@ -149,6 +161,30 @@ resizedImageOnBGWidth = resizedImageOnBGSize(2);
 %     title(sprintf('Resized on BG (%d x %d)',resizedImageOnBGHeight,resizedImageOnBGWidth));
 % end
 
+%% Here, flashing an arrow to indicate an object to evaluate.
+%
+% Test image.
+[testImageTexture testImageWindowRect rng] = MakeImageTexture(testImageResizedOnBG, window, windowRect,'verbose',false);
+% Test image with an arrow.
+[testImageArrowTexture testImageWindowRect rng] = MakeImageTexture(testImageArrowResizedOnBG, window, windowRect,'verbose',false);
+
+% Flip the test image one another to make an effect of flashing arrow.
+secIntvFlashingArrow = 0.5;
+nFlashes = 3;
+for ff = 1:nFlashes
+    % Test image.
+    FlipImageTexture(testImageTexture,window,testImageWindowRect,'verbose',false);
+    % Wait for a bit.
+    waitsecs(secIntvFlashingArrow);
+    % Test image with arrow.
+    FlipImageTexture(testImageArrowTexture,window,testImageWindowRect,'verbose',false);
+end
+
+%% Display a test image with unique hues in text.
+%
+% We will display four unique hues in letters so that subjects evaluate the
+% hue of the objects.
+% 
 % Set the string and location on the test image.
 text_select = 'select';
 texts = [uniqueHues text_select];

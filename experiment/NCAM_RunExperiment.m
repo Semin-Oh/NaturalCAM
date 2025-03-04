@@ -81,8 +81,15 @@ try
     % Load the images here. We will read out as an image format.
     for ii = 1:expParams.nTestImages
         imageName = imageNames{ii};
+        % Read out test image.
         testImageFilename = GetMostRecentFileName(testImageFiledir,imageName);
         testImage.testImage{ii} = imread(testImageFilename);
+    
+        % Read out test image with an arrow on it.
+        testImageArrowFilename = GetMostRecentFileName(testImageFiledir,append(imageName,'_arrow'));
+        if isfile(testImageArrowFilename)
+            testImage.testImageArrow{ii} = imread(testImageArrowFilename);
+        end
     end
 
     % Set the random order of displaying the test images.
@@ -170,7 +177,7 @@ try
             idxImageName = expParams.randOrder(ii,rr);
 
             % One evaluation happens here using Magnitude estimation method.
-            data.hueScore(ii,rr) = GetOneRespMagnitudeEst(testImage.testImage{ii},window,windowRect,...
+            data.hueScore(ii,rr) = GetOneRespMagnitudeEst(testImage.testImage{ii},testImage.testImageArrow{ii},window,windowRect,...
                 'expKeyType',expParams.expKeyType,'postKeyPressDelaySec',expParams.postKeyPressDelaySec,...
                 'font',font,'verbose',true);
 
