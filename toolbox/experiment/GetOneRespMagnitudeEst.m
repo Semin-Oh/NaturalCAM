@@ -123,6 +123,7 @@ testImageArrowResized = imresize(testImageArrow, [resizedImageHeight resizedImag
 
 % Define the pixel position to center the test image.
 testImageResizedOnBG = bGImage;
+testImageArrowResizedOnBG = bGImage;
 switch imageType
     case 'landscape'
         pixelStart = (sizeBGImage/2) - resizedImageHeight/2;
@@ -170,15 +171,15 @@ resizedImageOnBGWidth = resizedImageOnBGSize(2);
 [testImageArrowTexture testImageWindowRect rng] = MakeImageTexture(testImageArrowResizedOnBG, window, windowRect,'verbose',false);
 
 % Flip the test image one another to make an effect of flashing arrow.
-secIntvFlashingArrow = 1;
-nFlashes = 5;
+secIntvFlashingArrow = 0.5;
+nFlashes = 3;
 for ff = 1:nFlashes
     % Test image.
     FlipImageTexture(testImageTexture,window,testImageWindowRect,'verbose',false);
-    % Wait for a bit.
     pause(secIntvFlashingArrow);
     % Test image with arrow.
     FlipImageTexture(testImageArrowTexture,window,testImageWindowRect,'verbose',false);
+    pause(secIntvFlashingArrow);
 end
 
 %% Display a test image with unique hues in text.
