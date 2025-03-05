@@ -86,13 +86,17 @@ try
         testImageFilename = GetMostRecentFileName(testImageFiledir,imageName);
         testImage.testImage{ii} = imread(testImageFilename);
     
-        % Read out test image with an arrow on it.
-        [dummy imageNameOnly imageType] = fileparts(imageName);
-        imageArrowName = append(imageNameOnly,'_arrow',imageType);
-        testImageArrowFilename = GetMostRecentFileName(testImageArrowFiledir,imageArrowName);
+        % Read out test image with an arrow on it. We saved each image with
+        % an arrow in the same name as the raw test image.
+        testImageArrowFilename = GetMostRecentFileName(testImageArrowFiledir,imageName);
         if isfile(testImageArrowFilename)
             testImage.testImageArrow{ii} = imread(testImageArrowFilename);
         end
+    end
+    
+    % Sanity Check. Make sure there are equal numbers of images with and without arrow.
+    if ~(length(testImage.testImage) == length(testImage.testImageArrow))
+        error('The number of the test images mismatches with and without arrow.');
     end
 
     % Set the random order of displaying the test images.

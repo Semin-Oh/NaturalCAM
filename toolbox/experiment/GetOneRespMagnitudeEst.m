@@ -171,7 +171,7 @@ resizedImageOnBGWidth = resizedImageOnBGSize(2);
 [testImageArrowTexture testImageWindowRect rng] = MakeImageTexture(testImageArrowResizedOnBG, window, windowRect,'verbose',false);
 
 % Flip the test image one another to make an effect of flashing arrow.
-secIntvFlashingArrow = 0.5;
+secIntvFlashingArrow = 0.4;
 nFlashes = 3;
 for ff = 1:nFlashes
     % Test image.
