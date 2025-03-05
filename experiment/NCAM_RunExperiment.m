@@ -68,7 +68,7 @@ try
     %% Load the test images.
     %
     % Get the directory where the test images are saved.
-    testImageFiledir = fullfile(testFiledir,'images','temp');
+    testImageFiledir = fullfile(testFiledir,'images','raw');
     testImageArrowFiledir = fullfile(testFiledir,'images','arrow');
 
     % Get available images.
