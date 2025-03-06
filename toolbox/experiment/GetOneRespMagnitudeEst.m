@@ -28,7 +28,7 @@ function [evaluation] = GetOneRespMagnitudeEst(testImage,testImageArrow,window,w
 %                                 display resolution.
 %    secIntvFlashingArrow       - Time of an arrow staying per flash.
 %                                 Default to 0.4 (sec).
-%    nFlashes                   - The number of repetitions of an arrow
+%    nArrowFlashes              - The number of repetitions of an arrow
 %                                 indicating an object to evaluate. Default
 %                                 to 3.
 %    expKeyType                 - Method to collect the evaluation. Choose
@@ -58,7 +58,7 @@ arguments
     options.testImageSizeRatio (1,1) = 0.1;
     options.expKeyType = 'gamepad';
     options.secIntvFlashingArrow (1,1) = 0.4;
-    options.nFlashes (1,1) = 3;
+    options.nArrowFlashes (1,1) = 3;
     options.postKeyPressDelaySec = 0.5;
     options.stepSizeProp = 5;
     options.font = 'DejaVuSans'
@@ -178,7 +178,7 @@ resizedImageOnBGWidth = resizedImageOnBGSize(2);
 [testImageArrowTexture testImageWindowRect rng] = MakeImageTexture(testImageArrowResizedOnBG, window, windowRect,'verbose',false);
 
 % Flip the test image one another to make an effect of flashing arrow.
-for ff = 1:options.nFlashes
+for ff = 1:options.nArrowFlashes
     % Test image.
     FlipImageTexture(testImageTexture,window,testImageWindowRect,'verbose',false);
     pause(options.secIntvFlashingArrow);

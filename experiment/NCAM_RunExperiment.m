@@ -60,6 +60,8 @@ try
     expParams.nRepeat = 1;
     expParams.postIntervalDelaySec = 2;
     expParams.postKeyPressDelaySec = 0.1;
+    expParams.secIntvFlashingArrow = 0.4;
+    expParams.nArrowFlashes = 3;
     expParams.subjectName = subjectName;
     expParams.expKeyType = 'gamepad';
 
@@ -187,6 +189,7 @@ try
             % One evaluation happens here using Magnitude estimation method.
             data.hueScore(ii,rr) = GetOneRespMagnitudeEst(testImage.testImage{ii},testImage.testImageArrow{ii},window,windowRect,...
                 'expKeyType',expParams.expKeyType,'postKeyPressDelaySec',expParams.postKeyPressDelaySec,...
+                'secIntvFlashingArrow',expParams.secIntvFlashingArrow,'nArrowFlashes',expParams.nArrowFlashes,...
                 'font',font,'verbose',true);
 
             % Display a null image again and pause for a second before
