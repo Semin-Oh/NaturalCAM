@@ -26,6 +26,11 @@ function [evaluation] = GetOneRespMagnitudeEst(testImage,testImageArrow,window,w
 %                                 if this is set to 0.5, the test image
 %                                 will be placed within the 50% size of the
 %                                 display resolution.
+%    secIntvFlashingArrow       - Time of an arrow staying per flash.
+%                                 Default to 0.4 (sec).
+%    nFlashes                   - The number of repetitions of an arrow
+%                                 indicating an object to evaluate. Default
+%                                 to 3.
 %    expKeyType                 - Method to collect the evaluation. Choose
 %                                 either 'keyboard' or 'gamepad'.
 %    postKeyPressDelaySec       - Time delay in sec every after pressing
@@ -52,6 +57,8 @@ arguments
     windowRect (1,4)
     options.testImageSizeRatio (1,1) = 0.1;
     options.expKeyType = 'gamepad';
+    options.secIntvFlashingArrow (1,1) = 0.4;
+    options.nFlashes (1,1) = 3;
     options.postKeyPressDelaySec = 0.5;
     options.stepSizeProp = 5;
     options.font = 'DejaVuSans'
@@ -171,22 +178,20 @@ resizedImageOnBGWidth = resizedImageOnBGSize(2);
 [testImageArrowTexture testImageWindowRect rng] = MakeImageTexture(testImageArrowResizedOnBG, window, windowRect,'verbose',false);
 
 % Flip the test image one another to make an effect of flashing arrow.
-secIntvFlashingArrow = 0.4;
-nFlashes = 3;
-for ff = 1:nFlashes
+for ff = 1:options.nFlashes
     % Test image.
     FlipImageTexture(testImageTexture,window,testImageWindowRect,'verbose',false);
-    pause(secIntvFlashingArrow);
+    pause(options.secIntvFlashingArrow);
     % Test image with arrow.
     FlipImageTexture(testImageArrowTexture,window,testImageWindowRect,'verbose',false);
-    pause(secIntvFlashingArrow);
+    pause(options.secIntvFlashingArrow);
 end
 
 %% Display a test image with unique hues in text.
 %
 % We will display four unique hues in letters so that subjects evaluate the
 % hue of the objects.
-% 
+%
 % Set the string and location on the test image.
 text_select = 'select';
 texts = [uniqueHues text_select];

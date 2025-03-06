@@ -13,6 +13,7 @@
 
 % History:
 %    02/13/25    smo    - Started on it.
+%    03/05/25    smo    - It is working.
 
 %% Initialize.
 close all; clear;
@@ -85,7 +86,7 @@ try
         % Read out test image.
         testImageFilename = GetMostRecentFileName(testImageFiledir,imageName);
         testImage.testImage{ii} = imread(testImageFilename);
-    
+
         % Read out test image with an arrow on it. We saved each image with
         % an arrow in the same name as the raw test image.
         testImageArrowFilename = GetMostRecentFileName(testImageArrowFiledir,imageName);
@@ -93,7 +94,7 @@ try
             testImage.testImageArrow{ii} = imread(testImageArrowFilename);
         end
     end
-    
+
     % Sanity Check. Make sure there are equal numbers of images with and without arrow.
     if ~(length(testImage.testImage) == length(testImage.testImageArrow))
         error('The number of the test images mismatches with and without arrow.');
