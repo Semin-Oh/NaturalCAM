@@ -14,6 +14,7 @@
 % History:
 %    02/13/25    smo    - Started on it.
 %    03/05/25    smo    - It is working.
+%    03/06/25    smo    - working from the start to the end.
 
 %% Initialize.
 close all; clear;
@@ -60,7 +61,7 @@ try
     expParams.nRepeat = 1;
     expParams.postIntervalDelaySec = 2;
     expParams.postKeyPressDelaySec = 0.1;
-    expParams.secIntvFlashingArrow = 0.4;
+    expParams.secIntvFlashingArrow = 0.3;
     expParams.nArrowFlashes = 3;
     expParams.subjectName = subjectName;
     expParams.expKeyType = 'gamepad';
@@ -205,18 +206,20 @@ try
 
     %% Show the screen every after finishing one primary session.
     %
-    % It takes a while saving the results and moving on to the next primary
-    % session, so here we show some screen to say it will take a while.
-    messageAfterSessionImage_1stLine = 'Session completed';
-    messageAfterSessionImage_2ndLine = 'Wait for the next session started';
-
-    afterSessionInstructionImage = insertText(nullImage,[nullImageSize(2)*textPositionRatioHorz nullImageSize(1)/2-nullImageSize(1)*textPositionRatioVert; nullImageSize(2)*textPositionRatioHorz nullImageSize(1)/2+nullImageSize(1)*textPositionRatioVert],...
-        {messageAfterSessionImage_1stLine messageAfterSessionImage_2ndLine},...
-        'fontsize',40,'Font',font,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','black','AnchorPoint','LeftCenter');
-
-    % Display an image texture of the initial image.
-    [afterSessionImageTexture afterSessionImageWindowRect rng] = MakeImageTexture(afterSessionInstructionImage, window, windowRect,'verbose',false);
-    FlipImageTexture(afterSessionImageTexture, window, windowRect,'verbose',false);
+    % DISABLED FOR NOW.
+    % %
+    % % It takes a while saving the results and moving on to the next primary
+    % % session, so here we show some screen to say it will take a while.
+    % messageAfterSessionImage_1stLine = 'Session completed';
+    % messageAfterSessionImage_2ndLine = 'Wait for the next session started';
+    %
+    % afterSessionInstructionImage = insertText(nullImage,[nullImageSize(2)*textPositionRatioHorz nullImageSize(1)/2-nullImageSize(1)*textPositionRatioVert; nullImageSize(2)*textPositionRatioHorz nullImageSize(1)/2+nullImageSize(1)*textPositionRatioVert],...
+    %     {messageAfterSessionImage_1stLine messageAfterSessionImage_2ndLine},...
+    %     'fontsize',40,'Font',font,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','black','AnchorPoint','LeftCenter');
+    %
+    % % Display an image texture of the initial image.
+    % [afterSessionImageTexture afterSessionImageWindowRect rng] = MakeImageTexture(afterSessionInstructionImage, window, windowRect,'verbose',false);
+    % FlipImageTexture(afterSessionImageTexture, window, windowRect,'verbose',false);
 
     %% Save the data. We will save the results separately per each primary.
     if (SAVETHERESULTS)
@@ -233,16 +236,13 @@ try
                 fprintf('Folder has been successfully created: (%s)\n',saveFoldername);
             end
 
-            % Save out the image and experiment params in the structure.
-            data.imageParams = testImage.imageParams;
-            [~, testImageFilename, ~] = fileparts(testImageFilename);
-            data.imageParams.testImageFilename = testImageFilename;
+            % Save out the experiment params in the structure.
             data.expParams = expParams;
 
             % Set the file name and save.
             dayTimestr = datestr(now,'yyyy-mm-dd_HH-MM-SS');
             saveFilename = fullfile(saveFoldername,...
-                sprintf('%s_%s_%s_%s',subjectName,expMode,stripeColorToTest,dayTimestr));
+                sprintf('%s_%s',subjectName,dayTimestr));
             save(saveFilename,'data');
             disp('Data has been saved successfully!');
         end

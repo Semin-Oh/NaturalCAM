@@ -48,6 +48,8 @@ function [evaluation] = GetOneRespMagnitudeEst(testImage,testImageArrow,window,w
 %   02/18/25 smo                - Draft using Magnitude estimation method
 %                                 using either gamepad or keyboard. Needs
 %                                 to be tested if it works.
+%   03/05/25 smo                - Added the part adding arrow to indicate
+%                                 an object for evaluation.
 
 %% Set variables.
 arguments
@@ -405,10 +407,11 @@ end
 % We set the proportion over using one or two unique hues.
 isSecondaryHue = YNOptions{idxYN};
 switch isSecondaryHue
-    % Two unique hues. Starting 50/50.
+    % Two unique hues. Starting 100/0. This way is more intuitive than
+    % starting from 50/50.
     case 'yes'
-        prop1 = 50;
-        prop2 = 50;
+        prop1 = 100;
+        prop2 = 0;
         % Only one unique hue.
     case 'no'
         prop1 = 100;
@@ -621,7 +624,7 @@ if strcmp(isSecondaryHue,'yes')
     end
 else
     % When only one unique hue was selected. It gives the result of 100.
-    proportions = prop1;
+    proportions = [prop1 prop2];
 end
 
 % Convert the evaluation into hue-400 score.
