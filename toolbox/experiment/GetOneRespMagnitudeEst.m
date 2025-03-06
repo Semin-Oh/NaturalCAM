@@ -546,14 +546,36 @@ if strcmp(isSecondaryHue,'yes')
         end
 
         % Evaluation happens here.
+        dominantHueSelected = selectedHues{1};
+        % Right button.
         if strcmp(keyPressed,buttonRight)
-            if prop1 < 100
-                prop1 = prop1 + options.stepSizeProp;
+            % When the dominant hue was either red or green.
+            if or(strcmp(dominantHueSelected,'Red'),strcmp(dominantHueSelected,'Green'))
+                if prop1 > 0
+                    prop1 = prop1 - options.stepSizeProp;
+                end
+            else
+                % For the dominant hue is either yellow or blue.
+                if prop1 < 100
+                    prop1 = prop1 + options.stepSizeProp;
+                end
             end
+
+            % Left button.
         elseif strcmp(keyPressed,buttonLeft)
-            if prop1 > 0
-                prop1 = prop1 - options.stepSizeProp;
+            % When the dominant hue was either yellow or blue.
+            if or(strcmp(dominantHueSelected,'Yellow'),strcmp(dominantHueSelected,'Blue'))
+                if prop1 > 0
+                    prop1 = prop1 - options.stepSizeProp;
+                end
+            else
+                % For the dominant hue is either red or green.
+                if prop1 < 100
+                    prop1 = prop1 + options.stepSizeProp;
+                end
             end
+
+            % Decide button. Move on to the next.
         elseif strcmp(keyPressed,buttonDown)
             break;
 
