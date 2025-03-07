@@ -1,0 +1,5 @@
+XSym
+0035
+5c789f3620cd9c291f641e8612d1cbc8
+/usr/share/libtool/config/ltmain.sh
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
