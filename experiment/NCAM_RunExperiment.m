@@ -15,16 +15,26 @@
 %    02/13/25    smo    - Started on it.
 %    03/05/25    smo    - It is working.
 %    03/06/25    smo    - working from the start to the end.
+%    03/08/25    smo    - Made it work on EIZO computer.
 
 %% Initialize.
 close all; clear;
 
-% Add path when using Linux computer.
-pathProject = '/home/gegenfurtner/Documents/MATLAB';
-if isfolder(pathProject)
-    addpath(genpath(pathProject));
-    disp('Project repository has been added to path');
+% Path names specified per computer.
+pathProjectLinux = '/home/gegenfurtner/Documents/MATLAB';
+pathProjectEIZO = 'C:\Users\fulvous.uni-giessen\Documents\MATLAB';
+
+if isfolder(pathProjectLinux)
+    pathProject = pathProjectLinux;
+elseif isfolder(pathProjectEIZO)
+    pathProject = pathProjectEIZO;
+else
+    error('None of the paths are found. Check out the path again.');
 end
+
+% Add path here.
+addpath(genpath(pathProject));
+disp('Project repository has been added to path');
 
 %% Add the repository to the path.
 sysInfo = GetComputerInfo();
@@ -33,7 +43,7 @@ sysInfo = GetComputerInfo();
 switch sysInfo.userShortName
     case 'semin'
         % Office computer.
-        baseFiledir = '/Users/semin/Dropbox (Personal)/JLU/2) Projects';
+        baseFiledir = '/Users/semin/Dropbox (Personal)/JLU/d2) Projects';
     case 'gegenfurtner'
         % Lab Linux computer Dropbox directory.
         baseFiledir = '/home/gegenfurtner/Dropbox/JLU/2) Projects';
