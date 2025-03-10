@@ -27,15 +27,17 @@ pathProjectEIZO = 'C:\Users\fulvous.uni-giessen\Documents\MATLAB';
 
 if isfolder(pathProjectLinux)
     pathProject = pathProjectLinux;
+    computerType = 'linux';
 elseif isfolder(pathProjectEIZO)
     pathProject = pathProjectEIZO;
+    computerType = 'windows';
 else
     error('None of the paths are found. Check out the path again.');
 end
 
 % Add path here.
 addpath(genpath(pathProject));
-disp('Project repository has been added to path');
+fprintf('Project repository has been added to path - Running on (%s) \n',computerType);
 
 %% Add the repository to the path.
 sysInfo = GetComputerInfo();
@@ -68,7 +70,7 @@ try
     % Experimental variables.
     expParams.nRepeat = 1;
     expParams.postIntervalDelaySec = 2;
-    expParams.postKeyPressDelaySec = 0.1;
+    expParams.postKeyPressDelaySec = 0.15;
     expParams.secIntvFlashingArrow = 0.3;
     expParams.testImageSizeRatio = 0.5;
     expParams.fontSize = 25;
