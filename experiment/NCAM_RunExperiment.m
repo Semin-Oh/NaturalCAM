@@ -15,7 +15,8 @@
 %    02/13/25    smo    - Started on it.
 %    03/05/25    smo    - It is working.
 %    03/06/25    smo    - working from the start to the end.
-%    03/10/25    smo    - Made it work on EIZO computer.
+%    03/10/25    smo    - Made it work on EIZO computer. Also, font sizes
+%                         are updated to fit better on the EIZO monitor.
 
 %% Initialize.
 close all; clear;
@@ -69,6 +70,8 @@ try
     expParams.postIntervalDelaySec = 2;
     expParams.postKeyPressDelaySec = 0.1;
     expParams.secIntvFlashingArrow = 0.3;
+    expParams.testImageSizeRatio = 0.5;
+    expParams.fontSize = 25;
     expParams.nArrowFlashes = 3;
     expParams.subjectName = subjectName;
     expParams.expKeyType = 'gamepad';
@@ -142,8 +145,8 @@ try
     texts = {text_1stLine text_2ndLine};
 
     % Set the text position.
-    textPositionRatioHorz = 0.49;
-    textPositionRatioVert = 0.03;
+    textPositionRatioHorz = 0.43;
+    textPositionRatioVert = 0.02;
     textPositions = [nullImageSize(2)*textPositionRatioHorz nullImageSize(1)/2-nullImageSize(1)*textPositionRatioVert;
         nullImageSize(2)*textPositionRatioHorz nullImageSize(1)/2+nullImageSize(1)*textPositionRatioVert];
 
@@ -159,7 +162,7 @@ try
 
     % Add text into the image.
     nullImageWithTexts = insertText(nullImage,textPositions,texts,...
-        'fontsize',40,'Font',font,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','white','AnchorPoint','LeftTop');
+        'fontsize',35,'Font',font,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','white','AnchorPoint','LeftTop');
 
     % Display an image texture of the initial image.
     [nullImageWithTextsTexture nullImageWithTextsWindowRect rng] = MakeImageTexture(nullImageWithTexts, window, windowRect,'verbose',false);
@@ -196,8 +199,8 @@ try
 
             % One evaluation happens here using Magnitude estimation method.
             data.hueScore(ii,rr) = GetOneRespMagnitudeEst(testImage.testImage{ii},testImage.testImageArrow{ii},window,windowRect,...
-                'expKeyType',expParams.expKeyType,'postKeyPressDelaySec',expParams.postKeyPressDelaySec,...
-                'secIntvFlashingArrow',expParams.secIntvFlashingArrow,'nArrowFlashes',expParams.nArrowFlashes,...
+                'expKeyType',expParams.expKeyType,'postKeyPressDelaySec',expParams.postKeyPressDelaySec,'testImageSizeRatio',expParams.testImageSizeRatio,...
+                'secIntvFlashingArrow',expParams.secIntvFlashingArrow,'nArrowFlashes',expParams.nArrowFlashes,'fontsize',expParams.fontSize,...
                 'font',font,'verbose',true);
 
             % Display a null image again and pause for a second before
