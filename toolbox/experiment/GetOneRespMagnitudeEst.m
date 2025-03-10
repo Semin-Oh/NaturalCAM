@@ -64,6 +64,7 @@ arguments
     options.postKeyPressDelaySec = 0.5;
     options.stepSizeProp = 5;
     options.font = 'DejaVuSans'
+    options.fontSize = 25;
     options.verbose = true;
 end
 
@@ -202,7 +203,7 @@ texts = [uniqueHues text_select];
 % SQUARE. For now, we are displaying all the texts horizontally.
 positionHorz = sizeBGImage/2;
 positionVert = sizeBGImage*0.1;
-positionHorzGap = 150;
+positionHorzGap = sizeBGImage*0.1;
 
 % Set the positions of unique hue text.
 textPosition_red = [positionHorz positionVert];
@@ -215,7 +216,7 @@ textPositions_UH = [textPosition_red; textPosition_green; textPosition_yellow; t
 % right below each unique hue text with another text 'select'.
 %
 % Set how much we will shift the marker from the texts of unique hue.
-shiftPositionVert = 40;
+shiftPositionVert = sizeBGImage*0.03;
 
 % Copy the text positions and make a shift from it.
 textPosition_marker_red = textPosition_red;
@@ -235,7 +236,7 @@ textPositions = [textPositions_UH; textPosition_marker_initial];
 
 % Add text to the test image for evaluation.
 testImageWithText = insertText(testImageResizedOnBG,textPositions,texts,...
-    'font',options.font,'fontsize',40,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','white','AnchorPoint','LeftCenter');
+    'font',options.font,'fontsize',options.fontSize,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','white','AnchorPoint','LeftCenter');
 
 % Display the resized test image.
 [testImageTexture testImageWindowRect rng] = MakeImageTexture(testImageWithText, window, windowRect,'verbose',false);
@@ -298,7 +299,7 @@ while true
     textPosition_marker_updated = textPositions_marker{idxHue};
     textPositions = [textPositions_UH; textPosition_marker_updated];
     testImageWithText = insertText(testImageResizedOnBG,textPositions,texts,...
-        'font',options.font,'fontsize',40,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','white','AnchorPoint','LeftCenter');
+        'font',options.font,'fontsize',options.fontSize,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','white','AnchorPoint','LeftCenter');
 
     % Display the test image with updated texts.
     [testImageTexture testImageWindowRect rng] = MakeImageTexture(testImageWithText, window, windowRect,'verbose',false);
@@ -346,7 +347,7 @@ textPositions = [textPositions_UH; textPositions_question; textPosition_marker_i
 
 % Update the texts on the image.
 testImageWithText = insertText(testImageResizedOnBG,textPositions,texts,...
-    'font',options.font,'fontsize',40,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','white','AnchorPoint','LeftCenter');
+    'font',options.font,'fontsize',options.fontSize,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','white','AnchorPoint','LeftCenter');
 
 % Display the test image with updated texts.
 [testImageTexture testImageWindowRect rng] = MakeImageTexture(testImageWithText, window, windowRect,'verbose',false);
@@ -394,7 +395,7 @@ while true
     textPosition_marker_updated = textPositions_markerYN{idxYN};
     textPositions = [textPositions_UH; textPositions_question; textPosition_marker_updated];
     testImageWithText = insertText(testImageResizedOnBG,textPositions,texts,...
-        'font',options.font,'fontsize',40,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','white','AnchorPoint','LeftCenter');
+        'font',options.font,'fontsize',options.fontSize,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','white','AnchorPoint','LeftCenter');
 
     % Display the test image with updated texts.
     [testImageTexture testImageWindowRect rng] = MakeImageTexture(testImageWithText, window, windowRect,'verbose',false);
@@ -444,7 +445,7 @@ if strcmp(isSecondaryHue,'yes')
     textPosition_marker_initial_SH = textPositions_marker_secondHue{1};
     textPositions = [textPositions_UH; textPosition_marker_initial_SH];
     testImageWithText = insertText(testImageResizedOnBG,textPositions,texts,...
-        'font',options.font,'fontsize',40,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','white','AnchorPoint','LeftCenter');
+        'font',options.font,'fontsize',options.fontSize,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','white','AnchorPoint','LeftCenter');
 
     % Flip the screen.
     [testImageTexture testImageWindowRect rng] = MakeImageTexture(testImageWithText, window, windowRect,'verbose',false);
@@ -492,7 +493,7 @@ if strcmp(isSecondaryHue,'yes')
         textPosition_marker_updated = textPositions_marker_secondHue{idxSecondHue};
         textPositions = [textPositions_UH; textPosition_marker_updated];
         testImageWithText = insertText(testImageResizedOnBG,textPositions,texts,...
-            'font',options.font,'fontsize',40,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','white','AnchorPoint','LeftCenter');
+            'font',options.font,'fontsize',options.fontSize,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','white','AnchorPoint','LeftCenter');
 
         % Display the test image with updated texts.
         [testImageTexture testImageWindowRect rng] = MakeImageTexture(testImageWithText, window, windowRect,'verbose',false);
@@ -529,7 +530,7 @@ if strcmp(isSecondaryHue,'yes')
     texts = [uniqueHues num2str(prop1) num2str(prop2)];
     textPositions = [textPositions_UH; textPositions_probs];
     testImageWithText = insertText(testImageResizedOnBG,textPositions,texts,...
-        'font',options.font,'fontsize',40,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','white','AnchorPoint','LeftCenter');
+        'font',options.font,'fontsize',options.fontSize,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','white','AnchorPoint','LeftCenter');
 
     % Flip the screen.
     [testImageTexture testImageWindowRect rng] = MakeImageTexture(testImageWithText, window, windowRect,'verbose',false);
@@ -613,7 +614,7 @@ if strcmp(isSecondaryHue,'yes')
         texts = [uniqueHues num2str(prop1) num2str(prop2)];
         textPositions = [textPositions_UH; textPositions_probs];
         testImageWithText = insertText(testImageResizedOnBG,textPositions,texts,...
-            'font',options.font,'fontsize',40,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','white','AnchorPoint','LeftCenter');
+            'font',options.font,'fontsize',options.fontSize,'BoxColor',[1 1 1],'BoxOpacity',0,'TextColor','white','AnchorPoint','LeftCenter');
 
         % Display the test image with updated texts.
         [testImageTexture testImageWindowRect rng] = MakeImageTexture(testImageWithText, window, windowRect,'verbose',false);
