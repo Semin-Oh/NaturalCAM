@@ -30,6 +30,7 @@ function [buttonPress] = GetJSResp(options)
 
 % History:
 %   09/11/24 smo                - Wrote it.
+%   03/10/25 smo                - Modified it to work on Windows.
 
 %% Set variables.
 arguments
@@ -42,13 +43,29 @@ arguments
     options.verbose = true;
 end
 
-%% Open the gamepad device file (js0 is typically the first joystick).
-gamepadDir = '/dev/input/js0';
-numGamepad = fopen(gamepadDir,'rb');
+%% Open the gamepad.
+%
+% Decide which machine is on use. We will decide either we are using Linux
+% machine or EIZO monitor. Linux machine gets connected to js0 for gamepad,
+% which is a typically first joystick on the system.
+gamepadDirLinux = '/dev/input/js0';
 
-% Check if there is availabe gamepad.
-if (numGamepad == -1)
-    error('Unable to open joystick device.');
+if isfolder(gamepadDirLinux)
+    % Linux.
+    computerType = 'linux';
+
+    % Check if there is availabe gamepad.
+    numGamepad = fopen(gamepadDirLinux,'rb');
+    if (numGamepad == -1)
+        error('Unable to open joystick device.');
+    end
+else
+    % EIZO monitor. We use different function as it's on Windows.
+    computerType = 'windows';
+
+    % Open the gamepad.
+    numGamepad = 1;
+    vr = vrjoystick(numGamepad);
 end
 
 %% Get a button press here.
@@ -60,38 +77,64 @@ buttonPress = [];
 buttonPressOptions = {'up','down','left','right','sideleft'};
 
 while true
-    % Read out 8 bytes from the joystick input stream.
-    numBytes = 8;
-    data = fread(numGamepad, numBytes);
+    % We use slightly different functions across different machines.
+    switch computerType
+        case 'linux'
+            % Read out 8 bytes from the joystick input stream.
+            numBytes = 8;
+            data = fread(numGamepad, numBytes);
 
-    % Check if we get the button press okay.
-    if isempty(data)
-        break;
-    end
+            % Check if we get the button press okay.
+            if isempty(data)
+                break;
+            end
 
-    % Event time.
-    timeButtonPress = typecast(uint8(data(1:4)), 'uint32');
-    % Value (axis/button)
-    valueButton = typecast(uint8(data(5:6)), 'int16');
-    % Button type.
-    typeButton = data(7);
-    % Button number.
-    numButton = data(8);
+            % Button type.
+            typeButton = data(7);
+            % Button number.
+            numButton = data(8);
 
-    % Check the button type.
-    if (typeButton == options.typeButton)
-        % Get the string of which button was pressed.
-        if (numButton == options.numButtonUp)
-            buttonPress = 'up';
-        elseif (numButton == options.numButtonDown)
-            buttonPress = 'down';
-        elseif (numButton == options.numButtonLeft)
-            buttonPress = 'left';
-        elseif (numButton == options.numButtonRight)
-            buttonPress = 'right';
-        elseif (numButton == options.numButtonSideLeft)
-            buttonPress = 'sideleft';
-        end
+            % Check the button type.
+            if (typeButton == options.typeButton)
+                % Get the string of which button was pressed.
+                if (numButton == options.numButtonUp)
+                    buttonPress = 'up';
+                elseif (numButton == options.numButtonDown)
+                    buttonPress = 'down';
+                elseif (numButton == options.numButtonLeft)
+                    buttonPress = 'left';
+                elseif (numButton == options.numButtonRight)
+                    buttonPress = 'right';
+                elseif (numButton == options.numButtonSideLeft)
+                    buttonPress = 'sideleft';
+                end
+            end
+
+        case 'windows'
+            % Read the button state.
+            buttonState = button(vr);
+            
+            % Get the string of which button was pressed. Allocated numbers
+            % for the buttons are different from the Linux functions, so
+            % update them here.
+            numButtonUpWindows = 4;
+            numButtonDownWindows = 1;
+            numButtonLeftWindows = 3;
+            numButtonRightWindows = 2;
+            numButtonSideLeftWindows = 5;
+
+            if buttonState(numButtonUpWindows)
+                buttonPress = 'up';
+            elseif buttonState(numButtonDownWindows)
+                buttonPress = 'down';
+            elseif buttonState(numButtonLeftWindows)
+                buttonPress = 'left';
+            elseif buttonState(numButtonRightWindows)
+                buttonPress = 'right';
+            elseif buttonState(numButtonSideLeftWindows)
+                buttonPress = 'sideleft';
+            end
+        otherwise
     end
 
     % Close the loop if we got a valid button press.
