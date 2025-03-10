@@ -15,7 +15,7 @@
 %    02/13/25    smo    - Started on it.
 %    03/05/25    smo    - It is working.
 %    03/06/25    smo    - working from the start to the end.
-%    03/08/25    smo    - Made it work on EIZO computer.
+%    03/10/25    smo    - Made it work on EIZO computer.
 
 %% Initialize.
 close all; clear;
@@ -47,12 +47,9 @@ switch sysInfo.userShortName
     case 'gegenfurtner'
         % Lab Linux computer Dropbox directory.
         baseFiledir = '/home/gegenfurtner/Dropbox/JLU/2) Projects';
-    case 'colorlab'
-        % EIZO computer at the color lab.
-        baseFiledir = '~/desktop';
     otherwise
-        % Semin's laptop.
-        baseFiledir = 'C:\Users\ohsem\Documents\MATLAB';
+        % EIZO computer at the color lab.
+        baseFiledir = 'C:\Users\fulvous.uni-giessen\Dropbox\JLU\2) Projects';
 end
 
 % Set repository name.
