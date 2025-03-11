@@ -107,7 +107,7 @@ testImage = FindImageContent(testImage,'verbose',false);
 testImageArrow = FindImageContent(testImageArrow,'verbose',false);
 
 % Sanity check.
-if isequal(size(testImage),size(testImageArrow))
+if ~isequal(size(testImage),size(testImageArrow))
     error('Image resolution mismatch between raw image and arrow image!');
 end
 
