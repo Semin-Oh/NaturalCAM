@@ -72,7 +72,7 @@ try
     expParams.postIntervalDelaySec = 2;
     expParams.postKeyPressDelaySec = 0.15;
     expParams.secIntvFlashingArrow = 0.3;
-    expParams.testImageSizeHeightRatio = 0.9;
+    expParams.testImageSizeHeightRatio = 0.7;
     expParams.fontSize = 25;
     expParams.nArrowFlashes = 3;
     expParams.subjectName = subjectName;
