@@ -133,10 +133,10 @@ sizeBGImage = displayResolutionHeight * options.testImageSizeHeightRatio;
 switch imageType
     case 'landscape'
         resizedImageWidth = sizeBGImage;
-        resizedImageHeight = resizedImageWidth * imageHeightToWidthRatio;
+        resizedImageHeight = round(resizedImageWidth * imageHeightToWidthRatio);
     case 'portrait'
         resizedImageHeight = sizeBGImage;
-        resizedImageWidth = resizedImageHeight * 1/imageHeightToWidthRatio;
+        resizedImageWidth = round(resizedImageHeight * 1/imageHeightToWidthRatio);
     otherwise
         resizedImageHeight = sizeBGImage;
         resizedImageWidth = sizeBGImage;
@@ -156,15 +156,16 @@ testImageResizedOnBG = bGImage;
 testImageArrowResizedOnBG = bGImage;
 switch imageType
     case 'landscape'
-        pixelStart = (sizeBGImage/2) - resizedImageHeight/2;
-        pixelEnd   = (sizeBGImage/2) + resizedImageHeight/2;
+        pixelStart = sizeBGImage/2 - resizedImageHeight/2;
+        % pixelEnd   = (sizeBGImage/2) + resizedImageHeight/2;
+        pixelEnd = pixelStart + resizedImageHeight-1;
         % Test image.
         testImageResizedOnBG(pixelStart:pixelEnd, :, :) = testImageResized;
         % Test image with an arrow.
         testImageArrowResizedOnBG(pixelStart:pixelEnd, :, :) = testImageArrowResized;
     case 'portrait'
-        pixelStart = (sizeBGImage/2 - resizedImageWidth/2);
-        pixelEnd   = pixelStart + resizedImageWidth;
+        pixelStart = sizeBGImage/2 - resizedImageWidth/2;
+        pixelEnd   = pixelStart + resizedImageWidth-1;
         % Test image.
         testImageResizedOnBG(:, pixelStart:pixelEnd, :) = testImageResized;
         % Test image with an arrow.
