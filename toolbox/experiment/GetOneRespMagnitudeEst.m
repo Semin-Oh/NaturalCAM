@@ -50,6 +50,13 @@ function [evaluation] = GetOneRespMagnitudeEst(testImage,testImageArrow,window,w
 %                                 to be tested if it works.
 %   03/05/25 smo                - Added the part adding arrow to indicate
 %                                 an object for evaluation.
+%   03/11/25 smo                - Now we only use the image with its actual
+%                                 image contents by excluding the
+%                                 background. Also, now we set the
+%                                 pre-defined square to put the image based
+%                                 on the display height of the display
+%                                 resolution, which seems making more
+%                                 sense.
 
 %% Set variables.
 arguments
@@ -57,7 +64,7 @@ arguments
     testImageArrow
     window (1,1)
     windowRect (1,4)
-    options.testImageSizeRatio (1,1) = 0.1;
+    options.testImageSizeHeightRatio (1,1) = 0.9;
     options.expKeyType = 'gamepad';
     options.secIntvFlashingArrow (1,1) = 0.4;
     options.nArrowFlashes (1,1) = 3;
@@ -91,6 +98,19 @@ switch options.expKeyType
         buttonQuit = 'q';
 end
 
+%% First, find the actual image content within the input image.
+%
+% CoCo image dataset makes every image in the same resolution by filling
+% the background in black. We want to keep the resolution as the original
+% image, so here we extract the area where the actual images are lying.
+testImage = FindImageContent(testImage,'verbose',false);
+testImageArrow = FindImageContent(testImageArrow,'verbose',false);
+
+% Sanity check.
+if isequal(size(testImage),size(testImageArrow))
+    error('Image resolution mismatch between raw image and arrow image!');
+end
+
 %% Resize the test image over its direction.
 testImageSize = size(testImage);
 testImageHeight = testImageSize(1);
@@ -108,8 +128,8 @@ end
 %
 % Set the desired image size. We set it differently over the direction of
 % the test image.
-displayResolutionWidth = windowRect(3);
-sizeBGImage = displayResolutionWidth * options.testImageSizeRatio;
+displayResolutionHeight = windowRect(4);
+sizeBGImage = displayResolutionHeight * options.testImageSizeHeightRatio;
 switch imageType
     case 'landscape'
         resizedImageWidth = sizeBGImage;

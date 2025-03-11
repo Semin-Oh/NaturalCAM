@@ -72,7 +72,7 @@ try
     expParams.postIntervalDelaySec = 2;
     expParams.postKeyPressDelaySec = 0.15;
     expParams.secIntvFlashingArrow = 0.3;
-    expParams.testImageSizeRatio = 0.5;
+    expParams.testImageSizeHeightRatio = 0.9;
     expParams.fontSize = 25;
     expParams.nArrowFlashes = 3;
     expParams.subjectName = subjectName;
@@ -201,7 +201,7 @@ try
 
             % One evaluation happens here using Magnitude estimation method.
             data.hueScore(ii,rr) = GetOneRespMagnitudeEst(testImage.testImage{ii},testImage.testImageArrow{ii},window,windowRect,...
-                'expKeyType',expParams.expKeyType,'postKeyPressDelaySec',expParams.postKeyPressDelaySec,'testImageSizeRatio',expParams.testImageSizeRatio,...
+                'expKeyType',expParams.expKeyType,'postKeyPressDelaySec',expParams.postKeyPressDelaySec,'testImageSizeHeightRatio',expParams.testImageSizeHeightRatio,...
                 'secIntvFlashingArrow',expParams.secIntvFlashingArrow,'nArrowFlashes',expParams.nArrowFlashes,'fontsize',expParams.fontSize,...
                 'font',font,'verbose',true);
 
