@@ -7,25 +7,32 @@ function [evaluation] = GetOneRespMagnitudeEst(testImage,testImageArrow,window,w
 %    window,windowRect)
 %
 % Description:
-%    dd
+%    This function is used for hue evaluation using Magnitude Estimation
+%    method. Inside the routine, a test image will be displayed with an
+%    arrow flashing within the image, and getting one evaluation in hue for
+%    the object. This could be modified for further experiment evaluating
+%    brightness, chroma, etc.
 %
 % Inputs:
-%    testImage                  -
-%    window
-%    windowRect
+%    testImage                  - Test image for evaluation.
+%    testImageArrow             - Test image with arrow on it indiciating
+%                                 an object for evaluation
+%    window                     - PTB window number.
+%    windowRect                 - PTB window resolution.
 %
 % Outputs:
 %    evaluation                 - Raw data of the evaluation using the
 %                                 magnitude estimation method. This should
-%                                 be a single integer value.
+%                                 be a single integer value. For now, it's
+%                                 hue 400 score.
 %
 % Optional key/value pairs:
 %    testImageSizeRatio         - Ratio of the test image size to the
 %                                 resolution of the display. It's based on
-%                                 the width of the resolution. For example,
+%                                 the height of the resolution. For example,
 %                                 if this is set to 0.5, the test image
 %                                 will be placed within the 50% size of the
-%                                 display resolution.
+%                                 display resolution. Default to 0.9.
 %    secIntvFlashingArrow       - Time of an arrow staying per flash.
 %                                 Default to 0.4 (sec).
 %    nArrowFlashes              - The number of repetitions of an arrow
@@ -37,6 +44,10 @@ function [evaluation] = GetOneRespMagnitudeEst(testImage,testImageArrow,window,w
 %                                 the key.
 %    stepSizeProp               - Step size to control the proportion of
 %                                 each unique hue. Default to 5.
+%    font                       - Font type to display some texts on the
+%                                 screen. Default to DejaVuSans.
+%    fontSize                   - Font size of the texts displaying on the
+%                                 screen. Default to 25.
 %    verbose                    - Boolean. Default true. Controls
 %                                 printout.
 %
@@ -65,9 +76,9 @@ arguments
     window (1,1)
     windowRect (1,4)
     options.testImageSizeHeightRatio (1,1) = 0.9;
-    options.expKeyType = 'gamepad';
     options.secIntvFlashingArrow (1,1) = 0.4;
     options.nArrowFlashes (1,1) = 3;
+    options.expKeyType = 'gamepad';
     options.postKeyPressDelaySec = 0.5;
     options.stepSizeProp = 5;
     options.font = 'DejaVuSans'
