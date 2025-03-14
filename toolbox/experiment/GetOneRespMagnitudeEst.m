@@ -137,9 +137,20 @@ end
 
 %% Resize the test image to fit in the screen.
 %
-% Set the desired image size. We set it differently over the direction of
-% the test image.
+% The idea here is that we make a pre-defined square in the size of display
+% resolution width, then set a smaller square to put the actual image
+% content in it. We will put the text on the background outside the image
+% content. This way, we can avoid overapping between the image and the text
+% while presenting them at the same time. Could be elaborated later, but
+% should be good for now.
+
+% Get the display size.
+displayResolutionWidth = windowRect(3);
 displayResolutionHeight = windowRect(4);
+
+% Set the size of pre-defined square to put the image in. The BG is a
+% bigger background, and the BGImage will contain the actual image content.
+sizeBG = displayResolutionHeight;
 sizeBGImage = displayResolutionHeight * options.testImageSizeHeightRatio;
 switch imageType
     case 'landscape'
@@ -154,56 +165,27 @@ switch imageType
 end
 
 % Define the desired size for image placement.
-bGImage = zeros(sizeBGImage,sizeBGImage,3,'uint8');
+bGImage = zeros(sizeBG,sizeBG,3,'uint8');
 
-% Resize the test image.
+% Resize the test images.
 testImageResized = imresize(testImage, [resizedImageHeight resizedImageWidth]);
-
-% Resize the test image with an arrow.
 testImageArrowResized = imresize(testImageArrow, [resizedImageHeight resizedImageWidth]);
 
 % Define the pixel position to center the test image.
 testImageResizedOnBG = bGImage;
 testImageArrowResizedOnBG = bGImage;
-switch imageType
-    case 'landscape'
-        pixelStart = sizeBGImage/2 - resizedImageHeight/2;
-        % pixelEnd   = (sizeBGImage/2) + resizedImageHeight/2;
-        pixelEnd = pixelStart + resizedImageHeight-1;
-        % Test image.
-        testImageResizedOnBG(pixelStart:pixelEnd, :, :) = testImageResized;
-        % Test image with an arrow.
-        testImageArrowResizedOnBG(pixelStart:pixelEnd, :, :) = testImageArrowResized;
-    case 'portrait'
-        pixelStart = sizeBGImage/2 - resizedImageWidth/2;
-        pixelEnd   = pixelStart + resizedImageWidth-1;
-        % Test image.
-        testImageResizedOnBG(:, pixelStart:pixelEnd, :) = testImageResized;
-        % Test image with an arrow.
-        testImageArrowResizedOnBG(:, pixelStart:pixelEnd, :) = testImageArrowResized;
-end
-resizedImageOnBGSize = size(testImageResizedOnBG);
-resizedImageOnBGHeight = resizedImageOnBGSize(1);
-resizedImageOnBGWidth = resizedImageOnBGSize(2);
 
-% Check out how we did. Disabled for now.
-% if (options.verbose)
-%     % Original test image.
-%     figure;
-%     subplot(1,3,1);
-%     imshow(testImage);
-%     title(sprintf('Original (%d x %d)',testImageHeight,testImageWidth));
-%waitsecs
-%     % Resized test image.
-%     subplot(1,3,2);
-%     imshow(testImageResized);
-%     title(sprintf('Resized (%d x %d)',resizedImageHeight,resizedImageWidth));
-%
-%     % Final test image on the background.
-%     subplot(1,3,3);
-%     imshow(testImageResizedOnBG);
-%     title(sprintf('Resized on BG (%d x %d)',resizedImageOnBGHeight,resizedImageOnBGWidth));
-% end
+% Set the vertical position of the test image.
+pixelStart_height = sizeBG/2 - resizedImageHeight/2;
+pixelEnd_height = pixelStart_height + resizedImageHeight-1;
+
+% Set the horizontal position of the test image.
+pixelStart_width = sizeBG/2 - resizedImageWidth/2;
+pixelEnd_width = pixelStart_width + resizedImageWidth-1;
+
+% Place images on the background.
+testImageResizedOnBG(pixelStart_height:pixelEnd_height, pixelStart_width:pixelEnd_width, :) = testImageResized;
+testImageArrowResizedOnBG(pixelStart_height:pixelEnd_height, pixelStart_width:pixelEnd_width, :) = testImageArrowResized;
 
 %% Here, flashing an arrow to indicate an object to evaluate.
 %
@@ -233,9 +215,9 @@ texts = [uniqueHues text_select];
 
 % TEXT POSITION WILL BE DECIDED RELATING TO THE LOCATION OF THE PRE-DEFINED
 % SQUARE. For now, we are displaying all the texts horizontally.
-positionHorz = sizeBGImage/2;
-positionVert = sizeBGImage*0.1;
-positionHorzGap = sizeBGImage*0.1;
+positionHorz = sizeBG/2;
+positionVert = sizeBG*0.05;
+positionHorzGap = sizeBG*0.08;
 
 % Set the positions of unique hue text.
 textPosition_red = [positionHorz positionVert];
@@ -248,7 +230,7 @@ textPositions_UH = [textPosition_red; textPosition_green; textPosition_yellow; t
 % right below each unique hue text with another text 'select'.
 %
 % Set how much we will shift the marker from the texts of unique hue.
-shiftPositionVert = sizeBGImage*0.03;
+shiftPositionVert = sizeBG*0.03;
 
 % Copy the text positions and make a shift from it.
 textPosition_marker_red = textPosition_red;
