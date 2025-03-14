@@ -55,19 +55,26 @@ function [evaluation] = GetOneRespMagnitudeEst(testImage,testImageArrow,window,w
 %    NCAM_RunExperiment.
 
 % History:
-%   02/17/25 smo                - Wrote it.
-%   02/18/25 smo                - Draft using Magnitude estimation method
+%    02/17/25 smo               - Wrote it.
+%    02/18/25 smo               - Draft using Magnitude estimation method
 %                                 using either gamepad or keyboard. Needs
 %                                 to be tested if it works.
-%   03/05/25 smo                - Added the part adding arrow to indicate
+%    03/05/25 smo               - Added the part adding arrow to indicate
 %                                 an object for evaluation.
-%   03/11/25 smo                - Now we only use the image with its actual
+%    03/11/25 smo               - Now we only use the image with its actual
 %                                 image contents by excluding the
 %                                 background. Also, now we set the
 %                                 pre-defined square to put the image based
 %                                 on the display height of the display
 %                                 resolution, which seems making more
 %                                 sense.
+%    03/14/25 smo               - Now we make two pre-defined square on the
+%                                 screen, one being the background as the
+%                                 size of the display resolution, and put a
+%                                 smaller square inside the square to put
+%                                 the actual image content in. This way, we
+%                                 can avoid the overlapping between the
+%                                 image and the texts.
 
 %% Set variables.
 arguments
