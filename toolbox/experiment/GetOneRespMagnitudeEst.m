@@ -74,7 +74,10 @@ function [evaluation] = GetOneRespMagnitudeEst(testImage,testImageArrow,window,w
 %                                 smaller square inside the square to put
 %                                 the actual image content in. This way, we
 %                                 can avoid the overlapping between the
-%                                 image and the texts.
+%                                 image and the texts. 
+%    03/19/25 smo               - After meeting with Karl, the 'select'
+%                                 text has been substituted with dashed
+%                                 lines.
 
 %% Set variables.
 arguments
@@ -217,8 +220,9 @@ end
 % hue of the objects.
 %
 % Set the string and location on the test image.
-text_select = 'select';
-texts = [uniqueHues text_select];
+text_select_hue = '--------';
+text_select_YN = '----';
+texts = [uniqueHues text_select_hue];
 
 % TEXT POSITION WILL BE DECIDED RELATING TO THE LOCATION OF THE PRE-DEFINED
 % SQUARE. For now, we are displaying all the texts horizontally.
@@ -341,7 +345,7 @@ pause(secDelayBTWQuestions);
 text_secondHue = 'Do you want to add a second hue?';
 text_yes = 'yes';
 text_no = 'no';
-texts = [uniqueHues text_secondHue text_yes text_no text_select];
+texts = [uniqueHues text_secondHue text_yes text_no text_select_YN];
 
 % Set the text message positions. These are arbitrary positions set for
 % now. We will update these once we decide where we display the image on
@@ -462,7 +466,7 @@ if strcmp(isSecondaryHue,'yes')
     end
 
     % First, display the initial hue selection screen again.
-    texts = [uniqueHues text_select];
+    texts = [uniqueHues text_select_hue];
     textPosition_marker_initial_SH = textPositions_marker_secondHue{1};
     textPositions = [textPositions_UH; textPosition_marker_initial_SH];
     testImageWithText = insertText(testImageResizedOnBG,textPositions,texts,...
@@ -510,7 +514,7 @@ if strcmp(isSecondaryHue,'yes')
 
         % Update the image with an updated marker position. Again, it should be
         % the same image with different position of the text.
-        texts = [uniqueHues text_select];
+        texts = [uniqueHues text_select_hue];
         textPosition_marker_updated = textPositions_marker_secondHue{idxSecondHue};
         textPositions = [textPositions_UH; textPosition_marker_updated];
         testImageWithText = insertText(testImageResizedOnBG,textPositions,texts,...
