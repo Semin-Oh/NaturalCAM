@@ -220,8 +220,8 @@ end
 % hue of the objects.
 %
 % Set the string and location on the test image.
-text_select_hue = '--------';
-text_select_YN = '----';
+text_select_hue = '   ^';
+text_select_YN = '  ^';
 texts = [uniqueHues text_select_hue];
 
 % TEXT POSITION WILL BE DECIDED RELATING TO THE LOCATION OF THE PRE-DEFINED
@@ -342,7 +342,7 @@ pause(secDelayBTWQuestions);
 %% Ask if subject wants to add a secondary hue.
 %
 % Add some more texts to display.
-text_secondHue = 'Do you want to add a second hue?';
+text_secondHue = 'Do you want to add a secondary hue?';
 text_yes = 'yes';
 text_no = 'no';
 texts = [uniqueHues text_secondHue text_yes text_no text_select_YN];
