@@ -31,6 +31,8 @@ function [buttonPress] = GetJSResp(options)
 % History:
 %   09/11/24 smo                - Wrote it.
 %   03/10/25 smo                - Modified it to work on Windows.
+%   03/21/25 smo                - Added all possible button options on the
+%                                 gamepad on Windows.
 
 %% Set variables.
 arguments
@@ -74,7 +76,9 @@ end
 % activated. For now, we only activate the four directional buttons on the
 % right side of the gamepad and the one on the side left.
 buttonPress = [];
-buttonPressOptions = {'up','down','left','right','sideleft'};
+% buttonPressOptions = {'up','down','left','right','sideleft',...
+%     'sideright','back','start','lefthandle','righthandle'};
+buttonPressOptions = {'up','down','left','right','back'};
 
 while true
     % We use slightly different functions across different machines.
@@ -113,7 +117,7 @@ while true
         case 'windows'
             % Read the button state.
             buttonState = button(vr);
-            
+
             % Get the string of which button was pressed. Allocated numbers
             % for the buttons are different from the Linux functions, so
             % update them here.
@@ -122,6 +126,9 @@ while true
             numButtonLeftWindows = 3;
             numButtonRightWindows = 2;
             numButtonSideLeftWindows = 5;
+            numButtonSideright = 6;
+            numBottonLefthandle = 9;
+            numBottonRighthandle = 10;
 
             if buttonState(numButtonUpWindows)
                 buttonPress = 'up';
@@ -133,6 +140,16 @@ while true
                 buttonPress = 'right';
             elseif buttonState(numButtonSideLeftWindows)
                 buttonPress = 'sideleft';
+            elseif buttonState(numButtonSideright)
+                buttonPress = 'sideright';
+            elseif buttonState(numButtonBack)
+                buttonPress = 'back';
+            elseif buttonState(numBottonStart)
+                buttonPress = 'start';
+            elseif buttonState(numBottonLefthandle)
+                buttonPress = 'lefthandle';
+            elseif buttonState(numBottonRighthandle)
+                buttonPress = 'righthandle';
             end
         otherwise
     end
