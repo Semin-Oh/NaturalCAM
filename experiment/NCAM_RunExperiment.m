@@ -22,7 +22,9 @@
 %                         we set the time delay after button press
 %                         differently for all evaluations except for the
 %                         one for the proportions. Set it short when
-%                         evaluating for the proportions.
+%                         evaluating for the proportions. Also, mouse
+%                         cursor is not showing on the PTB screen during
+%                         the experiment.
 
 %% Initialize.
 close all; clear;
@@ -147,6 +149,9 @@ try
     % Open the PTB screen. We will display an uniform black screen.
     initialScreenSetting = [0 0 0]';
     [window windowRect] = OpenPlainScreen(initialScreenSetting);
+    
+    % Hide the mouse cursor on the screen.
+    HideCursor;    
 
     % Make a null image here. We set a null image as uniform black screen.
     nullImage = zeros(windowRect(4), windowRect(3), 3);
