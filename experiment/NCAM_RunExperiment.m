@@ -22,8 +22,9 @@
 close all; clear;
 
 % Path names specified per computer.
-pathProjectLinux = '/home/gegenfurtner/Documents/MATLAB';
-pathProjectEIZO = 'C:\Users\fulvous.uni-giessen\Documents\MATLAB';
+projectName = 'NaturalCAM';
+pathProjectLinux = fullfile('/home/gegenfurtner/Documents/MATLAB',projectName);
+pathProjectEIZO = fullfile('C:\Users\fulvous.uni-giessen\Documents\MATLAB',projectName);
 
 if isfolder(pathProjectLinux)
     pathProject = pathProjectLinux;
@@ -56,7 +57,6 @@ switch sysInfo.userShortName
 end
 
 % Set repository name.
-projectName = 'NaturalCAM';
 testFiledir = fullfile(baseFiledir,projectName);
 
 %% Get subject info.

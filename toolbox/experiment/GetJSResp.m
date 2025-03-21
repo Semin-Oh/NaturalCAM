@@ -121,24 +121,26 @@ while true
             % Get the string of which button was pressed. Allocated numbers
             % for the buttons are different from the Linux functions, so
             % update them here.
-            numButtonUpWindows = 4;
-            numButtonDownWindows = 1;
-            numButtonLeftWindows = 3;
-            numButtonRightWindows = 2;
-            numButtonSideLeftWindows = 5;
+            numButtonUp = 4;
+            numButtonDown = 1;
+            numButtonLeft = 3;
+            numButtonRight = 2;
+            numButtonSideLeft = 5;
             numButtonSideright = 6;
+            numButtonBack = 7;
+            numBottonStart = 8;
             numBottonLefthandle = 9;
             numBottonRighthandle = 10;
 
-            if buttonState(numButtonUpWindows)
+            if buttonState(numButtonUp)
                 buttonPress = 'up';
-            elseif buttonState(numButtonDownWindows)
+            elseif buttonState(numButtonDown)
                 buttonPress = 'down';
-            elseif buttonState(numButtonLeftWindows)
+            elseif buttonState(numButtonLeft)
                 buttonPress = 'left';
-            elseif buttonState(numButtonRightWindows)
+            elseif buttonState(numButtonRight)
                 buttonPress = 'right';
-            elseif buttonState(numButtonSideLeftWindows)
+            elseif buttonState(numButtonSideLeft)
                 buttonPress = 'sideleft';
             elseif buttonState(numButtonSideright)
                 buttonPress = 'sideright';

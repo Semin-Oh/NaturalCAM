@@ -78,6 +78,8 @@ function [evaluation] = GetOneRespMagnitudeEst(testImage,testImageArrow,window,w
 %    03/19/25 smo               - After meeting with Karl, the 'select'
 %                                 text has been substituted with dashed
 %                                 lines.
+%    03/21/25 smo               - Now, screen is down by pressing 'back'
+%                                 button on the gamepad.
 
 %% Set variables.
 arguments
@@ -109,7 +111,7 @@ switch options.expKeyType
         buttonUp = 'up';
         buttonLeft = 'left';
         buttonRight = 'right';
-        buttonQuit = 'sideleft';
+        buttonQuit = 'back';
 
     case 'keyboard'
         buttonDown = 'DownArrow';
