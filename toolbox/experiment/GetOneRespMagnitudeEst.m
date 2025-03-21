@@ -42,6 +42,11 @@ function [evaluation] = GetOneRespMagnitudeEst(testImage,testImageArrow,window,w
 %                                 either 'keyboard' or 'gamepad'.
 %    postKeyPressDelaySec       - Time delay in sec every after pressing
 %                                 the key.
+%    postKeyPressDelayPropSec   - Time delay in sec every after a key press
+%                                 for evaluation of the proportion of two
+%                                 hues. This is shorter than the above one
+%                                 so that the evaluation could be done
+%                                 efficiently.
 %    stepSizeProp               - Step size to control the proportion of
 %                                 each unique hue. Default to 5.
 %    font                       - Font type to display some texts on the
@@ -91,8 +96,9 @@ arguments
     options.secIntvFlashingArrow (1,1) = 0.4;
     options.nArrowFlashes (1,1) = 3;
     options.expKeyType = 'gamepad';
-    options.postKeyPressDelaySec = 0.5;
-    options.stepSizeProp = 5;
+    options.postKeyPressDelaySec = 0.15;
+    options.postKeyPressDelayPropSec = 0.05;
+    options.stepSizeProp = 1;
     options.font = 'DejaVuSans'
     options.fontSize = 25;
     options.verbose = true;
@@ -478,9 +484,6 @@ if strcmp(isSecondaryHue,'yes')
     [testImageTexture testImageWindowRect rng] = MakeImageTexture(testImageWithText, window, windowRect,'verbose',false);
     FlipImageTexture(testImageTexture,window,testImageWindowRect,'verbose',false);
 
-    % Make a tiny time delay every after key press.
-    pause(options.postKeyPressDelaySec);
-
     while true
         % Get a key press here.
         switch options.expKeyType
@@ -562,9 +565,6 @@ if strcmp(isSecondaryHue,'yes')
     % Flip the screen.
     [testImageTexture testImageWindowRect rng] = MakeImageTexture(testImageWithText, window, windowRect,'verbose',false);
     FlipImageTexture(testImageTexture,window,testImageWindowRect,'verbose',false);
-
-    % Make a tiny time delay every after key press.
-    pause(options.postKeyPressDelaySec);
 
     % Evaluation happens in this loop.
     while true
@@ -648,7 +648,7 @@ if strcmp(isSecondaryHue,'yes')
         FlipImageTexture(testImageTexture,window,testImageWindowRect,'verbose',false);
 
         % Make a tiny time delay every after key press.
-        pause(options.postKeyPressDelaySec);
+        pause(options.postKeyPressDelayPropSec);
     end
 else
     % When only one unique hue was selected. It gives the result of 100.

@@ -17,6 +17,12 @@
 %    03/06/25    smo    - working from the start to the end.
 %    03/10/25    smo    - Made it work on EIZO computer. Also, font sizes
 %                         are updated to fit better on the EIZO monitor.
+%    03/21/25    smo    - Now measuring the duration of the time of the
+%                         experiment and save it out in the data. Also, now
+%                         we set the time delay after button press
+%                         differently for all evaluations except for the
+%                         one for the proportions. Set it short when
+%                         evaluating for the proportions.
 
 %% Initialize.
 close all; clear;
@@ -71,10 +77,12 @@ try
     expParams.nRepeat = 1;
     expParams.postIntervalDelaySec = 2;
     expParams.postKeyPressDelaySec = 0.15;
+    expParams.postKeyPressDelayPropSec = 0.05;
     expParams.secIntvFlashingArrow = 0.3;
     expParams.testImageSizeHeightRatio = 0.7;
     expParams.fontSize = 25;
     expParams.nArrowFlashes = 3;
+    expParams.stepSizeProp = 1;
     expParams.subjectName = subjectName;
     expParams.expKeyType = 'gamepad';
 
@@ -133,6 +141,9 @@ try
 
     %% Pre-experiment screen shows up here.
     %
+    % We will measure the duration of the time for the whole experiment.
+    tic;
+
     % Open the PTB screen. We will display an uniform black screen.
     initialScreenSetting = [0 0 0]';
     [window windowRect] = OpenPlainScreen(initialScreenSetting);
@@ -203,7 +214,7 @@ try
             data.hueScore(ii,rr) = GetOneRespMagnitudeEst(testImage.testImage{idxTestImage},testImage.testImageArrow{idxTestImage},window,windowRect,...
                 'expKeyType',expParams.expKeyType,'postKeyPressDelaySec',expParams.postKeyPressDelaySec,'testImageSizeHeightRatio',expParams.testImageSizeHeightRatio,...
                 'secIntvFlashingArrow',expParams.secIntvFlashingArrow,'nArrowFlashes',expParams.nArrowFlashes,'fontsize',expParams.fontSize,...
-                'font',font,'verbose',true);
+                'postKeyPressDelayPropSec',expParams.postKeyPressDelayPropSec,'stepSizeProp',expParams.stepSizeProp,'font',font,'verbose',true);
 
             % Display a null image again and pause for a second before
             % displaying the next test image.
@@ -215,6 +226,9 @@ try
             fprintf('Experiment progress - (%d/%d) \n',rr,expParams.nRepeat);
         end
     end
+
+    % Get the measured time for the whole experiment.
+    durationSec = toc;
 
     %% Show the screen every after finishing one primary session.
     %
@@ -248,8 +262,10 @@ try
                 fprintf('Folder has been successfully created: (%s)\n',saveFoldername);
             end
 
-            % Save out the experiment params in the structure.
+            % Save out the experiment params in the structure. We will save
+            % out the duration of the experiment.
             data.expParams = expParams;
+            data.durationSec = durationSec;
 
             % Set the file name and save.
             dayTimestr = datestr(now,'yyyy-mm-dd_HH-MM-SS');
