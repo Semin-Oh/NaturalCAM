@@ -78,7 +78,7 @@ end
 buttonPress = [];
 % buttonPressOptions = {'up','down','left','right','sideleft',...
 %     'sideright','back','start','lefthandle','righthandle'};
-buttonPressOptions = {'up','down','left','right','back'};
+buttonPressOptions = {'up','down','left','right','back','sideright'};
 
 while true
     % We use slightly different functions across different machines.

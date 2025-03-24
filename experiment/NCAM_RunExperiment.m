@@ -25,6 +25,9 @@
 %                         evaluating for the proportions. Also, mouse
 %                         cursor is not showing on the PTB screen during
 %                         the experiment.
+%    03/24/25    smo    - Now 'reset' button is activated, which subject
+%                         can start the evaluation from the beginning when
+%                         unintended buttons were pressed.
 
 %% Initialize.
 close all; clear;
@@ -76,10 +79,11 @@ try
     %% Set variables.
     %
     % Experimental variables.
-    expParams.nRepeat = 1;
+    expParams.nRepeat = 2;
     expParams.postIntervalDelaySec = 2;
     expParams.postKeyPressDelaySec = 0.15;
     expParams.postKeyPressDelayPropSec = 0.05;
+    expParams.secDelayBTWQuestions = 0.5;
     expParams.secIntvFlashingArrow = 0.3;
     expParams.testImageSizeHeightRatio = 0.7;
     expParams.fontSize = 25;
@@ -149,9 +153,9 @@ try
     % Open the PTB screen. We will display an uniform black screen.
     initialScreenSetting = [0 0 0]';
     [window windowRect] = OpenPlainScreen(initialScreenSetting);
-    
+
     % Hide the mouse cursor on the screen.
-    HideCursor;    
+    HideCursor;
 
     % Make a null image here. We set a null image as uniform black screen.
     nullImage = zeros(windowRect(4), windowRect(3), 3);
@@ -218,7 +222,7 @@ try
             % One evaluation happens here using Magnitude estimation method.
             data.hueScore(ii,rr) = GetOneRespMagnitudeEst(testImage.testImage{idxTestImage},testImage.testImageArrow{idxTestImage},window,windowRect,...
                 'expKeyType',expParams.expKeyType,'postKeyPressDelaySec',expParams.postKeyPressDelaySec,'testImageSizeHeightRatio',expParams.testImageSizeHeightRatio,...
-                'secIntvFlashingArrow',expParams.secIntvFlashingArrow,'nArrowFlashes',expParams.nArrowFlashes,'fontsize',expParams.fontSize,...
+                'secIntvFlashingArrow',expParams.secIntvFlashingArrow,'nArrowFlashes',expParams.nArrowFlashes,'fontsize',expParams.fontSize,'secDelayBTWQuestions',expParams.secDelayBTWQuestions,...
                 'postKeyPressDelayPropSec',expParams.postKeyPressDelayPropSec,'stepSizeProp',expParams.stepSizeProp,'font',font,'verbose',true);
 
             % Display a null image again and pause for a second before
