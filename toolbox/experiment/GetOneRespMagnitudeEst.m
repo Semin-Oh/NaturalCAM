@@ -451,6 +451,7 @@ switch isSecondaryHue
         prop1 = 100;
         prop2 = 0;
 end
+proportions = [prop1 prop2];
 
 % Make a delay between the selection.
 pause(secDelayBTWQuestions);
@@ -650,9 +651,6 @@ if strcmp(isSecondaryHue,'yes')
         % Make a tiny time delay every after key press.
         pause(options.postKeyPressDelayPropSec);
     end
-else
-    % When only one unique hue was selected. It gives the result of 100.
-    proportions = [prop1 prop2];
 end
 
 % Convert the evaluation into hue-400 score.
