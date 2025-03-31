@@ -105,6 +105,9 @@ try
     imageNameContent = dir(testImageFiledir);
     imageNameList = {imageNameContent.name};
     imageNames = imageNameList(~startsWith(imageNameList,'.'));
+    
+    % Save out the image names.
+    expParams.imageNames = imageNames;
 
     % Count the number of available images.
     expParams.nTestImages = length(imageNames);
