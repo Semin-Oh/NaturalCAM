@@ -58,7 +58,7 @@ sysInfo = GetComputerInfo();
 switch sysInfo.userShortName
     case 'semin'
         % Office computer.
-        baseFiledir = '/Users/semin/Dropbox (Personal)/JLU/d2) Projects';
+        baseFiledir = '/Users/semin/Dropbox (Personal)/JLU/2) Projects';
     case 'gegenfurtner'
         % Lab Linux computer Dropbox directory.
         baseFiledir = '/home/gegenfurtner/Dropbox/JLU/2) Projects';
