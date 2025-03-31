@@ -11,6 +11,9 @@
 %% Initialize.
 clear; close all;
 
+%% Set variables.
+verbose = true;
+
 %% Get available subject info.
 %
 % Get computer info.
@@ -73,23 +76,87 @@ for ss = 1:nSubjects
     % Sort out the results. Array should look [TestImages x
     % Repeatitions]. For example, if you used 5 test images and 10
     % repeatitions per each test image, the array will look like 5x10.
-    hueScore_sorted = rawData.data.hueScore(idxOrder_sorted);
-
+    %
+    % Be careful when sorting out the array. When the experiment was
+    % repeated more than one time, there will be more than two different
+    % random orders. Each array should be sorted in a corresponding random
+    % order. Here, to be careful on this, we make a loop to sort one by
+    % one.
+    for rr = 1:nRepeat
+        hueScoreTemp =  rawData.data.hueScore(:,rr);
+        idxOrderSortedTemp = idxOrder_sorted(:,rr);
+        hueScore_sorted(:,rr) = hueScoreTemp(idxOrderSortedTemp);
+    end
     % Mean results.
     hueScorePerSub{ss} = hueScore_sorted;
 end
 
-%% Average the data.
-%
-% Put all subjects data into one matrix. The size of the matrix depends on
-% the number of test images, the number of repetitions, and the number of
-% subjects. For example, 31 images were used with 2 repetitions and 10
-% subjects, the matrix will have the size of 31 x 20 (2 rep x 10 subs). 
-hueScoreAllSub = horzcat(hueScorePerSub{:});
+%% Check repeatability - within observer.
+CHECKREPEATABILITY = true;
 
-% Make an average aross the subjects.
-hueScoreMeanAllSub = mean(hueScoreAllSub,2);
+if (CHECKREPEATABILITY)
+    figure; hold on;
+    sgtitle('Repeatability within subject');
 
-%% Plot it.
+    % Make a loop for all subjects.
+    for ss = 1:nSubjects
+        % Get subject name.
+        subjectName = subjectNames{ss};
 
-%% Save out any if you want.
+        % Get one subject data.
+        hueScoreOneSub = hueScorePerSub{ss};
+
+        % Plot it here.
+        subplot(1,nSubjects,ss); hold on;
+        plot(hueScoreOneSub(:,1),hueScoreOneSub(:,2),'k.');
+        plot([0 400],[0 400],'k-');
+        axis square;
+        xlabel('Hue score');
+        ylabel('Hue score');
+        title(subjectName);
+    end
+end
+
+%% Check reproducibiliy - across observer.
+CHECKREPRODUCIBILITY = true;
+
+if (CHECKREPRODUCIBILITY)
+    figure; hold on;
+    sgtitle('Reproducibility across subjects');
+
+    % Calculate the mean results across all subjects. We will compare each
+    % subject's data with the mean.
+    %
+    % First, put all subjects data into one matrix. The size of the matrix
+    % depends on the number of test images, the number of repetitions, and the
+    % number of subjects. For example, 31 images were used with 2 repetitions
+    % and 10 subjects, the matrix will have the size of 31 x 20 (2 rep x 10
+    % subs).
+    hueScoreAllSub = horzcat(hueScorePerSub{:});
+
+    % Make an average per each test image across all subjects and repetitions.
+    % WE NEED TO THINK ABOUT HOW TO MANAGE THE DATA WITHIN THE RANGE BLUE-RED.
+    hueScoreMeanAllSub = mean(hueScoreAllSub,2);
+
+    % Make a loop for all subjects.
+    for ss = 1:nSubjects
+        % Get subject name.
+        subjectName = subjectNames{ss};
+
+        % Get one subject data.
+        hueScoreOneSub = hueScorePerSub{ss};
+
+        % Plot it here.
+        subplot(1,nSubjects,ss); hold on;
+        plot(hueScoreMeanAllSub,hueScoreOneSub(:,1),'k.');
+        plot(hueScoreMeanAllSub,hueScoreOneSub(:,2),'r.');
+        plot([0 400],[0 400],'k-');
+        axis square;
+        xlabel('Hue score (mean)');
+        ylabel('Hue score (individual)');
+        title(subjectName);
+    end
+end
+
+%% Save out things if you want.
+
