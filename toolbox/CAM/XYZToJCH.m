@@ -1,4 +1,4 @@
-function JCh = XYZToJCH(XYZ_target,XYZ_white,LA,options)
+function JCH = XYZToJCH(XYZ_target,XYZ_white,LA,options)
 % Convert XYZ into JCH using CIECAM02 or CAM16.
 %
 % Syntax: JCH = XYZToJCH(XYZ_target,XYZ_white,LA)
@@ -285,7 +285,7 @@ M = C * FL^0.25;
 s = 100 * sqrt(M./Q);
 
 %% Print out variables here.
-JCh = [J; C; h];
+JCH = [J; C; H];
 
 % This part has been deactivated for now. We can customize the variables to
 % print out later on.
