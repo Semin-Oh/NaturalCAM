@@ -27,6 +27,8 @@ function XYZ = JCHToXYZ(JCh,XYZ_white,LA,options)
 %    options.surround         - Set a surround condition. Choose one among
 %                               three: 'average', 'dim', and 'dark'.
 %                               Default to 'average'.
+%    options.whichCAM         - Decide which CAM to calculate. Default to
+%                               CAM16.
 %
 % See also:
 %    XYZToJCH.
@@ -35,6 +37,7 @@ function XYZ = JCHToXYZ(JCh,XYZ_white,LA,options)
 %    07/25/24       smo       - Started on it. And it's working fine. The
 %                               routine gives the same calculation results
 %                               as the official excel file does.
+%    04/01/25       smo       - Added an option to calculate CAM16 values.
 
 %% Set variables.
 arguments
@@ -42,6 +45,7 @@ arguments
     XYZ_white (3,1)
     LA (1,1)
     options.surround = 'average'
+    options.whichCAM = 'CAM16'
 end
 
 % Get the number of the target.
@@ -79,34 +83,49 @@ Ncb = Nbb;
 z = 1.48 + sqrt(n);
 
 %% The 3x3 conversion matrixes from XYZ to RGB.
-%
-% Chromatic adaptation transfer.
-M_CAT02 = [0.7328 0.4296 -0.1624;...
-    -0.7036 1.6975 0.0061;...
-    0.0030 0.0136 0.9834];
-
-% For non-linear post processing.
-M_HPE = [0.38971 0.68898 -0.07868;...
-    -0.22981 1.18340 0.04641;...
-    0.00000 0.00000 1.00000];
+switch options.whichCAM
+    case 'CIECAM02'
+        % Chromatic adaptation transfer.
+        M_CAT = [0.7328 0.4296 -0.1624; ...
+            -0.7036 1.6975 0.0061; ...
+            0.0030 0.0136 0.9834];
+        % For non-linear post processing.
+        M_HPE = [0.38971 0.68898 -0.07868; ...
+            -0.22981 1.18340 0.04641; ...
+            0.00000 0.00000 1.00000];
+        % Exponent used in non-linear response compression.
+        exponent = 0.42;
+    case 'CAM16'
+        M_CAT = [0.401288  0.650173 -0.051461; ...
+            -0.250268  1.204414  0.045854; ...
+            -0.002079  0.048952  0.953127];
+        M_HPE = [0.389986  0.688859 -0.078846; ...
+            -0.229646  1.183883  0.045762; ...
+            0.000000  0.000000  1.000000];
+        exponent = 0.43;
+end
 
 %% Calculate the white point.
 %
 % RGB after chromatic adaptation.
-RGBw =  M_CAT02 * XYZ_white;
+RGBw =  M_CAT * XYZ_white;
 
 D = F*(1-(1/3.6)*exp((-LA-42)/92));
+if strcmpi(options.whichCAM, 'CAM16')
+    D = max(0, min(1, D));
+end
+
 Rcw = ((XYZ_white(2)*D/RGBw(1))+(1-D))*RGBw(1);
 Gcw = ((XYZ_white(2)*D/RGBw(2))+(1-D))*RGBw(2);
 Bcw = ((XYZ_white(2)*D/RGBw(3))+(1-D))*RGBw(3);
 RGBcw = [Rcw; Gcw; Bcw];
 
 % Calculate it back to the XYZ.
-XYZcw = inv(M_CAT02) * RGBcw;
+XYZcw = inv(M_CAT) * RGBcw;
 
 % Then, calculate the post non-linear processing.
 RGBpw = M_HPE * XYZcw;
-RGBpaw = ((400*(FL*RGBpw/100).^(0.42)) ./ (27.13+(FL*RGBpw/100).^(0.42)))+0.1;
+RGBpaw = ((400*(FL*RGBpw/100).^(exponent)) ./ (27.13+(FL*RGBpw/100).^(exponent)))+0.1;
 Aw = (2*RGBpaw(1) + RGBpaw(2) + (1/20)*RGBpaw(3)-0.305) * Nbb;
 
 J = JCh(1,:);
@@ -137,27 +156,27 @@ Bpa(1,:) = (460/1403).*((A./Nbb) + 0.305) - (220./1403).* a - (6300/1403).* b;
 
 cri3_1 = Rpa-0.1;
 cri3 = find(cri3_1 > 0);
-Rp(cri3) = (100./FL) .* (((27.13 .* abs(Rpa(cri3) - 0.1))./(400 - abs(Rpa(cri3) - 0.1))).^(1/0.42));
+Rp(cri3) = (100./FL) .* (((27.13 .* abs(Rpa(cri3) - 0.1))./(400 - abs(Rpa(cri3) - 0.1))).^(1/exponent));
 cri4 = find(cri3_1 <= 0);
-Rp(cri4) = (-1) .* (100./FL).*(((27.13.*abs(Rpa(cri4)-0.1))./(400 - abs(Rpa(cri4) - 0.1))).^(1/0.42));
+Rp(cri4) = (-1) .* (100./FL).*(((27.13.*abs(Rpa(cri4)-0.1))./(400 - abs(Rpa(cri4) - 0.1))).^(1/exponent));
 
 cri5_1 = Gpa-0.1;
 cri5 = find(cri5_1 > 0);
-Gp(cri5) = (100./FL).*(((27.13.* abs(Gpa(cri5) - 0.1))./(400 - abs(Gpa(cri5) - 0.1))).^(1/0.42));
+Gp(cri5) = (100./FL).*(((27.13.* abs(Gpa(cri5) - 0.1))./(400 - abs(Gpa(cri5) - 0.1))).^(1/exponent));
 cri6 = find(cri5_1 <= 0);
-Gp(cri6) = (-1) .* (100./FL).*(((27.13.* abs(Gpa(cri6) - 0.1))./(400 - abs(Gpa(cri6) - 0.1))).^(1/0.42));
+Gp(cri6) = (-1) .* (100./FL).*(((27.13.* abs(Gpa(cri6) - 0.1))./(400 - abs(Gpa(cri6) - 0.1))).^(1/exponent));
 
 cri7_1 = Bpa - 0.1;
 cri7 = find(cri7_1 > 0);
-Bp(cri7) = (100./FL).*(((27.13.* abs(Bpa(cri7) - 0.1))./(400 - abs(Bpa(cri7) - 0.1))).^(1/0.42));
+Bp(cri7) = (100./FL).*(((27.13.* abs(Bpa(cri7) - 0.1))./(400 - abs(Bpa(cri7) - 0.1))).^(1/exponent));
 cri8 = find(cri7_1 <= 0);
-Bp(cri8) = (-1) .* (100./FL).*(((27.13.* abs(Bpa(cri8) - 0.1))./(400 - abs(Bpa(cri8) - 0.1))).^(1/0.42));
+Bp(cri8) = (-1) .* (100./FL).*(((27.13.* abs(Bpa(cri8) - 0.1))./(400 - abs(Bpa(cri8) - 0.1))).^(1/exponent));
 
 RGBp = [Rp; Gp; Bp];
 
 %% Calculate the RGB signals of the corresponding color (Rc,Gc,Bc).
 XYZp = inv(M_HPE)*RGBp;
-RGBc = M_CAT02*XYZp;
+RGBc = M_CAT*XYZp;
 
 %% RGB of the target.
 RGB(1,:) = RGBc(1,:)./((XYZ_white(2)*D/RGBw(1))+(1-D));
@@ -165,4 +184,4 @@ RGB(2,:) = RGBc(2,:)./((XYZ_white(2)*D/RGBw(2))+(1-D));
 RGB(3,:) = RGBc(3,:)./((XYZ_white(2)*D/RGBw(3))+(1-D));
 
 %% Calculate the XYZ of the target.
-XYZ = inv(M_CAT02) * RGB;
+XYZ = inv(M_CAT) * RGB;

@@ -158,5 +158,8 @@ if (CHECKREPRODUCIBILITY)
     end
 end
 
+%% Calculate CAM16 values here.
+
+
 %% Save out things if you want.
 

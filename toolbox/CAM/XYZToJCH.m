@@ -110,6 +110,9 @@ RGBw = M_CAT * XYZ_white;
 
 % Degree of adaptation.
 D = F*(1-(1/3.6)*exp((-LA-42)/92));
+if strcmpi(options.whichCAM, 'CAM16')
+    D = max(0, min(1, D));
+end
 
 % Calculate the corresponding color of the target. Note that the part of
 % the luminance of the white point ('whitepoint(2)') is equal to 100 if
