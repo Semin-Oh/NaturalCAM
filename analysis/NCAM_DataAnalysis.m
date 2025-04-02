@@ -107,7 +107,8 @@ if (CHECKREPEATABILITY)
         hueScoreOneSub = hueScorePerSub{ss};
 
         % Plot it here.
-        subplot(1,nSubjects,ss); hold on;
+        nColumns = 5;
+        subplot(ceil(nSubjects/nColumns),nColumns,ss); hold on;
         plot(hueScoreOneSub(:,1),hueScoreOneSub(:,2),'k.');
         plot([0 400],[0 400],'k-');
         axis square;
@@ -147,7 +148,7 @@ if (CHECKREPRODUCIBILITY)
         hueScoreOneSub = hueScorePerSub{ss};
 
         % Plot it here.
-        subplot(1,nSubjects,ss); hold on;
+        subplot(ceil(nSubjects/5),nColumns,ss); hold on;
         plot(hueScoreMeanAllSub,hueScoreOneSub(:,1),'k.');
         plot(hueScoreMeanAllSub,hueScoreOneSub(:,2),'r.');
         plot([0 400],[0 400],'k-');
