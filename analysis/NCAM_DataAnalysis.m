@@ -159,8 +159,20 @@ if (CHECKREPRODUCIBILITY)
     end
 end
 
-%% Calculate CAM16 values here.
+%% Read out the test image.
 
+
+%% Get the object pixel information.
+
+
+%% Cluster the pixels of interest.
+
+
+%% Estimate the illumination.
+
+
+%% Calculate CAM16 values here.
+% XYZToJCH
 
 %% Save out things if you want.
 
