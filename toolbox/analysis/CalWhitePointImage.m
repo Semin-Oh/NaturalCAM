@@ -1,35 +1,37 @@
-function [XYZw] = CalWhitePointImage(image,options)
+function [mean_dRGB_image_bright] = CalWhitePointImage(image,options)
 % Define the white point within the scene.
 %
 % Syntax:
 %    [XYZw] = CalWhitePointImage(image)
 %
-% Description: 
+% Description:
 %     This routine searches a white point within the scene. We will use a
 %     simple method, so-called 'White patch method'. It basically searches
 %     the brightest pixel (R+G+B) within the scene and treat it as a white
 %     point.
 %
-% Reference: H. R. V., Drew, M. S., Finlayson, G. D., & Rey, P. A. T.
-% (2012, January). The role of bright pixels in illumination estimation. In
-% Color and Imaging Conference (Vol. 2012, No. 1, pp. 41-46). Society for
-% Imaging Science and Technology.
+%     Reference: H. R. V., Drew, M. S., Finlayson, G. D., & Rey, P. A. T.
+%     (2012, January). The role of bright pixels in illumination
+%     estimation. In Color and Imaging Conference (Vol. 2012, No. 1, pp.
+%     41-46). Society for Imaging Science and Technology.
 %
-% 
-% 
 % See also:
-%    Image2CIECAM02.m
+%    Image2CIECAM02.m, NCAM_DataAnalysis.m.
 
 % History:
 %    04/03/25    smo       - Made it as a function.
 
-
 %% Set variables.
+arguments
+    image
+    options.calculationMethod = 'whitepatch'
+    options.maxRGB (1,1) = 255
+    options.percentPixelCutoff (1,1) = 0.9
+    options.percentPixelBright (1,1) = 0.05
+end
 
-
-%% 
-SETWHITEPOINT = 'whitepatch';
-switch SETWHITEPOINT
+%% Calculation happens here.
+switch options.calculationMethod
     case 'whitepatch'
         % First, cut off the extreme pixels. We will remove pixels which exceed
         % 90% of the dynamic range.
@@ -40,9 +42,7 @@ switch SETWHITEPOINT
 
         % Set the boundary to cut off the pixels. Here we will cut off the
         % pixel exceeds the 90% of the dynamic range.
-        maxRGB = 255;
-        percentCutoff = 0.9;
-        dRGB_cutoff = uint8(maxRGB * percentCutoff);
+        dRGB_cutoff = uint8(options.maxRGB * options.percentPixelCutoff);
 
         % Find the index of the array where the pixel exceeds the criteria.
         idxCutoff_R = find(dRGB_image(1,:)>dRGB_cutoff);
@@ -73,23 +73,26 @@ switch SETWHITEPOINT
         % Sort the dRGB in the same order.
         dRGB_image_cutoff_sorted = dRGB_image_cutoff(:,I);
 
-        % Get the mean of the bright pixels.
-        percentBrightest = 0.05;
+        % Get the mean of the bright pixels. We will print out the mean
+        % dRGB values of the bright pixels.
         nPixels = length(sumRGB_image_sorted);
-        idxPecentBrightest = ceil(percentBrightest*nPixels);
+        idxPecentBrightest = ceil(options.percentPixelBright * nPixels);
         dRGB_image_bright = dRGB_image_cutoff_sorted(:,1:idxPecentBrightest);
         mean_dRGB_image_bright = mean(dRGB_image_bright,2);
 
-        % Calculate the rg coordinates.
-        rg_image = RGBTorg(dRGB_image);
-        rg_image_cutoff = RGBTorg(dRGB_image_cutoff);
-        rg_image_cutoff_dummy = RGBTorg(dRGB_image_cutoff_dummy);
-        rg_image_bright = RGBTorg(dRGB_image_bright);
-        rg_image_white = RGBTorg(mean_dRGB_image_bright);
-        rg_white_d65 = RGBTorg([255;255;255]);
-
         % Plot it how we did.
         if (verbose)
+            % Calculate the rg coordinates.
+            rg_image = RGBTorg(dRGB_image);
+            rg_image_cutoff_dummy = RGBTorg(dRGB_image_cutoff_dummy);
+            rg_image_bright = RGBTorg(dRGB_image_bright);
+            rg_image_white = RGBTorg(mean_dRGB_image_bright);
+            
+            % This is only when your monitor setting has the D65 as a white
+            % point.
+            rg_white_d65 = RGBTorg([255;255;255]);
+            
+            % Make a figure here.
             figure; hold on;
 
             % Image.
@@ -114,30 +117,6 @@ switch SETWHITEPOINT
             legend('original','cut-off','bright','white point','d65',...
                 'FontSize',14);
         end
-
-        % Calculate the XYZ values of the white point. We will use this as
-        % a white point for CIECAM02 calculations.
-        XYZ_white = RGBToXYZ(mean_dRGB_image_bright,M_RGB2XYZ,gamma);
-
     otherwise
-        % Otherwise, set it to standard d65.
-        XYZ_white = sum(M_RGB2XYZ,2);
-end
-
-%% Define the adapting luminance (cd/m2).
-%
-% Each image should have different luminance of the scene. Here we set the
-% fixed luminance as 50 (cd/m2) for every image. We should update this part
-% to reflect the actual viewing situations within the image later on.
-switch SETWHITEPOINT
-    case 'whitepatch'
-        % We set the luminance of the adapting field based on the white
-        % point that we searched from the above setting the white point.
-        LA = XYZ_white(2);
-
-    otherwise
-        % You can fix the value if you want. Not sure if if is a good idea
-        % to train the model with COCO image set.
-        LA = 50;
 end
 end
