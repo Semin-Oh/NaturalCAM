@@ -12,6 +12,23 @@
 clear; close all;
 
 %% Set variables.
+%
+% Set display type and its 3x3 characterization matrix. The matrix is read
+% from the recent measurement that made using the routine
+% CalibrateMonitor.m and AnalyzeMonitor.m.
+displayType = 'EIZO';
+switch displayType
+    case 'EIZO'
+        % 3x3 matrix.
+        M_RGBToXYZ =  [62.1997 22.8684 19.2310;...
+            28.5133 78.5446 6.9256;...
+            0.0739 6.3714 99.5962];
+        
+        % Monitor gamma. (R=2.2267, G=2.2271, B=2.1652, Gray=2.1904). We
+        % will use the gray channel gamma for further calculations for now.
+        gamma = 2.1904;
+end
+
 verbose = true;
 
 %% Get available subject info.
@@ -34,10 +51,10 @@ end
 
 % Set repository name.
 projectName = 'NaturalCAM';
-testFiledir = fullfile(baseFiledir,projectName,'data');
+dataFiledir = fullfile(baseFiledir,projectName,'data');
 
 % Get available subject names.
-subjectNameContent = dir(testFiledir);
+subjectNameContent = dir(dataFiledir);
 subjectNameList = {subjectNameContent.name};
 subjectNames = subjectNameList(~startsWith(subjectNameList,'.'));
 
@@ -52,7 +69,7 @@ nSubjects = length(targetSubjectsNames);
 for ss = 1:nSubjects
     % Set the subject name and folder to read.
     subjectName = targetSubjectsNames{ss};
-    dataFiledir = fullfile(testFiledir,subjectName);
+    dataFiledir = fullfile(dataFiledir,subjectName);
 
     % Show the progress.
     fprintf('Data loading: Subject = (%s) / Number of subjects (%d/%d) \n',subjectName,ss,nSubjects);
@@ -160,19 +177,49 @@ if (CHECKREPRODUCIBILITY)
 end
 
 %% Read out the test image.
+imageFiledir = fullfile(baseFiledir,projectName,'images','raw');
 
+% Get available image file names.
+imageNameContent = dir(imageFiledir);
+imageNameList = {imageNameContent.name};
+imageNames = imageNameList(~startsWith(imageNameList,'.'));
+
+% Load the image here.
+image = imread(fullfile(imageFiledir,imageNames{1}));
 
 %% Get the object pixel information.
-
+imageObjectPixels
 
 %% Cluster the pixels of interest.
-
+imageObjectPixelsClustered
 
 %% Estimate the illumination.
+%
+% We will define the white point within the scene using a simple so-called
+% white patch method. It basically searches the brightest pixel (R+G+B)
+% within the scene and treat it as a white point.
+whitePointCalculationMethod = 'whitepatch';
+mean_dRGB_image_bright = CalImageWhitePoint(image,'calculationMethod',whitePointCalculationMethod);
 
+% Calculate the XYZ values of the white point. We will use this as
+% a white point for CIECAM02 calculations.
+XYZ_white = RGBToXYZ(mean_dRGB_image_bright,M_RGBToXYZ,gamma);
+
+%% Define the adapting luminance (cd/m2).
+switch whitePointCalculationMethod
+    case 'whitepatch'
+        % We set the luminance of the adapting field based on the white
+        % point that we searched from the above setting the white point.
+        LA = XYZ_white(2);
+
+    otherwise
+        % You can fix the value if you want. Not sure if if is a good idea
+        % to train the model with COCO image set.
+        LA = 50;
+end
 
 %% Calculate CAM16 values here.
-% XYZToJCH
+XYZToJCH
 
-%% Save out things if you want.
+%% Comparison between experiment results vs. CAM16 estimations.
 

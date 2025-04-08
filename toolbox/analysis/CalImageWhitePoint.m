@@ -1,8 +1,8 @@
-function [mean_dRGB_image_bright] = CalWhitePointImage(image,options)
+function [mean_dRGB_image_bright] = CalImageWhitePoint(image,options)
 % Define the white point within the scene.
 %
 % Syntax:
-%    [XYZw] = CalWhitePointImage(image)
+%    [XYZw] = CalImageWhitePoint(image)
 %
 % Description:
 %     This routine searches a white point within the scene. We will use a
@@ -28,6 +28,7 @@ arguments
     options.maxRGB (1,1) = 255
     options.percentPixelCutoff (1,1) = 0.9
     options.percentPixelBright (1,1) = 0.05
+    options.verbose (1,1) = false
 end
 
 %% Calculation happens here.
@@ -78,10 +79,10 @@ switch options.calculationMethod
         nPixels = length(sumRGB_image_sorted);
         idxPecentBrightest = ceil(options.percentPixelBright * nPixels);
         dRGB_image_bright = dRGB_image_cutoff_sorted(:,1:idxPecentBrightest);
-        mean_dRGB_image_bright = mean(dRGB_image_bright,2);
-
+        mean_dRGB_image_bright = round(mean(dRGB_image_bright,2));
+        
         % Plot it how we did.
-        if (verbose)
+        if (options.verbose)
             % Calculate the rg coordinates.
             rg_image = RGBTorg(dRGB_image);
             rg_image_cutoff_dummy = RGBTorg(dRGB_image_cutoff_dummy);
