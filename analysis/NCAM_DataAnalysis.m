@@ -26,7 +26,7 @@ switch displayType
         
         % Monitor gamma. (R=2.2267, G=2.2271, B=2.1652, Gray=2.1904). We
         % will use the gray channel gamma for further calculations for now.
-        gamma = 2.1904;
+        gamma_display = 2.1904;
 end
 
 verbose = true;
@@ -202,7 +202,7 @@ fclose(fid);
 
 % Get the pixel location of the segmented object.
 pixelSegmentedObject = [segmentData{3} segmentData{4}];
-dRGBSegmentedObject = [segmentData{5} segmentData{6} segmentData{7}]';
+dRGB_segmentedObject = [segmentData{5} segmentData{6} segmentData{7}];
 
 % Check if the object is segmented correct.
 if (verbose)
@@ -212,10 +212,56 @@ if (verbose)
 
     % Overlay the segmentation on the image.
     s = scatter(pixelSegmentedObject(:,1),pixelSegmentedObject(:,2),'b.');
+    legend('Segmented object');
 end
 
 %% Cluster the pixels of interest.
-imageObjectPixelsClustered
+%
+% Convert the pixels into HSV color space.
+hsv_segmentedObject = rgb2hsv(dRGB_segmentedObject./255);
+
+% Step 1: RGB to Lab
+img = im2double(image);
+[h, w, ~] = size(img);
+pixels = reshape(img, [], 3);
+labPixels = rgb2lab(pixels);  % Requires Image Processing Toolbox
+
+% Step 2: Clustering in Lab
+k = 3;
+[idx, centers] = kmeans(labPixels, k, 'Replicates', 5);
+counts = histcounts(idx, k);
+[~, domIdx] = max(counts);
+dominantLab = centers(domIdx, :);
+
+% Plot it.
+figure; hold on;
+plot(labPixels(:,2),labPixels(:,3),'k.');
+plot(labPixels(find(idx==1),2), labPixels(find(idx==1),3),'r.');
+plot(labPixels(find(idx==2),2), labPixels(find(idx==2),3),'g.');
+plot(labPixels(find(idx==3),2), labPixels(find(idx==3),3),'b.');
+plot(dominantLab(2),dominantLab(3),'o','MarkerFaceColor','k');
+
+dominantRGB = round(lab2rgb(dominantLab)*255);
+
+% Extract pixels in a dominant cluster.
+dominantCluster = mode(idx);
+mask = reshape(idx == dominantCluster, h, w);
+dominantPixels = image;  
+for c = 1:3
+    channel = dominantPixels(:,:,c);
+    channel(~mask) = 0;
+    dominantPixels(:,:,c) = channel;
+end
+
+% Plot it.
+figure;
+subplot(1,2,1);
+imshow(image);
+title('Original');
+
+subplot(1,2,2);
+imshow(dominantPixels);
+title('Dominant cluster');
 
 %% Estimate the illumination.
 %
@@ -227,7 +273,7 @@ mean_dRGB_image_bright = CalImageWhitePoint(image,'calculationMethod',whitePoint
 
 % Calculate the XYZ values of the white point. We will use this as
 % a white point for CIECAM02 calculations.
-XYZ_white = RGBToXYZ(mean_dRGB_image_bright,M_RGBToXYZ,gamma);
+XYZ_white = RGBToXYZ(mean_dRGB_image_bright,M_RGBToXYZ,gamma_display);
 
 %% Define the adapting luminance (cd/m2).
 switch whitePointCalculationMethod
