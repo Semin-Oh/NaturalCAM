@@ -185,10 +185,34 @@ imageNameList = {imageNameContent.name};
 imageNames = imageNameList(~startsWith(imageNameList,'.'));
 
 % Load the image here.
-image = imread(fullfile(imageFiledir,imageNames{1}));
+% image = imread(fullfile(imageFiledir,imageNames{1}));
+image = imread(fullfile('/Users/semin/Dropbox (Personal)/JLU/2) Projects/NaturalCAM/images/segmentation/images_labeled','apple2.jpg'));
 
 %% Get the object pixel information.
-imageObjectPixels
+%
+% Load segmentation data. Each file has a total of 7 columns, each being
+% 'image_id', 'object_name', 'x', 'y', 'r', 'g', 'b'. We want to check if
+% the (x, y) coordinates match with an object that we evaluated in the
+% experiment. Further, we will cluster the dominant colored pixels using
+% the rgb info. It might not be the most elaborate way to read .csv file,
+% but it's good for now.
+fid = fopen(fullfile('/Users/semin/Dropbox (Personal)/JLU/2) Projects/NaturalCAM/images/segmentation/segmentation_labeled','apple2.csv'),"r");
+segmentData = textscan(fid, '%f %s %f %f %f %f %f', 'Delimiter', ',', 'HeaderLines', 1);
+fclose(fid);
+
+% Get the pixel location of the segmented object.
+pixelSegmentedObject = [segmentData{3} segmentData{4}];
+dRGBSegmentedObject = [segmentData{5} segmentData{6} segmentData{7}]';
+
+% Check if the object is segmented correct.
+if (verbose)
+    figure;
+    % Plot a test image.
+    imshow(image); hold on;
+
+    % Overlay the segmentation on the image.
+    s = scatter(pixelSegmentedObject(:,1),pixelSegmentedObject(:,2),'b.');
+end
 
 %% Cluster the pixels of interest.
 imageObjectPixelsClustered
