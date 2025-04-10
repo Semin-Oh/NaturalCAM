@@ -143,28 +143,32 @@ for i = 1:options.nClusters
     % end
 end
 
-% Get L*a*b* and digital RGB values of the center of dominant cluster.
+% Get CIELAB values of the center of dominant cluster.
 idxDominantCluster = mode(idxCluster);
 dominantLab = dcd(idxDominantCluster).Lab;
-% dominantRGB = round(lab2rgb(dominantLab)*255);
+
+% Extract image pixel information of the dominant cluster for plotting.
+idxDominantPixels = find(idxCluster==idxDominantCluster);
+pixelPositionDominantCluster = pixel_SegmentedObject(idxDominantPixels,:);
+
+%% Calculate L* value for the center of the dominant cluster.
+%
+% As we find the clusters on the CIELAB a*b* plane, each center of the
+% cluster does not have the L* information. Here, we simply calculate
+% the mean of all pixels in the cluster
+mean_L_dominant = mean(lab_segmentedObject(1,idxDominantPixels));
+dominantLab_final = cat(1,mean_L_dominant,dominantLab');
+
+% Calculate it back to the digital RGB.
+dominantXYZ = LabToXYZ(dominantLab_final,XYZw);
+dominantRGB = XYZToRGB(dominantXYZ,M_RGBToXYZ,gamma_display);
 
 %% Plot the results if you want.
 if (options.verbose)
-
-    % Extract image pixel information of the dominant cluster.
-    idxDominantPixels = find(idxCluster==idxDominantCluster);
-    pixelPositionDominantCluster = pixel_SegmentedObject(idxDominantPixels,:);
-
-    %% Calculate L* value for the center of the dominant cluster.
-    %
-    % As we find the clusters on the CIELAB a*b* plane, each center of the
-    % cluster does not have the L* information. Here, we simply calculate
-    % the mean of all pixels in the cluster
-
-    %% Plot some results
-    %
-    % Original image.
     figure;
+    sgtitle('Image with segmentation and dominant cluster');
+    
+    % Original image.
     subplot(2,2,1);
     imshow(image); hold on;
     title('Original image');
@@ -202,7 +206,11 @@ if (options.verbose)
     ylabel('CIELAB b*');
     axis square;
     grid on;
+    
     title(sprintf('Clusters on a*b* plane (N=%d)',options.nClusters));
+    subtitle(sprintf('Estimated dominant color: L* = (%.2f), a* = (%.2f), b* = (%.2f)',...
+        dominantLab_final(1),dominantLab_final(2),dominantLab_final(3)));
+
     legend(sprintf('Cluster a (%.2f)',dcd(1).Percentage),...
         sprintf('Cluster b (%.2f)',dcd(2).Percentage),...
         sprintf('Cluster c (%.2f)',dcd(3).Percentage),...
