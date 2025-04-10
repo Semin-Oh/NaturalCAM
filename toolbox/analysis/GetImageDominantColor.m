@@ -1,9 +1,9 @@
-function dcd = GetImageDominantColor(image, options)
+function XYZ_dominant = GetImageDominantColor(image, segmentData, M, gamma, XYZw, options)
 % Compute a MPEG-7–style Dominant Color Descriptor (DCD) to pick a dominant
 % color (pixel) within an image.
 %
 % Syntax:
-%    dcd = GetImageDominantColor(image)
+%    XYZ_dominant = GetImageDominantColor(image)
 %
 % Description:
 %    Idea is based on the MPEG-7 Dominant Color Descriptor (DCD). Paper
@@ -18,15 +18,22 @@ function dcd = GetImageDominantColor(image, options)
 %    Visual.
 %
 % Input:
-%    img                     - Input RGB image in image format (HxWx3).
-%    k                       - Number of dominant colors (clusters).
+%    image                   - Input RGB image in image format (HxWx3).
+%    segmentData             - Object segmentation data.
 %
 % Output:
-%    dcd
+%    XYZ_dominant            - CIE XYZ values of the estimated dominant
+%                              color of the segmented object. These values
+%                              are calculated based on the mean of the
+%                              dominant cluster on CIELAB color space.
+%                              Then, it was converted to XYZ.
 %
 % Optional key/value pairs:
-%    k                       - Number of clusters to find using k-means.
+%    nClusters               - Number of clusters to find using k-means.
 %                              Default to 3.
+%    nReplicates             - The number of repetitions to make when
+%                              clustering using k-means. It's common to do
+%                              5-10 times for a qucik search. Default to 5.
 %    verbose                 - Controls message output and plots. Default
 %                              to false.
 %
@@ -34,60 +41,41 @@ function dcd = GetImageDominantColor(image, options)
 %
 
 % History:
-%    04/10/25   smo          - Wrote it.
+%    04/10/25   smo          - Wrote it. As of this date, it can calculate
+%                              the dominant hue of the object using
+%                              k-means. For this version, clustering
+%                              happens in the CIELAB a*b* 2-D plane, which
+%                              works better than on the L*a*b* plane.
 
 %% Set variables.
 arguments
     image
+    segmentData
+    M (3,3)
+    gamma (1,1)
+    XYZw (3,1)
     options.displayType = 'EIZO'
     options.nClusters (1,1) = 3
     options.nReplicates (1,1) = 5
     options.clusterSpace = 'ab'
-    options.verbose = false
+    options.verbose = true
 end
 
-%% Get display charactieristics.
-switch options.displayType
-    case 'EIZO'
-        % 3x3 matrix.
-        M_RGBToXYZ =  [62.1997 22.8684 19.2310;...
-            28.5133 78.5446 6.9256;...
-            0.0739 6.3714 99.5962];
-
-        % Monitor gamma. (R=2.2267, G=2.2271, B=2.1652, Gray=2.1904). We
-        % will use the gray channel gamma for further calculations for now.
-        gamma_display = 2.1904;
-
-        % White point.
-        XYZw = sum(M_RGBToXYZ,2);
-end
-
-%% First, segment the image. We are using CoCo segmentation date here.
+%% Read out segmentation data.
 %
-% Each segmenation file is saved in .csv file. The file contains a total of
-% 7 columns, each being 'image_id', 'object_name', 'x', 'y', 'r', 'g', 'b'.
-%
-% We may want to check if the (x, y) coordinates match with an object.
-% Further, we will cluster the dominant colored pixels using the rgb info.
-% It might not be the most elaborate way to read .csv file, but it's good
-% for now.
-fid = fopen(fullfile('/Users/semin/Dropbox (Personal)/JLU/2) Projects/NaturalCAM/images/segmentation/segmentation_labeled','apple2.csv'),"r");
-segmentData = textscan(fid, '%f %s %f %f %f %f %f', 'Delimiter', ',', 'HeaderLines', 1);
-fclose(fid);
-
-% Get the pixel location and corresponding RGB values of the segmented
-% object.
+% Get the pixel location (column 3,4) and corresponding RGB values (column
+% 5,6,7) of the segmented object.
 pixel_SegmentedObject = [segmentData{3} segmentData{4}];
 dRGB_segmentedObject = [segmentData{5} segmentData{6} segmentData{7}];
 
-%% Convert segmentation to CIELAB values.
+%% Convert segmented object to CIELAB values.
 %
 % Get the image size.
 [h, w, ~] = size(image);
 
 % Calculate CIELAB values of the segmented area.
 % labImage = rgb2lab(im2double(image));
-XYZ_segmentedObject = RGBToXYZ(dRGB_segmentedObject',M_RGBToXYZ,gamma_display);
+XYZ_segmentedObject = RGBToXYZ(dRGB_segmentedObject',M,gamma);
 lab_segmentedObject = XYZToLab(XYZ_segmentedObject,XYZw);
 
 % Decide which space to cluster the pixels. We can do either on CIELAB a*b*
@@ -159,15 +147,15 @@ pixelPositionDominantCluster = pixel_SegmentedObject(idxDominantPixels,:);
 mean_L_dominant = mean(lab_segmentedObject(1,idxDominantPixels));
 dominantLab_final = cat(1,mean_L_dominant,dominantLab');
 
-% Calculate it back to the digital RGB.
-dominantXYZ = LabToXYZ(dominantLab_final,XYZw);
-dominantRGB = XYZToRGB(dominantXYZ,M_RGBToXYZ,gamma_display);
+% Calculate it back to the XYZ and digital RGB values.
+XYZ_dominant = LabToXYZ(dominantLab_final,XYZw);
+% RGB_dominant = XYZToRGB(XYZ_dominant,M,gamma);
 
 %% Plot the results if you want.
 if (options.verbose)
     figure;
     sgtitle('Image with segmentation and dominant cluster');
-    
+
     % Original image.
     subplot(2,2,1);
     imshow(image); hold on;
@@ -206,7 +194,7 @@ if (options.verbose)
     ylabel('CIELAB b*');
     axis square;
     grid on;
-    
+
     title(sprintf('Clusters on a*b* plane (N=%d)',options.nClusters));
     subtitle(sprintf('Estimated dominant color: L* = (%.2f), a* = (%.2f), b* = (%.2f)',...
         dominantLab_final(1),dominantLab_final(2),dominantLab_final(3)));

@@ -7,6 +7,8 @@
 
 % History:
 %    03/31/25    smo     - Started on it.
+%    04/10/25    smo     - Added the estimation of dominant color of the
+%                          object within each image. 
 
 %% Initialize.
 clear; close all;
@@ -23,7 +25,7 @@ switch displayType
         M_RGBToXYZ =  [62.1997 22.8684 19.2310;...
             28.5133 78.5446 6.9256;...
             0.0739 6.3714 99.5962];
-        
+
         % Monitor gamma. (R=2.2267, G=2.2271, B=2.1652, Gray=2.1904). We
         % will use the gray channel gamma for further calculations for now.
         gamma_display = 2.1904;
@@ -69,14 +71,14 @@ nSubjects = length(targetSubjectsNames);
 for ss = 1:nSubjects
     % Set the subject name and folder to read.
     subjectName = targetSubjectsNames{ss};
-    dataFiledir = fullfile(dataFiledir,subjectName);
+    subDataFiledir = fullfile(dataFiledir,subjectName);
 
     % Show the progress.
     fprintf('Data loading: Subject = (%s) / Number of subjects (%d/%d) \n',subjectName,ss,nSubjects);
 
     % Read out raw data here.
     olderDate = 0;
-    dataFilename = GetMostRecentFileName(dataFiledir,sprintf('%s',subjectName),'olderDate',olderDate);
+    dataFilename = GetMostRecentFileName(subDataFiledir,sprintf('%s',subjectName),'olderDate',olderDate);
     rawData = load(dataFilename);
 
     % Rearrange the raw data. In the experiment, test images were displayed
@@ -188,25 +190,7 @@ imageNames = imageNameList(~startsWith(imageNameList,'.'));
 % image = imread(fullfile(imageFiledir,imageNames{1}));
 image = imread(fullfile('/Users/semin/Dropbox (Personal)/JLU/2) Projects/NaturalCAM/images/segmentation/images_labeled','apple2.jpg'));
 
-%% Get dominant color of the object
-%
-
-% Step 1: RGB to Lab
-img = im2double(image);
-[h, w, ~] = size(img);
-pixels = reshape(img, [], 3);
-labPixels = rgb2lab(pixels);  % Requires Image Processing Toolbox
-
-% Step 2: Clustering in Lab
-k = 3;
-[idx, centers] = kmeans(labPixels, k, 'Replicates', 5);
-counts = histcounts(idx, k);
-[~, domIdx] = max(counts);
-dominantLab = centers(domIdx, :);
-
-
-
-%% Estimate the illumination.
+%% 1) Estimate the illumination within an image.
 %
 % We will define the white point within the scene using a simple so-called
 % white patch method. It basically searches the brightest pixel (R+G+B)
@@ -217,6 +201,28 @@ mean_dRGB_image_bright = CalImageWhitePoint(image,'calculationMethod',whitePoint
 % Calculate the XYZ values of the white point. We will use this as
 % a white point for CIECAM02 calculations.
 XYZ_white = RGBToXYZ(mean_dRGB_image_bright,M_RGBToXYZ,gamma_display);
+
+%% 2) Estimate the dominant color of the segmented object.
+%
+% Here, we will use the DCD (Dominant Color Descriptor) method. Detailed
+% explanation is given in the description inside the function.
+%
+% Read out the segmentaion data. We will read out the file that matches the
+% image file name. Each segmenation file is saved in .csv file. The file contains a total of
+% 7 columns, each being 'image_id', 'object_name', 'x', 'y', 'r', 'g', 'b'.
+%
+% We will cluster the dominant colored pixels using the pixel info. It
+% might not be the most elaborate way to read .csv file, but it's good for
+% now.
+segmentFiledir = '/Users/semin/Dropbox (Personal)/JLU/2) Projects/NaturalCAM/images/segmentation/segmentation_labeled';
+segmentFilename = 'surfboard1.csv';
+fid = fopen(fullfile(segmentFiledir,segmentFilename),"r");
+segmentData = textscan(fid, '%f %s %f %f %f %f %f', 'Delimiter', ',', 'HeaderLines', 1);
+fclose(fid);
+
+% Estimate the dominant color here.
+image = imread('surfboard1.jpg');
+XYZ_dominantColor = GetImageDominantColor(image,segmentData,M_RGBToXYZ,gamma_display,XYZ_white);
 
 %% Define the adapting luminance (cd/m2).
 switch whitePointCalculationMethod
@@ -232,7 +238,7 @@ switch whitePointCalculationMethod
 end
 
 %% Calculate CAM16 values here.
-XYZToJCH
+
 
 %% Comparison between experiment results vs. CAM16 estimations.
 
