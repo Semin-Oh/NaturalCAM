@@ -188,37 +188,8 @@ imageNames = imageNameList(~startsWith(imageNameList,'.'));
 % image = imread(fullfile(imageFiledir,imageNames{1}));
 image = imread(fullfile('/Users/semin/Dropbox (Personal)/JLU/2) Projects/NaturalCAM/images/segmentation/images_labeled','apple2.jpg'));
 
-%% Get the object pixel information.
+%% Get dominant color of the object
 %
-% Load segmentation data. Each file has a total of 7 columns, each being
-% 'image_id', 'object_name', 'x', 'y', 'r', 'g', 'b'. We want to check if
-% the (x, y) coordinates match with an object that we evaluated in the
-% experiment. Further, we will cluster the dominant colored pixels using
-% the rgb info. It might not be the most elaborate way to read .csv file,
-% but it's good for now.
-fid = fopen(fullfile('/Users/semin/Dropbox (Personal)/JLU/2) Projects/NaturalCAM/images/segmentation/segmentation_labeled','apple2.csv'),"r");
-segmentData = textscan(fid, '%f %s %f %f %f %f %f', 'Delimiter', ',', 'HeaderLines', 1);
-fclose(fid);
-
-% Get the pixel location of the segmented object.
-pixelSegmentedObject = [segmentData{3} segmentData{4}];
-dRGB_segmentedObject = [segmentData{5} segmentData{6} segmentData{7}];
-
-% Check if the object is segmented correct.
-if (verbose)
-    figure;
-    % Plot a test image.
-    imshow(image); hold on;
-
-    % Overlay the segmentation on the image.
-    s = scatter(pixelSegmentedObject(:,1),pixelSegmentedObject(:,2),'b.');
-    legend('Segmented object');
-end
-
-%% Cluster the pixels of interest.
-%
-% Convert the pixels into HSV color space.
-hsv_segmentedObject = rgb2hsv(dRGB_segmentedObject./255);
 
 % Step 1: RGB to Lab
 img = im2double(image);
@@ -233,35 +204,7 @@ counts = histcounts(idx, k);
 [~, domIdx] = max(counts);
 dominantLab = centers(domIdx, :);
 
-% Plot it.
-figure; hold on;
-plot(labPixels(:,2),labPixels(:,3),'k.');
-plot(labPixels(find(idx==1),2), labPixels(find(idx==1),3),'r.');
-plot(labPixels(find(idx==2),2), labPixels(find(idx==2),3),'g.');
-plot(labPixels(find(idx==3),2), labPixels(find(idx==3),3),'b.');
-plot(dominantLab(2),dominantLab(3),'o','MarkerFaceColor','k');
 
-dominantRGB = round(lab2rgb(dominantLab)*255);
-
-% Extract pixels in a dominant cluster.
-dominantCluster = mode(idx);
-mask = reshape(idx == dominantCluster, h, w);
-dominantPixels = image;  
-for c = 1:3
-    channel = dominantPixels(:,:,c);
-    channel(~mask) = 0;
-    dominantPixels(:,:,c) = channel;
-end
-
-% Plot it.
-figure;
-subplot(1,2,1);
-imshow(image);
-title('Original');
-
-subplot(1,2,2);
-imshow(dominantPixels);
-title('Dominant cluster');
 
 %% Estimate the illumination.
 %
