@@ -46,6 +46,9 @@ function XYZ_dominant = GetImageDominantColor(image, segmentData, M, gamma, XYZw
 %                              k-means. For this version, clustering
 %                              happens in the CIELAB a*b* 2-D plane, which
 %                              works better than on the L*a*b* plane.
+%    04/13/25   smo          - It displays the centered colors of each
+%                              cluster. This way, it allows a fast visual
+%                              check if this routine works fine.
 
 %% Set variables.
 arguments
@@ -131,25 +134,38 @@ for i = 1:options.nClusters
     % end
 end
 
-% Get CIELAB values of the center of dominant cluster.
-idxDominantCluster = mode(idxCluster);
-dominantLab = dcd(idxDominantCluster).Lab;
-
-% Extract image pixel information of the dominant cluster for plotting.
-idxDominantPixels = find(idxCluster==idxDominantCluster);
-pixelPositionDominantCluster = pixel_SegmentedObject(idxDominantPixels,:);
-
-%% Calculate L* value for the center of the dominant cluster.
+%% Calculate L* value for the center of each cluster.
 %
 % As we find the clusters on the CIELAB a*b* plane, each center of the
 % cluster does not have the L* information. Here, we simply calculate
-% the mean of all pixels in the cluster
-mean_L_dominant = mean(lab_segmentedObject(1,idxDominantPixels));
-dominantLab_final = cat(1,mean_L_dominant,dominantLab');
+% the mean of all pixels in the cluster.
+%
+% Get CIELAB values of the center of clusters.
+idxDominantCluster = mode(idxCluster);
+for cc = 1:options.nClusters
+    lab_centeredCluster = dcd(cc).Lab;
 
-% Calculate it back to the XYZ and digital RGB values.
-XYZ_dominant = LabToXYZ(dominantLab_final,XYZw);
-% RGB_dominant = XYZToRGB(XYZ_dominant,M,gamma);
+    % Extract image pixel information of the dominant cluster for plotting.
+    idxPixels = find(idxCluster==cc);
+
+    % For dominant cluster, we get the pixel positions for plotting.
+    if cc == idxDominantCluster
+        pixelPositionDominantCluster = pixel_SegmentedObject(idxPixels,:);
+    end
+
+    % Get the mean L* value of all pixels in the cluster.
+    mean_L = mean(lab_segmentedObject(1,idxPixels));
+    lab_final{cc} = cat(1,mean_L,lab_centeredCluster');
+
+    % Calculate it back to the XYZ and digital RGB values.
+    XYZ_final{cc} = LabToXYZ(lab_final{:,cc},XYZw);
+    RGB_final{cc} = XYZToRGB(XYZ_final{:,cc},M,gamma);
+end
+
+% Get the dominant cluster results.
+lab_dominant = lab_final{idxDominantCluster};
+XYZ_dominant = XYZ_final{idxDominantCluster};
+RGB_dominant = RGB_final{idxDominantCluster};
 
 %% Plot the results if you want.
 if (options.verbose)
@@ -187,7 +203,7 @@ if (options.verbose)
     plot(pixels(idx_cluster_c,1), pixels(idx_cluster_c,2),'b.');
 
     % Center of dominant cluster.
-    plot(dominantLab(1),dominantLab(2),'o','MarkerFaceColor','k');
+    plot(lab_dominant(2),lab_dominant(3),'o','MarkerFaceColor','k');
 
     % Figure stuff.
     xlabel('CIELAB a*');
@@ -197,11 +213,33 @@ if (options.verbose)
 
     title(sprintf('Clusters on a*b* plane (N=%d)',options.nClusters));
     subtitle(sprintf('Estimated dominant color: L* = (%.2f), a* = (%.2f), b* = (%.2f)',...
-        dominantLab_final(1),dominantLab_final(2),dominantLab_final(3)));
+        lab_dominant(1),lab_dominant(2),lab_dominant(3)));
 
-    legend(sprintf('Cluster a (%.2f)',dcd(1).Percentage),...
-        sprintf('Cluster b (%.2f)',dcd(2).Percentage),...
-        sprintf('Cluster c (%.2f)',dcd(3).Percentage),...
-        'Estimated dominant color','Location','northeast');
+    legend(sprintf('Cluster 1 (%.2f)',dcd(1).Percentage),...
+        sprintf('Cluster 2 (%.2f)',dcd(2).Percentage),...
+        sprintf('Cluster 3 (%.2f)',dcd(3).Percentage),...
+        'Estimated dominant color','Location','northeastoutside');
+
+    % Display colors of the centers of each cluster.
+    % Define RGB values (scaled to 0-1 for imshow)
+    figure; hold on;
+    sgtitle(sprintf('Color of the center of the clusters (N=%d)',options.nClusters));
+    imgSize = 200;
+    for cc = 1:options.nClusters
+        subplot(1,options.nClusters,cc);
+        rgb = RGB_final{cc};
+
+        % Create and plot a square image.
+        squareImage = repmat(reshape(rgb, 1, 1, 3), imgSize, imgSize);
+        imshow(squareImage);
+
+        % Add title of the images. We will mark which one is dominant
+        % cluster.
+        if cc == idxDominantCluster
+            title(sprintf('Cluster %d \n (Dominant) - %.2f',cc,dcd(idxDominantCluster).Percentage));
+        else
+            title(sprintf('Cluster %d',cc));
+        end
+    end
 end
 end

@@ -59,6 +59,10 @@ numImage = 6;
 imageFilename = imageNameOptions{numImage};
 image = imread(fullfile(imageFiledir,imageFilename));
 
+% Display which image is being analyzed.
+[path imageName ext] = fileparts(imageFilename);
+fprintf('Current image - (%s) \n',imageName);
+
 % Read out segmentation data. 
 segFilename = segNameOptions{numImage};
 fid = fopen(fullfile(segmentationFiledir,segFilename),"r");
