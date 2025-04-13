@@ -8,7 +8,8 @@
 % History:
 %    03/31/25    smo     - Started on it.
 %    04/10/25    smo     - Added the estimation of dominant color of the
-%                          object within each image. 
+%                          object within each image.
+%    04/13/25    smo     - Now dominant color descriptor works.
 
 %% Initialize.
 clear; close all;
@@ -178,17 +179,29 @@ if (CHECKREPRODUCIBILITY)
     end
 end
 
-%% Read out the test image.
-imageFiledir = fullfile(baseFiledir,projectName,'images','raw');
+%% Read out the test image and corresponding segmentation data.
+imageFiledir = fullfile(baseFiledir,projectName,'images','segmentation','images_labeled');
+segmentationFiledir = fullfile(baseFiledir,projectName,'images','segmentation','segmentation_labeled');
 
 % Get available image file names.
-imageNameContent = dir(imageFiledir);
-imageNameList = {imageNameContent.name};
-imageNames = imageNameList(~startsWith(imageNameList,'.'));
+imageFileList = dir(imageFiledir);
+imageNameList = {imageFileList.name};
+imageNameOptions = imageNameList(~startsWith(imageNameList,'.'));
 
-% Load the image here.
-% image = imread(fullfile(imageFiledir,imageNames{1}));
-image = imread(fullfile('/Users/semin/Dropbox (Personal)/JLU/2) Projects/NaturalCAM/images/segmentation/images_labeled','apple2.jpg'));
+% Get available segmentation file names.
+segFileList = dir(segmentationFiledir);
+segNameList = {segFileList.name};
+segNameOptions = segNameList(~startsWith(segNameList,'.'));
+
+% Load the image.
+numImage = 1;
+image = imread(fullfile(imageFiledir,imageNameOptions{numImage}));
+
+% Read out segmentation data.
+segFilename = segNameOptions{numImage};
+fid = fopen(fullfile(segmentationFiledir,segFilename),"r");
+segmentData = textscan(fid, '%f %s %f %f %f %f %f', 'Delimiter', ',', 'HeaderLines', 1);
+fclose(fid);
 
 %% 1) Estimate the illumination within an image.
 %
@@ -214,14 +227,6 @@ XYZ_white = RGBToXYZ(mean_dRGB_image_bright,M_RGBToXYZ,gamma_display);
 % We will cluster the dominant colored pixels using the pixel info. It
 % might not be the most elaborate way to read .csv file, but it's good for
 % now.
-segmentFiledir = '/Users/semin/Dropbox (Personal)/JLU/2) Projects/NaturalCAM/images/segmentation/segmentation_labeled';
-segmentFilename = 'surfboard1.csv';
-fid = fopen(fullfile(segmentFiledir,segmentFilename),"r");
-segmentData = textscan(fid, '%f %s %f %f %f %f %f', 'Delimiter', ',', 'HeaderLines', 1);
-fclose(fid);
-
-% Estimate the dominant color here.
-image = imread('surfboard1.jpg');
 XYZ_dominantColor = GetImageDominantColor(image,segmentData,M_RGBToXYZ,gamma_display,XYZ_white);
 
 %% Define the adapting luminance (cd/m2).
