@@ -66,6 +66,11 @@ end
 
 %% Read out segmentation data.
 %
+% Read out the segmentaion data. We will read out the file that matches the
+% image file name. Each segmenation file is saved in .csv file. The file
+% contains a total of 7 columns, each being 'image_id', 'object_name', 'x',
+% 'y', 'r', 'g', 'b'.
+%
 % Get the pixel location (column 3,4) and corresponding RGB values (column
 % 5,6,7) of the segmented object.
 pixel_SegmentedObject = [segmentData{3} segmentData{4}];

@@ -9,7 +9,11 @@
 %    03/31/25    smo     - Started on it.
 %    04/10/25    smo     - Added the estimation of dominant color of the
 %                          object within each image.
-%    04/13/25    smo     - Now dominant color descriptor works.
+%    04/13/25    smo     - Now dominant color descriptor works. Also, full
+%                          pipeline works. Note: some images should use
+%                          second to the dominant color (person3). The hue
+%                          scale should be matched correctly for the colors
+%                          near 400.
 
 %% Initialize.
 clear; close all;
@@ -32,7 +36,8 @@ switch displayType
         gamma_display = 2.1904;
 end
 
-verbose = true;
+% Control print out and plots.
+verbose = false;
 
 %% Get available subject info.
 %
@@ -65,6 +70,12 @@ subjectNames = subjectNameList(~startsWith(subjectNameList,'.'));
 exclSubjectNames = {};
 targetSubjectsNames = subjectNames(~ismember(subjectNames,exclSubjectNames));
 nSubjects = length(targetSubjectsNames);
+
+% Also, here, we read out the test images actually used in the experiment.
+testimageStringFiledir = fullfile(baseFiledir,projectName,'images');
+testimageStringFilename = 'imageNames.mat';
+testimageStringData = load(GetMostRecentFileName(testimageStringFiledir,testimageStringFilename));
+testimageOptions = testimageStringData.imageNames;
 
 %% Get the raw data for all subjects.
 %
@@ -179,7 +190,9 @@ if (CHECKREPRODUCIBILITY)
     end
 end
 
-%% Read out the test image and corresponding segmentation data.
+%% Calculate CAM16 values from here.
+%
+% Set the folders to read out the test image and corresponding segmentation data.
 imageFiledir = fullfile(baseFiledir,projectName,'images','segmentation','images_labeled');
 segmentationFiledir = fullfile(baseFiledir,projectName,'images','segmentation','segmentation_labeled');
 
@@ -189,61 +202,115 @@ imageNameList = {imageFileList.name};
 imageNameOptions = imageNameList(~startsWith(imageNameList,'.'));
 
 % Get available segmentation file names.
-segFileList = dir(segmentationFiledir);
-segNameList = {segFileList.name};
-segNameOptions = segNameList(~startsWith(segNameList,'.'));
+segmentFileList = dir(segmentationFiledir);
+segmentNameList = {segmentFileList.name};
+segmentNameOptions = segmentNameList(~startsWith(segmentNameList,'.'));
 
-% Load the image.
-numImage = 1;
-image = imread(fullfile(imageFiledir,imageNameOptions{numImage}));
+% Here we make a loop to calculate CAM16 values for all images available.
+nTestImagesSegment = length(imageNameOptions);
+for ii = 1:nTestImagesSegment
+    numImage = ii;
+    image = imread(fullfile(imageFiledir,imageNameOptions{numImage}));
 
-% Read out segmentation data.
-segFilename = segNameOptions{numImage};
-fid = fopen(fullfile(segmentationFiledir,segFilename),"r");
-segmentData = textscan(fid, '%f %s %f %f %f %f %f', 'Delimiter', ',', 'HeaderLines', 1);
-fclose(fid);
+    % Read out segmentation data.
+    segFilename = segmentNameOptions{numImage};
+    fid = fopen(fullfile(segmentationFiledir,segFilename),"r");
+    segmentData = textscan(fid, '%f %s %f %f %f %f %f', 'Delimiter', ',', 'HeaderLines', 1);
+    fclose(fid);
 
-%% 1) Estimate the illumination within an image.
-%
-% We will define the white point within the scene using a simple so-called
-% white patch method. It basically searches the brightest pixel (R+G+B)
-% within the scene and treat it as a white point.
-whitePointCalculationMethod = 'whitepatch';
-mean_dRGB_image_bright = CalImageWhitePoint(image,'calculationMethod',whitePointCalculationMethod);
+    %% Estimate the illumination within an image.
+    %
+    % We will define the white point within the scene using a simple so-called
+    % white patch method. It basically searches the brightest pixel (R+G+B)
+    % within the scene and treat it as a white point.
+    whitePointCalculationMethod = 'whitepatch';
+    mean_dRGB_image_bright = CalImageWhitePoint(image,'calculationMethod',whitePointCalculationMethod,'verbose',verbose);
 
-% Calculate the XYZ values of the white point. We will use this as
-% a white point for CIECAM02 calculations.
-XYZ_white = RGBToXYZ(mean_dRGB_image_bright,M_RGBToXYZ,gamma_display);
+    % Calculate the XYZ values of the white point. We will use this as
+    % a white point for CIECAM02 calculations.
+    XYZ_white = RGBToXYZ(mean_dRGB_image_bright,M_RGBToXYZ,gamma_display);
 
-%% 2) Estimate the dominant color of the segmented object.
-%
-% Here, we will use the DCD (Dominant Color Descriptor) method. Detailed
-% explanation is given in the description inside the function.
-%
-% Read out the segmentaion data. We will read out the file that matches the
-% image file name. Each segmenation file is saved in .csv file. The file contains a total of
-% 7 columns, each being 'image_id', 'object_name', 'x', 'y', 'r', 'g', 'b'.
-%
-% We will cluster the dominant colored pixels using the pixel info. It
-% might not be the most elaborate way to read .csv file, but it's good for
-% now.
-XYZ_dominantColor = GetImageDominantColor(image,segmentData,M_RGBToXYZ,gamma_display,XYZ_white);
+    %% Estimate the dominant color of the segmented object.
+    %
+    % Here, we will use the DCD (Dominant Color Descriptor) method.
+    % Detailed explanation is given in the description inside the function.
+    XYZ_targetObject = GetImageDominantColor(image,segmentData,M_RGBToXYZ,gamma_display,XYZ_white,'verbose',verbose);
 
-%% Define the adapting luminance (cd/m2).
-switch whitePointCalculationMethod
-    case 'whitepatch'
-        % We set the luminance of the adapting field based on the white
-        % point that we searched from the above setting the white point.
-        LA = XYZ_white(2);
+    %% Actual calculations of CAM16 happens here.
+    %
+    % Set adapting luminance (LA) value. We set it as 20% luminance of the
+    % white point, which is not uncommon.
+    LA = XYZ_white(2)*0.2;
 
-    otherwise
-        % You can fix the value if you want. Not sure if if is a good idea
-        % to train the model with COCO image set.
-        LA = 50;
+    % Calculate CAM16 values here and we extract Hue quadrature (H).
+    JCH_targetObject(:,ii) = XYZToJCH(XYZ_targetObject,XYZ_white,LA);
+
+    % Show progress.
+    fprintf('Calculating CAM16 values - (%d/%d) \n', ii, nTestImagesSegment);
 end
 
-%% Calculate CAM16 values here.
-
+% Extract the CAM16 Hue quadrature values
+CAM16_H = JCH_targetObject(3,:);
 
 %% Comparison between experiment results vs. CAM16 estimations.
+%
+% Some images do not have proper correspondong segmentation data, so here
+% we match the number of the images to compare. As of now (04/13/25), we
+% used 31 images for the experiment while we have valid segmentation data
+% ~29 images.
+validTestimageOptions = {};
+validSegImageOptions = {};
 
+nImagesToCompare = min(nTestImages,nTestImagesSegment);
+for ss = 1:nImagesToCompare
+    % Get the image name from the segmentation data.
+    [~, imagename1, ~] = fileparts(segmentNameOptions{ss});
+
+    % Here, we make a loop to find a matching name in the test image list
+    % that used in the experiment.
+    ii = 1;
+    while true
+        [~, imagename2, ~] = fileparts(testimageOptions{ii});
+
+        % Find the matching name.
+        if strcmp(imagename1, imagename2)
+            validSegImageOptions{end+1} = segmentNameOptions{ss};
+            validTestimageOptions{end+1} = testimageOptions{ii};
+            break;
+        end
+
+        % Keep counting.
+        ii = ii + 1;
+    end
+
+    % Show progress.
+    fprintf('Find valid images to compare: (%s) - (%d/%d) \n', imagename1, ss, nImagesToCompare);
+end
+
+% Exclude some images if you want.
+% THIS PART WILL BE UPDATED LATER ON.
+imageToExclude = {};
+
+% Get the index valid images to compare.
+[~, idxTestImages, ~] = intersect(testimageOptions, validTestimageOptions);
+[~, idxSegImages, ~] = intersect(segmentNameOptions, validSegImageOptions);
+
+% Comparison between experiment results and CAM16 H.
+CAM16_H_compare = CAM16_H(idxSegImages);
+hueScoreMeanAllSub_compare = hueScoreMeanAllSub(idxTestImages);
+nImagesValid = length(idxTestImages);
+
+% Plot it.
+figure; hold on;
+plot(hueScoreMeanAllSub_compare, CAM16_H_compare, 'o',...
+    'markeredgecolor','k','markerfacecolor','g');
+plot([0 400], [0 400],'k-');
+xlabel('CAM16 H');
+ylabel('Hue Score (Exp)');
+xlim([0 400]);
+ylim([0 400]);
+axis square;
+grid on;
+legend('Images','location','southeast');
+title('CAM16 vs. Hue score (experiment)');
+subtitle(sprintf('Subjects (%d) / Test Images (%d)',nSubjects,nImagesValid));
