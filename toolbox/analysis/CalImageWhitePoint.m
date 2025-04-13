@@ -28,7 +28,7 @@ arguments
     options.maxRGB (1,1) = 255
     options.percentPixelCutoff (1,1) = 0.9
     options.percentPixelBright (1,1) = 0.05
-    options.verbose (1,1) = false
+    options.verbose (1,1) = true
 end
 
 %% Calculation happens here.
@@ -95,6 +95,7 @@ switch options.calculationMethod
             
             % Make a figure here.
             figure; hold on;
+            sgtitle('Estimation of illumination in image');
 
             % Image.
             subplot(1,2,1);
@@ -110,13 +111,12 @@ switch options.calculationMethod
                 'markersize',5,'markerfacecolor','r','markeredgecolor','k');
             plot(rg_white_d65(1),rg_white_d65(2),'bo',...
                 'markersize',3,'markerfacecolor','b','markeredgecolor','k');
-            xlabel('r','FontSize',14);
-            ylabel('g','FontSize',14);
+            xlabel('r');
+            ylabel('g');
             xlim([0 1]);
             ylim([0 1]);
             title('Image profile on the rg-coordinates');
-            legend('original','cut-off','bright','white point','d65',...
-                'FontSize',14);
+            legend('original','cut-off','bright','white point','d65');
         end
     otherwise
 end
