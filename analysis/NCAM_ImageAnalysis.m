@@ -1,5 +1,5 @@
 % NCAM_ImageAnalysis.
-% 
+%
 % This routine tests out some color stuff on the images. This will be
 % eventually added to the data analysis routine.
 %
@@ -14,6 +14,9 @@ clear; close all;
 
 %% Set variables.
 %
+% Set which image to explore.
+numImage = 10;
+
 % Set directory.
 sysInfo = GetComputerInfo();
 switch sysInfo.userShortName
@@ -41,7 +44,6 @@ segFileList = dir(segmentationFiledir);
 segNameList = {segFileList.name};
 segNameOptions = segNameList(~startsWith(segNameList,'.'));
 
-
 % Display parameters.
 displayType = 'EIZO';
 switch displayType
@@ -55,7 +57,6 @@ switch displayType
 end
 
 %% Check out the image segmentations.
-numImage = 6;
 imageFilename = imageNameOptions{numImage};
 image = imread(fullfile(imageFiledir,imageFilename));
 
@@ -63,7 +64,7 @@ image = imread(fullfile(imageFiledir,imageFilename));
 [path imageName ext] = fileparts(imageFilename);
 fprintf('Current image - (%s) \n',imageName);
 
-% Read out segmentation data. 
+% Read out segmentation data.
 segFilename = segNameOptions{numImage};
 fid = fopen(fullfile(segmentationFiledir,segFilename),"r");
 segmentData = textscan(fid, '%f %s %f %f %f %f %f', 'Delimiter', ',', 'HeaderLines', 1);

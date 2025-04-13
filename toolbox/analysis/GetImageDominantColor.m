@@ -208,6 +208,8 @@ if (options.verbose)
     % Figure stuff.
     xlabel('CIELAB a*');
     ylabel('CIELAB b*');
+    plot(xlim, [0 0], 'k', 'LineWidth', 1);
+    plot([0 0], ylim, 'k', 'LineWidth', 1);
     axis square;
     grid on;
 
