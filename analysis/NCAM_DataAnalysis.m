@@ -41,9 +41,9 @@ switch displayType
 end
 
 % Control print out and plots.
-SUBJECTANON = true;
+SUBJECTANON = false;
 PLOTIMAGEWHITEPOINT = false;
-PLOTOBJECTDOMINANTCOLOR = true;
+PLOTOBJECTDOMINANTCOLOR = false;
 
 %% Get available subject info.
 %
@@ -138,7 +138,7 @@ if (CHECKREPEATABILITY)
     % Make a loop for all subjects.
     for ss = 1:nSubjects
         % Get subject name.
-        subjectName = subjectNames{ss};
+        subjectName = targetSubjectsNames{ss};
 
         % Get one subject data.
         hueScoreOneSub = hueScorePerSub{ss};
@@ -209,7 +209,7 @@ if (CHECKREPRODUCIBILITY)
     % Make a loop for all subjects.
     for ss = 1:nSubjects
         % Get subject name.
-        subjectName = subjectNames{ss};
+        subjectName = targetSubjectsNames{ss};
 
         % Get one subject data.
         hueScoreOneSub = hueScorePerSub{ss};
