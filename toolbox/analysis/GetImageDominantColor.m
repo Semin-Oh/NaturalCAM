@@ -20,6 +20,9 @@ function XYZ_dominant = GetImageDominantColor(image, segmentData, M, gamma, XYZw
 % Input:
 %    image                   - Input RGB image in image format (HxWx3).
 %    segmentData             - Object segmentation data.
+%    M                       - Display 3x3 conversion matrix from dRGB to XYZ.
+%    gamma                   - Display gamma.
+%    XYZw                    - Display white point.
 %
 % Output:
 %    XYZ_dominant            - CIE XYZ values of the estimated dominant
@@ -34,6 +37,12 @@ function XYZ_dominant = GetImageDominantColor(image, segmentData, M, gamma, XYZw
 %    nReplicates             - The number of repetitions to make when
 %                              clustering using k-means. It's common to do
 %                              5-10 times for a qucik search. Default to 5.
+%    clusterSpace            - Decide which color space to perform k-mean
+%                              analysis. Default to ab, which is CIELAB
+%                              a*b* plan.
+%    imgSizePixel            - Define the pixel size of the square to
+%                              display the color of the center per each
+%                              cluster. Default to 200.
 %    verbose                 - Controls message output and plots. Default
 %                              to false.
 %
@@ -49,6 +58,7 @@ function XYZ_dominant = GetImageDominantColor(image, segmentData, M, gamma, XYZw
 %    04/13/25   smo          - It displays the centered colors of each
 %                              cluster. This way, it allows a fast visual
 %                              check if this routine works fine.
+%    04/14/25   smo          - Now plot everything in one figure.
 
 %% Set variables.
 arguments
@@ -57,10 +67,10 @@ arguments
     M (3,3)
     gamma (1,1)
     XYZw (3,1)
-    options.displayType = 'EIZO'
     options.nClusters (1,1) = 3
     options.nReplicates (1,1) = 5
     options.clusterSpace = 'ab'
+    options.imgSizePixel (1,1) = 200
     options.verbose = true
 end
 
@@ -174,30 +184,30 @@ RGB_dominant = RGB_final{idxDominantCluster};
 
 %% Plot the results if you want.
 if (options.verbose)
-    figure;
+    figure; hold on;
     sgtitle('Image with segmentation and dominant cluster');
 
     % Original image.
-    subplot(2,2,1);
+    subplot(3,3,1);
     imshow(image); hold on;
     title('Original image');
 
     % Segmentation on the image.
-    subplot(2,2,2);
+    subplot(3,3,2);
     imshow(image); hold on;
     s = scatter(pixel_SegmentedObject(:,1),pixel_SegmentedObject(:,2),'b.');
     title('With segmentation');
     legend('Segmentation','Location','southeast');
 
     % Dominant cluster on the image.
-    subplot(2,2,3);
+    subplot(3,3,3);
     imshow(image); hold on;
     plot(pixelPositionDominantCluster(:,1),pixelPositionDominantCluster(:,2),'r.');
     title('With dominant cluster');
     legend('Dominant','Location','southeast');
 
     % Distributions of the clusters on the CIELAB a*b* plane.
-    figure; hold on;
+    subplot(3,3,4:6); hold on;
     idx_cluster_a = find(idxCluster==1);
     idx_cluster_b = find(idxCluster==2);
     idx_cluster_c = find(idxCluster==3);
@@ -229,15 +239,12 @@ if (options.verbose)
 
     % Display colors of the centers of each cluster.
     % Define RGB values (scaled to 0-1 for imshow)
-    figure; hold on;
-    sgtitle(sprintf('Color of the center of the clusters (N=%d)',options.nClusters));
-    imgSize = 200;
     for cc = 1:options.nClusters
-        subplot(1,options.nClusters,cc);
+        subplot(3,3,cc+6);
         rgb = RGB_final{cc};
 
         % Create and plot a square image.
-        squareImage = repmat(reshape(rgb, 1, 1, 3), imgSize, imgSize);
+        squareImage = repmat(reshape(rgb, 1, 1, 3), options.imgSizePixel, options.imgSizePixel);
         imshow(squareImage);
 
         % Add title of the images. We will mark which one is dominant

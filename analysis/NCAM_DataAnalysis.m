@@ -37,7 +37,8 @@ switch displayType
 end
 
 % Control print out and plots.
-verbose = false;
+PLOTIMAGEWHITEPOINT = false;
+PLOTOBJECTDOMINANTCOLOR = true;
 
 %% Get available subject info.
 %
@@ -224,7 +225,12 @@ for ii = 1:nTestImagesSegment
     % white patch method. It basically searches the brightest pixel (R+G+B)
     % within the scene and treat it as a white point.
     whitePointCalculationMethod = 'whitepatch';
-    mean_dRGB_image_bright = CalImageWhitePoint(image,'calculationMethod',whitePointCalculationMethod,'verbose',verbose);
+    percentPixelCutoff = 0.9;
+    percentPixelBright = 0.05;
+    mean_dRGB_image_bright = CalImageWhitePoint(image,...
+        'percentPixelCutoff',percentPixelCutoff,...
+        'percentPixelBright',percentPixelBright,...
+        'calculationMethod',whitePointCalculationMethod,'verbose',PLOTIMAGEWHITEPOINT);
 
     % Calculate the XYZ values of the white point. We will use this as
     % a white point for CIECAM02 calculations.
@@ -234,7 +240,12 @@ for ii = 1:nTestImagesSegment
     %
     % Here, we will use the DCD (Dominant Color Descriptor) method.
     % Detailed explanation is given in the description inside the function.
-    XYZ_targetObject = GetImageDominantColor(image,segmentData,M_RGBToXYZ,gamma_display,XYZ_white,'verbose',verbose);
+    nClusters = 3;
+    nReplicates = 5;
+    clusterSpace = 'ab';
+    XYZ_targetObject = GetImageDominantColor(image,segmentData,M_RGBToXYZ,gamma_display,XYZ_white,...
+        'nClusters',nClusters,'nReplicates',nReplicates,...
+        'clusterSpace',clusterSpace,'verbose',PLOTOBJECTDOMINANTCOLOR);
 
     %% Actual calculations of CAM16 happens here.
     %
@@ -246,7 +257,7 @@ for ii = 1:nTestImagesSegment
     JCH_targetObject(:,ii) = XYZToJCH(XYZ_targetObject,XYZ_white,LA);
 
     % Show progress.
-    fprintf('Calculating CAM16 values - (%d/%d) \n', ii, nTestImagesSegment);
+    fprintf('Calculating CAM16 values - Image (%d/%d) \n', ii, nTestImagesSegment);
 end
 
 % Extract the CAM16 Hue quadrature values
