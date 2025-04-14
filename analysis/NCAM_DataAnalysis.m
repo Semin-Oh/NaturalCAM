@@ -14,6 +14,8 @@
 %                          second to the dominant color (person3). The hue
 %                          scale should be matched correctly for the colors
 %                          near 400.
+%    04/14/25    smo     - Added correlation coefficient for both subjects
+%                          repeatability and reproducibility.
 
 %% Initialize.
 clear; close all;
@@ -37,8 +39,9 @@ switch displayType
 end
 
 % Control print out and plots.
+SUBJECTANON = true;
 PLOTIMAGEWHITEPOINT = false;
-PLOTOBJECTDOMINANTCOLOR = true;
+PLOTOBJECTDOMINANTCOLOR = false;
 
 %% Get available subject info.
 %
@@ -125,10 +128,10 @@ end
 
 %% Check repeatability - within observer.
 CHECKREPEATABILITY = true;
+axisHue = [0 420];
 
 if (CHECKREPEATABILITY)
     figure; hold on;
-    sgtitle('Repeatability within subject');
 
     % Make a loop for all subjects.
     for ss = 1:nSubjects
@@ -138,16 +141,32 @@ if (CHECKREPEATABILITY)
         % Get one subject data.
         hueScoreOneSub = hueScorePerSub{ss};
 
+        % Calculate the correlation coefficient between two repeatitions.
+        r_matrix = corrcoef(hueScoreOneSub(:,1),hueScoreOneSub(:,2));
+        r_withinSubjects(ss) = r_matrix(1,2);
+
         % Plot it here.
         nColumns = 5;
         subplot(ceil(nSubjects/nColumns),nColumns,ss); hold on;
         plot(hueScoreOneSub(:,1),hueScoreOneSub(:,2),'k.');
-        plot([0 400],[0 400],'k-');
+        plot(axisHue,axisHue,'k-');
         axis square;
         xlabel('Hue score');
         ylabel('Hue score');
-        title(subjectName);
+        xlim(axisHue);
+        ylim(axisHue);
+
+        if (SUBJECTANON)
+            title(sprintf('Subject %d',ss));
+        else
+            title(subjectName);
+        end
+        subtitle(sprintf('(r=%.3f)',r_withinSubjects(ss)));
     end
+
+    % Display the mean repeatability in the figure.
+    r_mean_withinSubjects = mean(r_withinSubjects);
+    sgtitle(sprintf('Repeatability test (within subject) \n Mean correlation r = (%.3f)',r_mean_withinSubjects));
 end
 
 %% Check reproducibiliy - across observer.
@@ -155,7 +174,6 @@ CHECKREPRODUCIBILITY = true;
 
 if (CHECKREPRODUCIBILITY)
     figure; hold on;
-    sgtitle('Reproducibility across subjects');
 
     % Calculate the mean results across all subjects. We will compare each
     % subject's data with the mean.
@@ -169,7 +187,22 @@ if (CHECKREPRODUCIBILITY)
 
     % Make an average per each test image across all subjects and repetitions.
     % WE NEED TO THINK ABOUT HOW TO MANAGE THE DATA WITHIN THE RANGE BLUE-RED.
-    hueScoreMeanAllSub = mean(hueScoreAllSub,2);
+    % hueScoreMeanAllSub = mean(hueScoreAllSub,2);
+
+    % Convert hue quadrature (0–400) to radians (0–2π)
+    angles = hueScoreAllSub / 400 * 2 * pi;
+
+    % Compute mean angle using circular statistics
+    mean_sin = mean(sin(angles),2);
+    mean_cos = mean(cos(angles),2);
+    mean_angle = atan2(mean_sin, mean_cos);
+
+    % Convert mean angle back to hue quadrature scale
+    hueScoreMeanAllSub = mod(mean_angle, 2*pi) / (2*pi) * 400;
+
+    % Get standard error.
+    n = size(hueScoreAllSub,2);
+    hueScore_stdError = std(hueScoreAllSub')/sqrt(n);
 
     % Make a loop for all subjects.
     for ss = 1:nSubjects
@@ -179,16 +212,41 @@ if (CHECKREPRODUCIBILITY)
         % Get one subject data.
         hueScoreOneSub = hueScorePerSub{ss};
 
+        % Calculate the correlation coefficient between one subject data and mean.
+        %
+        % Repetition 1.
+        r_matrix = corrcoef(hueScoreOneSub(:,1),hueScoreMeanAllSub);
+        r_acrossSubjects_1st = r_matrix(1,2);
+
+        % Repetition 2.
+        r_matrix = corrcoef(hueScoreOneSub(:,2),hueScoreMeanAllSub);
+        r_acrossSubjects_2nd = r_matrix(1,2);
+
+        % Make an average of two trials.
+        r_acrossSubjects(ss) = mean([r_acrossSubjects_1st r_acrossSubjects_2nd]);
+
         % Plot it here.
         subplot(ceil(nSubjects/5),nColumns,ss); hold on;
         plot(hueScoreMeanAllSub,hueScoreOneSub(:,1),'k.');
         plot(hueScoreMeanAllSub,hueScoreOneSub(:,2),'r.');
-        plot([0 400],[0 400],'k-');
+        plot(axisHue,axisHue,'k-');
         axis square;
         xlabel('Hue score (mean)');
         ylabel('Hue score (individual)');
-        title(subjectName);
+        xlim(axisHue);
+        ylim(axisHue);
+
+        if (SUBJECTANON)
+            title(sprintf('Subject %d',ss));
+        else
+            title(subjectName);
+        end
+        subtitle(sprintf('(r=%.3f)',r_acrossSubjects(ss)));
     end
+
+    % Display the mean subject reproducibility in the figure.
+    r_mean_acrossSubjects = mean(r_acrossSubjects);
+    sgtitle(sprintf('Reproducibility test (across subjects) \n Mean corrleation r = (%.3f)',r_mean_acrossSubjects));
 end
 
 %% Calculate CAM16 values from here.
@@ -310,18 +368,29 @@ imageToExclude = {};
 CAM16_H_compare = CAM16_H(idxSegImages);
 hueScoreMeanAllSub_compare = hueScoreMeanAllSub(idxTestImages);
 nImagesValid = length(idxTestImages);
+hueScore_stdError_compare = hueScore_stdError(idxTestImages);
 
 % Plot it.
 figure; hold on;
-plot(hueScoreMeanAllSub_compare, CAM16_H_compare, 'o',...
+
+% Error bar.
+errorbar(hueScoreMeanAllSub_compare, CAM16_H_compare, hueScore_stdError_compare,...
+    'LineStyle','none','Color','k');
+
+% Mean comparison.
+f_data = plot(hueScoreMeanAllSub_compare, CAM16_H_compare, 'o',...
     'markeredgecolor','k','markerfacecolor','g');
-plot([0 400], [0 400],'k-');
+
+% 45-deg line.
+plot(axisHue,axisHue,'k-');
+
+% Figure stuff.
 xlabel('CAM16 H');
 ylabel('Hue Score (Exp)');
-xlim([0 400]);
-ylim([0 400]);
+xlim(axisHue);
+ylim(axisHue);
 axis square;
 grid on;
-legend('Images','location','southeast');
+legend(f_data,'Images','location','southeast');
 title('CAM16 vs. Hue score (experiment)');
 subtitle(sprintf('Subjects (%d) / Test Images (%d)',nSubjects,nImagesValid));
