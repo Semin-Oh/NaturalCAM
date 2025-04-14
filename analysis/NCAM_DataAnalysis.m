@@ -15,7 +15,9 @@
 %                          scale should be matched correctly for the colors
 %                          near 400.
 %    04/14/25    smo     - Added correlation coefficient for both subjects
-%                          repeatability and reproducibility.
+%                          repeatability and reproducibility. Also, now we
+%                          can choose test images not to be included in
+%                          data analysis.
 
 %% Initialize.
 clear; close all;
@@ -41,7 +43,7 @@ end
 % Control print out and plots.
 SUBJECTANON = true;
 PLOTIMAGEWHITEPOINT = false;
-PLOTOBJECTDOMINANTCOLOR = false;
+PLOTOBJECTDOMINANTCOLOR = true;
 
 %% Get available subject info.
 %
@@ -71,7 +73,7 @@ subjectNameList = {subjectNameContent.name};
 subjectNames = subjectNameList(~startsWith(subjectNameList,'.'));
 
 % Exclude some subjects if you want.
-exclSubjectNames = {};
+exclSubjectNames = {'Blaise'};
 targetSubjectsNames = subjectNames(~ismember(subjectNames,exclSubjectNames));
 nSubjects = length(targetSubjectsNames);
 
@@ -128,7 +130,7 @@ end
 
 %% Check repeatability - within observer.
 CHECKREPEATABILITY = true;
-axisHue = [0 420];
+axisHue = [0 450];
 
 if (CHECKREPEATABILITY)
     figure; hold on;
@@ -356,29 +358,56 @@ for ss = 1:nImagesToCompare
     fprintf('Find valid images to compare: (%s) - (%d/%d) \n', imagename1, ss, nImagesToCompare);
 end
 
-% Exclude some images if you want.
-% THIS PART WILL BE UPDATED LATER ON.
-imageToExclude = {};
+% Exclude the test images if you want. For now, we have some images with no
+% proper segmentation, which will be excluded for now.
+exclImageNameOnly = {'kite1','orange1','orange2','orange3',...
+    'person1','person3','person4','surfboard1'};
+
+% Remove extensions to sort the image excluded.
+segNamesOnly  = erase(validSegImageOptions, '.csv');
+imageNamesOnly  = erase(validTestimageOptions, '.png');
+
+% Get the index of excluded images based on name.
+isExcludedSeg  = ismember(segNamesOnly, exclImageNameOnly);
+isExcludedImage  = ismember(imageNamesOnly, exclImageNameOnly);
+
+% Filter out the excluded images.
+segImageOptions_filtered  = validSegImageOptions(~isExcludedSeg);
+validTestimageOptions_filtered  = validTestimageOptions(~isExcludedImage);
 
 % Get the index valid images to compare.
-[~, idxTestImages, ~] = intersect(testimageOptions, validTestimageOptions);
-[~, idxSegImages, ~] = intersect(segmentNameOptions, validSegImageOptions);
+[~, idxTestImages, ~] = intersect(testimageOptions, validTestimageOptions_filtered);
+[~, idxSegImages, ~] = intersect(segmentNameOptions, segImageOptions_filtered);
 
-% Comparison between experiment results and CAM16 H.
-CAM16_H_compare = CAM16_H(idxSegImages);
-hueScoreMeanAllSub_compare = hueScoreMeanAllSub(idxTestImages);
-nImagesValid = length(idxTestImages);
+% Extract the experiment results and CAM16 H for comparison.
+CAM16_H_compare = CAM16_H(idxSegImages)';
+hueScore_mean_compare = hueScoreMeanAllSub(idxTestImages);
+
+% Calculate the error bar for the experimental results.
 hueScore_stdError_compare = hueScore_stdError(idxTestImages);
+
+% Get the number of images to compare.
+nImagesCompare = length(idxTestImages);
+fprintf('Total of (%d) images are going to be analyzed! \n', nImagesCompare);
+
+% THIS PART WILL BE ADDED LATER ON
+%
+% Match the scale between CAM16 H values and the experimental results. As H
+% has a circular scale, some values might be off-scale. For example, if we
+% have a pair of the values, 32 and 385, we will convert them to 432
+% (32+400) and 385. It's preferred to add 400 to match the scale to avoid
+% any negative values.
+
 
 % Plot it.
 figure; hold on;
 
 % Error bar.
-errorbar(hueScoreMeanAllSub_compare, CAM16_H_compare, hueScore_stdError_compare,...
+errorbar(hueScore_mean_compare, CAM16_H_compare, hueScore_stdError_compare,...
     'LineStyle','none','Color','k');
 
 % Mean comparison.
-f_data = plot(hueScoreMeanAllSub_compare, CAM16_H_compare, 'o',...
+f_data = plot(hueScore_mean_compare, CAM16_H_compare, 'o',...
     'markeredgecolor','k','markerfacecolor','g');
 
 % 45-deg line.
@@ -393,4 +422,4 @@ axis square;
 grid on;
 legend(f_data,'Images','location','southeast');
 title('CAM16 vs. Hue score (experiment)');
-subtitle(sprintf('Subjects (%d) / Test Images (%d)',nSubjects,nImagesValid));
+subtitle(sprintf('Subjects (%d) / Test Images (%d)',nSubjects,nImagesCompare));
