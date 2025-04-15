@@ -40,13 +40,6 @@ switch displayType
         gamma_display = 2.1904;
 end
 
-% Control print out and plots.
-SUBJECTANON = false;
-PLOTIMAGEWHITEPOINT = false;
-PLOTOBJECTDOMINANTCOLOR = false;
-
-%% Get available subject info.
-%
 % Get computer info.
 sysInfo = GetComputerInfo();
 
@@ -62,9 +55,18 @@ switch sysInfo.userShortName
         % Semin's laptop.
         baseFiledir = 'C:\Users\ohsem\Dropbox (Personal)\JLU\2) Projects';
 end
-
-% Set repository name.
 projectName = 'NaturalCAM';
+
+% Control print out and plots.
+SUBJECTANON = false;
+CHECKREPEATABILITY = true;
+CHECKREPRODUCIBILITY = true;
+PLOTIMAGEWHITEPOINT = false;
+PLOTOBJECTDOMINANTCOLOR = false;
+
+%% Get available subject info.
+%
+% Set the repository.
 dataFiledir = fullfile(baseFiledir,projectName,'data');
 
 % Get available subject names.
@@ -77,11 +79,102 @@ exclSubjectNames = {'Blaise'};
 targetSubjectsNames = subjectNames(~ismember(subjectNames,exclSubjectNames));
 nSubjects = length(targetSubjectsNames);
 
-% Also, here, we read out the test images actually used in the experiment.
+%% Read out test image and segmentation info.
+%
+% This part read out the test image names that actually used in the
+% experiment.
 testimageStringFiledir = fullfile(baseFiledir,projectName,'images');
 testimageStringFilename = 'imageNames.mat';
 testimageStringData = load(GetMostRecentFileName(testimageStringFiledir,testimageStringFilename));
 testimageOptions = testimageStringData.imageNames;
+
+% Set the folders to read out the test image and corresponding segmentation
+% data. Here, we read out images and their corresponding segmentation data.
+% images are basically the same as above, but in different file format.
+%
+% Get available image file names.
+imageFiledir = fullfile(baseFiledir,projectName,'images','segmentation','images_labeled');
+imageFileList = dir(imageFiledir);
+imageNameList = {imageFileList.name};
+imageOptions = imageNameList(~startsWith(imageNameList,'.'));
+
+% Get available segmentation file names.
+segmentationFiledir = fullfile(baseFiledir,projectName,'images','segmentation','segmentation_labeled');
+segmentFileList = dir(segmentationFiledir);
+segmentNameList = {segmentFileList.name};
+segmentationOptions = segmentNameList(~startsWith(segmentNameList,'.'));
+
+%% Find valid images to compare. Also, exclude some if you want.
+%
+% Some images do not have proper correspondong segmentation data, so here
+% we match the number of the images to compare. As of now (04/13/25), we
+% used 31 images for the experiment while we have valid segmentation data
+% ~29 images.
+validTestimageOptions = {};
+validSegmentationOptions = {};
+
+% Exclude the test images if you want. For now, we have some images with no
+% proper segmentation, which will be excluded for now.
+exclImageNameOnly = {'kite1','orange1','orange2','orange3',...
+    'person1','person3','person4','surfboard1'};
+
+% Here, we make a loop to find the test image names that was used in the
+% experiment, and also having the valid segmentation data.
+nTestImagesSegment = length(imageOptions);
+for ss = 1:nTestImagesSegment
+    % Get the image name from the segmentation data.
+    [~, imagename1, ~] = fileparts(segmentationOptions{ss});
+
+    % Here, we make a loop to find a matching name in the test image list
+    % that used in the experiment.
+    ii = 1;
+    while true
+        [~, imagename2, ~] = fileparts(testimageOptions{ii});
+
+        % Find the matching name.
+        if strcmp(imagename1, imagename2)
+            % Add the image name unless it's not the images that we want to
+            % exclude.
+            if ~any(strcmp(exclImageNameOnly,imagename1))
+                validSegmentationOptions{end+1} = segmentationOptions{ss};
+                validTestimageOptions{end+1} = testimageOptions{ii};
+            end
+            break;
+        end
+
+        % Keep counting.
+        ii = ii + 1;
+    end
+
+    % Show progress.
+    fprintf('Find valid images to compare: (%s) - (%d/%d) \n', imagename1, ss, nTestImagesSegment);
+end
+nTestImagesValid = length(validTestimageOptions);
+fprintf('Total of (%d) valid test images were found! \n',nTestImagesValid);
+
+% Get the image index to update further experimental data.
+[~, idxTestImages, ~] = intersect(testimageOptions, validTestimageOptions);
+nTestImagesToCompare = length(idxTestImages);
+
+% Get the image index to update further CAM16 calculations.
+[~, idxSegImages, ~] = intersect(segmentationOptions, validSegmentationOptions);
+validImageOptions = imageOptions(idxSegImages);
+
+% % Remove extensions to sort the image excluded.
+% segNamesOnly  = erase(validSegmentationOptions, '.csv');
+% imageNamesOnly  = erase(validTestimageOptions, '.png');
+% 
+% % Get the index of excluded images based on name.
+% isExcludedSeg  = ismember(segNamesOnly, exclImageNameOnly);
+% isExcludedImage  = ismember(imageNamesOnly, exclImageNameOnly);
+% 
+% % Filter out the excluded images.
+% segImageOptions_filtered  = validSegmentationOptions(~isExcludedSeg);
+% validTestimageOptions_filtered  = validTestimageOptions(~isExcludedImage);
+% 
+% % Get the index valid images to compare.
+% [~, idxTestImages, ~] = intersect(testimageOptions, validTestimageOptions_filtered);
+% [~, idxSegImages, ~] = intersect(segmentationOptions, segImageOptions_filtered);
 
 %% Get the raw data for all subjects.
 %
@@ -105,8 +198,7 @@ for ss = 1:nSubjects
     %
     % Read out some variables.
     nRepeat = rawData.data.expParams.nRepeat;
-    nTestImages = rawData.data.expParams.nTestImages;
-
+    
     % Get the index to sort out the results.
     [randOrderSorted idxOrder_sorted] = sort(rawData.data.expParams.randOrder);
 
@@ -120,18 +212,16 @@ for ss = 1:nSubjects
     % order. Here, to be careful on this, we make a loop to sort one by
     % one.
     for rr = 1:nRepeat
-        hueScoreTemp =  rawData.data.hueScore(:,rr);
+        hueScore_rawTemp =  rawData.data.hueScore(:,rr);
         idxOrderSortedTemp = idxOrder_sorted(:,rr);
-        hueScore_sorted(:,rr) = hueScoreTemp(idxOrderSortedTemp);
+        hueScore_sortedTemp(:,rr) = hueScore_rawTemp(idxOrderSortedTemp);
     end
-    % Mean results.
-    hueScorePerSub{ss} = hueScore_sorted;
+    % We will save out the results with only valid segmentation data.
+    hueScore_perSub{ss} = hueScore_sortedTemp(idxTestImages,:);
 end
 
 %% Check repeatability - within observer.
-CHECKREPEATABILITY = true;
 axisHue = [0 450];
-
 if (CHECKREPEATABILITY)
     figure; hold on;
 
@@ -141,16 +231,17 @@ if (CHECKREPEATABILITY)
         subjectName = targetSubjectsNames{ss};
 
         % Get one subject data.
-        hueScoreOneSub = hueScorePerSub{ss};
+        hueScore_oneSubTemp = hueScore_perSub{ss};
 
         % Calculate the correlation coefficient between two repeatitions.
-        r_matrix = corrcoef(hueScoreOneSub(:,1),hueScoreOneSub(:,2));
+        % Here, we will only use the data with valid segmentation data.
+        r_matrix = corrcoef(hueScore_oneSubTemp(:,1),hueScore_oneSubTemp(:,2));
         r_withinSubjects(ss) = r_matrix(1,2);
 
         % Plot it here.
         nColumns = 5;
         subplot(ceil(nSubjects/nColumns),nColumns,ss); hold on;
-        plot(hueScoreOneSub(:,1),hueScoreOneSub(:,2),'k.');
+        plot(hueScore_oneSubTemp(:,1),hueScore_oneSubTemp(:,2),'k.');
         plot(axisHue,axisHue,'k-');
         axis square;
         xlabel('Hue score');
@@ -172,11 +263,8 @@ if (CHECKREPEATABILITY)
 end
 
 %% Check reproducibiliy - across observer.
-CHECKREPRODUCIBILITY = true;
-
 if (CHECKREPRODUCIBILITY)
     figure; hold on;
-
     % Calculate the mean results across all subjects. We will compare each
     % subject's data with the mean.
     %
@@ -185,13 +273,13 @@ if (CHECKREPRODUCIBILITY)
     % number of subjects. For example, 31 images were used with 2 repetitions
     % and 10 subjects, the matrix will have the size of 31 x 20 (2 rep x 10
     % subs).
-    hueScoreAllSub = horzcat(hueScorePerSub{:});
+    hueScoreAllSub = horzcat(hueScore_perSub{:});
 
     % Make an average per each test image across all subjects and repetitions.
     % WE NEED TO THINK ABOUT HOW TO MANAGE THE DATA WITHIN THE RANGE BLUE-RED.
     % hueScoreMeanAllSub = mean(hueScoreAllSub,2);
 
-    % Convert hue quadrature (0–400) to radians (0–2π)
+    % Convert hue quadrature (0–400) to radians (0–2π).
     angles = hueScoreAllSub / 400 * 2 * pi;
 
     % Compute mean angle using circular statistics
@@ -199,12 +287,13 @@ if (CHECKREPRODUCIBILITY)
     mean_cos = mean(cos(angles),2);
     mean_angle = atan2(mean_sin, mean_cos);
 
-    % Convert mean angle back to hue quadrature scale
-    hueScoreMeanAllSub = mod(mean_angle, 2*pi) / (2*pi) * 400;
+    % Convert mean angle back to hue quadrature scale.
+    hueScore_mean = mod(mean_angle, 2*pi) / (2*pi) * 400;
 
-    % Get standard error.
+    % Get standard deviation and standard error.
     n = size(hueScoreAllSub,2);
-    hueScore_stdError = std(hueScoreAllSub')/sqrt(n);
+    hueScore_std = std(hueScoreAllSub');
+    hueScore_stdError = hueScore_std/sqrt(n);
 
     % Make a loop for all subjects.
     for ss = 1:nSubjects
@@ -212,16 +301,16 @@ if (CHECKREPRODUCIBILITY)
         subjectName = targetSubjectsNames{ss};
 
         % Get one subject data.
-        hueScoreOneSub = hueScorePerSub{ss};
+        hueScore_oneSubTemp = hueScore_perSub{ss};
 
         % Calculate the correlation coefficient between one subject data and mean.
         %
         % Repetition 1.
-        r_matrix = corrcoef(hueScoreOneSub(:,1),hueScoreMeanAllSub);
+        r_matrix = corrcoef(hueScore_oneSubTemp(:,1),hueScore_mean);
         r_acrossSubjects_1st = r_matrix(1,2);
 
         % Repetition 2.
-        r_matrix = corrcoef(hueScoreOneSub(:,2),hueScoreMeanAllSub);
+        r_matrix = corrcoef(hueScore_oneSubTemp(:,2),hueScore_mean);
         r_acrossSubjects_2nd = r_matrix(1,2);
 
         % Make an average of two trials.
@@ -229,8 +318,8 @@ if (CHECKREPRODUCIBILITY)
 
         % Plot it here.
         subplot(ceil(nSubjects/5),nColumns,ss); hold on;
-        plot(hueScoreMeanAllSub,hueScoreOneSub(:,1),'k.');
-        plot(hueScoreMeanAllSub,hueScoreOneSub(:,2),'r.');
+        plot(hueScore_mean,hueScore_oneSubTemp(:,1),'k.');
+        plot(hueScore_mean,hueScore_oneSubTemp(:,2),'r.');
         plot(axisHue,axisHue,'k-');
         axis square;
         xlabel('Hue score (mean)');
@@ -253,28 +342,13 @@ end
 
 %% Calculate CAM16 values from here.
 %
-% Set the folders to read out the test image and corresponding segmentation data.
-imageFiledir = fullfile(baseFiledir,projectName,'images','segmentation','images_labeled');
-segmentationFiledir = fullfile(baseFiledir,projectName,'images','segmentation','segmentation_labeled');
-
-% Get available image file names.
-imageFileList = dir(imageFiledir);
-imageNameList = {imageFileList.name};
-imageNameOptions = imageNameList(~startsWith(imageNameList,'.'));
-
-% Get available segmentation file names.
-segmentFileList = dir(segmentationFiledir);
-segmentNameList = {segmentFileList.name};
-segmentNameOptions = segmentNameList(~startsWith(segmentNameList,'.'));
-
 % Here we make a loop to calculate CAM16 values for all images available.
-nTestImagesSegment = length(imageNameOptions);
-for ii = 1:nTestImagesSegment
+for ii = 1:nTestImagesToCompare
     numImage = ii;
-    image = imread(fullfile(imageFiledir,imageNameOptions{numImage}));
+    image = imread(fullfile(imageFiledir,validImageOptions{numImage}));
 
     % Read out segmentation data.
-    segFilename = segmentNameOptions{numImage};
+    segFilename = validSegmentationOptions{numImage};
     fid = fopen(fullfile(segmentationFiledir,segFilename),"r");
     segmentData = textscan(fid, '%f %s %f %f %f %f %f', 'Delimiter', ',', 'HeaderLines', 1);
     fclose(fid);
@@ -317,7 +391,7 @@ for ii = 1:nTestImagesSegment
     JCH_targetObject(:,ii) = XYZToJCH(XYZ_targetObject,XYZ_white,LA);
 
     % Show progress.
-    fprintf('Calculating CAM16 values - Image (%d/%d) \n', ii, nTestImagesSegment);
+    fprintf('Calculating CAM16 values - Image (%d/%d) \n', ii, nTestImagesToCompare);
 end
 
 % Extract the CAM16 Hue quadrature values
@@ -325,71 +399,6 @@ CAM16_H = JCH_targetObject(3,:);
 
 %% Comparison between experiment results vs. CAM16 estimations.
 %
-% Some images do not have proper correspondong segmentation data, so here
-% we match the number of the images to compare. As of now (04/13/25), we
-% used 31 images for the experiment while we have valid segmentation data
-% ~29 images.
-validTestimageOptions = {};
-validSegImageOptions = {};
-
-nImagesToCompare = min(nTestImages,nTestImagesSegment);
-for ss = 1:nImagesToCompare
-    % Get the image name from the segmentation data.
-    [~, imagename1, ~] = fileparts(segmentNameOptions{ss});
-
-    % Here, we make a loop to find a matching name in the test image list
-    % that used in the experiment.
-    ii = 1;
-    while true
-        [~, imagename2, ~] = fileparts(testimageOptions{ii});
-
-        % Find the matching name.
-        if strcmp(imagename1, imagename2)
-            validSegImageOptions{end+1} = segmentNameOptions{ss};
-            validTestimageOptions{end+1} = testimageOptions{ii};
-            break;
-        end
-
-        % Keep counting.
-        ii = ii + 1;
-    end
-
-    % Show progress.
-    fprintf('Find valid images to compare: (%s) - (%d/%d) \n', imagename1, ss, nImagesToCompare);
-end
-
-% Exclude the test images if you want. For now, we have some images with no
-% proper segmentation, which will be excluded for now.
-exclImageNameOnly = {'kite1','orange1','orange2','orange3',...
-    'person1','person3','person4','surfboard1'};
-
-% Remove extensions to sort the image excluded.
-segNamesOnly  = erase(validSegImageOptions, '.csv');
-imageNamesOnly  = erase(validTestimageOptions, '.png');
-
-% Get the index of excluded images based on name.
-isExcludedSeg  = ismember(segNamesOnly, exclImageNameOnly);
-isExcludedImage  = ismember(imageNamesOnly, exclImageNameOnly);
-
-% Filter out the excluded images.
-segImageOptions_filtered  = validSegImageOptions(~isExcludedSeg);
-validTestimageOptions_filtered  = validTestimageOptions(~isExcludedImage);
-
-% Get the index valid images to compare.
-[~, idxTestImages, ~] = intersect(testimageOptions, validTestimageOptions_filtered);
-[~, idxSegImages, ~] = intersect(segmentNameOptions, segImageOptions_filtered);
-
-% Extract the experiment results and CAM16 H for comparison.
-CAM16_H_compare = CAM16_H(idxSegImages)';
-hueScore_mean_compare = hueScoreMeanAllSub(idxTestImages);
-
-% Calculate the error bar for the experimental results.
-hueScore_stdError_compare = hueScore_stdError(idxTestImages);
-
-% Get the number of images to compare.
-nImagesCompare = length(idxTestImages);
-fprintf('Total of (%d) images are going to be analyzed! \n', nImagesCompare);
-
 % THIS PART WILL BE ADDED LATER ON
 %
 % Match the scale between CAM16 H values and the experimental results. As H
@@ -403,11 +412,18 @@ fprintf('Total of (%d) images are going to be analyzed! \n', nImagesCompare);
 figure; hold on;
 
 % Error bar.
-errorbar(hueScore_mean_compare, CAM16_H_compare, hueScore_stdError_compare,...
+ERRORBAR = 'std';
+switch ERRORBAR
+    case 'stderror'
+        hueScore_errorbar_plot = hueScore_stdError;
+    case 'std'
+        hueScore_errorbar_plot = hueScore_std;
+end
+errorbar(hueScore_mean, CAM16_H, hueScore_errorbar_plot,...
     'LineStyle','none','Color','k');
 
 % Mean comparison.
-f_data = plot(hueScore_mean_compare, CAM16_H_compare, 'o',...
+f_data = plot(CAM16_H,hueScore_mean,'o',...
     'markeredgecolor','k','markerfacecolor','g');
 
 % 45-deg line.
@@ -422,4 +438,15 @@ axis square;
 grid on;
 legend(f_data,'Images','location','southeast');
 title('CAM16 vs. Hue score (experiment)');
-subtitle(sprintf('Subjects (%d) / Test Images (%d)',nSubjects,nImagesCompare));
+subtitle(sprintf('Subjects (%d) / Test Images (%d)',nSubjects,nTestImagesToCompare));
+
+
+% Plot the individual results compared with CAM16.
+figure; 
+for ss = 1:nSubjects
+% Get mean of two evaluations.
+
+
+    subplot(ceil(nSubjects/nColumns),nColumns,ss); hold on;
+    plot(CAM16_H,  )
+end
