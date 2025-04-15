@@ -47,6 +47,7 @@ arguments
     options.surround = 'average'
     options.whichCAM = 'CAM16'
     options.size = 'medium'
+    options.HPM21 = false;
 end
 
 % Get the number of the target.
@@ -110,6 +111,24 @@ RGBw = M_CAT * XYZ_white;
 
 % Degree of adaptation.
 D = F*(1-(1/3.6)*exp((-LA-42)/92));
+
+% Add chromaticity factor in the degree of adaptation (HPM21_Oh).
+if (options.HPM21)
+    % Calculate the u'v' of the white point.
+    uv_white = XYZTouv(XYZ_white);
+
+    % Calculate the chroma effect on the adaptation. This is from the model
+    % HPM21_Oh.
+    a=0.19595;
+    b=0.07332;
+    c=0.48135;
+    d=0.06547;
+    f_chroma = exp(-0.5*((uv_white(1)-a)/b)^2+((uv_white(2)-c)/d)^2);
+
+    % Compensate the chroma of the illuminant here.
+    D = D * f_chroma;
+end
+
 if strcmpi(options.whichCAM, 'CAM16')
     D = max(0, min(1, D));
 end
@@ -197,11 +216,19 @@ end
 %
 % Unique hue angles defined in CIECAM02. As the hue angle circles within
 % 360, so red (20.14) is equivalent with the red (380.14).
-h_Red = 20.14;
-h_Yellow = 90;
-h_Green = 164.25;
-h_Blue = 234.79;
-h_Red360 = 380.14;
+if (options.HPM21)
+    h_Red = 1.78;
+    h_Yellow = 86.34;
+    h_Green = 142.82;
+    h_Blue = 238.34;
+    h_Red360 = 361.78;
+else
+    h_Red = 20.14;
+    h_Yellow = 90;
+    h_Green = 164.25;
+    h_Blue = 234.79;
+    h_Red360 = 380.14;
+end
 h_Unique = [h_Red h_Yellow h_Green h_Blue h_Red360];
 
 % Hue eccentricity factors.
