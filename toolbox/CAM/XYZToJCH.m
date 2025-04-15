@@ -29,6 +29,9 @@ function JCH = XYZToJCH(XYZ_target,XYZ_white,LA,options)
 %    options.size             - Define the size of stimuli. This is only
 %                               applied when using CAM16 model. Default to
 %                               medium.
+%    HPM21                    - Use parameters from the model HPM21_Oh. It
+%                               happens in the Degree of Adaptation (D) and
+%                               Unique hue settings. Default to false.
 %
 % See also:
 %    JCHToXYZ.
@@ -38,6 +41,7 @@ function JCH = XYZToJCH(XYZ_target,XYZ_white,LA,options)
 %    07/25/24       smo       - Working fine. The calculation results match
 %                               with the official CIECAM02 excel file.
 %    04/01/25       smo       - Added an option to calculate CAM16 values.
+%    04/15/25       smo       - Added an option to calculate HPM21.
 
 %% Set variables.
 arguments
