@@ -58,7 +58,7 @@ end
 projectName = 'NaturalCAM';
 
 % Control print out and plots.
-SUBJECTANON = false;
+SUBJECTANON = true;
 CHECKREPEATABILITY = true;
 CHECKREPRODUCIBILITY = true;
 PLOTIMAGEWHITEPOINT = false;
@@ -163,15 +163,15 @@ validImageOptions = imageOptions(idxSegImages);
 % % Remove extensions to sort the image excluded.
 % segNamesOnly  = erase(validSegmentationOptions, '.csv');
 % imageNamesOnly  = erase(validTestimageOptions, '.png');
-% 
+%
 % % Get the index of excluded images based on name.
 % isExcludedSeg  = ismember(segNamesOnly, exclImageNameOnly);
 % isExcludedImage  = ismember(imageNamesOnly, exclImageNameOnly);
-% 
+%
 % % Filter out the excluded images.
 % segImageOptions_filtered  = validSegmentationOptions(~isExcludedSeg);
 % validTestimageOptions_filtered  = validTestimageOptions(~isExcludedImage);
-% 
+%
 % % Get the index valid images to compare.
 % [~, idxTestImages, ~] = intersect(testimageOptions, validTestimageOptions_filtered);
 % [~, idxSegImages, ~] = intersect(segmentationOptions, segImageOptions_filtered);
@@ -198,7 +198,7 @@ for ss = 1:nSubjects
     %
     % Read out some variables.
     nRepeat = rawData.data.expParams.nRepeat;
-    
+
     % Get the index to sort out the results.
     [randOrderSorted idxOrder_sorted] = sort(rawData.data.expParams.randOrder);
 
@@ -217,7 +217,10 @@ for ss = 1:nSubjects
         hueScore_sortedTemp(:,rr) = hueScore_rawTemp(idxOrderSortedTemp);
     end
     % We will save out the results with only valid segmentation data.
-    hueScore_perSub{ss} = hueScore_sortedTemp(idxTestImages,:);
+    hueScore_raw{ss} = hueScore_sortedTemp(idxTestImages,:);
+
+    % Calculate the mean of the repeatitions within subject.
+    hueScore_meanPerSub{ss} = mean(hueScore_raw{ss},2);
 end
 
 %% Check repeatability - within observer.
@@ -231,7 +234,7 @@ if (CHECKREPEATABILITY)
         subjectName = targetSubjectsNames{ss};
 
         % Get one subject data.
-        hueScore_oneSubTemp = hueScore_perSub{ss};
+        hueScore_oneSubTemp = hueScore_raw{ss};
 
         % Calculate the correlation coefficient between two repeatitions.
         % Here, we will only use the data with valid segmentation data.
@@ -273,7 +276,7 @@ if (CHECKREPRODUCIBILITY)
     % number of subjects. For example, 31 images were used with 2 repetitions
     % and 10 subjects, the matrix will have the size of 31 x 20 (2 rep x 10
     % subs).
-    hueScoreAllSub = horzcat(hueScore_perSub{:});
+    hueScoreAllSub = horzcat(hueScore_meanPerSub{:});
 
     % Make an average per each test image across all subjects and repetitions.
     % WE NEED TO THINK ABOUT HOW TO MANAGE THE DATA WITHIN THE RANGE BLUE-RED.
@@ -301,25 +304,15 @@ if (CHECKREPRODUCIBILITY)
         subjectName = targetSubjectsNames{ss};
 
         % Get one subject data.
-        hueScore_oneSubTemp = hueScore_perSub{ss};
+        hueScore_oneSubTemp = hueScore_meanPerSub{ss};
 
         % Calculate the correlation coefficient between one subject data and mean.
-        %
-        % Repetition 1.
-        r_matrix = corrcoef(hueScore_oneSubTemp(:,1),hueScore_mean);
-        r_acrossSubjects_1st = r_matrix(1,2);
-
-        % Repetition 2.
-        r_matrix = corrcoef(hueScore_oneSubTemp(:,2),hueScore_mean);
-        r_acrossSubjects_2nd = r_matrix(1,2);
-
-        % Make an average of two trials.
-        r_acrossSubjects(ss) = mean([r_acrossSubjects_1st r_acrossSubjects_2nd]);
+        r_matrix = corrcoef(hueScore_oneSubTemp,hueScore_mean);
+        r_acrossSubjects(ss) = r_matrix(1,2);
 
         % Plot it here.
         subplot(ceil(nSubjects/5),nColumns,ss); hold on;
-        plot(hueScore_mean,hueScore_oneSubTemp(:,1),'k.');
-        plot(hueScore_mean,hueScore_oneSubTemp(:,2),'r.');
+        plot(hueScore_mean,hueScore_oneSubTemp(:,1),'r.');
         plot(axisHue,axisHue,'k-');
         axis square;
         xlabel('Hue score (mean)');
@@ -406,47 +399,82 @@ CAM16_H = JCH_targetObject(3,:);
 % have a pair of the values, 32 and 385, we will convert them to 432
 % (32+400) and 385. It's preferred to add 400 to match the scale to avoid
 % any negative values.
+deltaHue = CAM16_H'-hueScore_mean;
+idxWeired = find(abs(deltaHue)>100);
+for ww = 1:length(idxWeired)
+    idxWeiredTemp = idxWeired(ww);
 
+    CAM16_H_temp = CAM16_H(idxWeiredTemp);
+    hueScore_temp = hueScore_mean(idxWeiredTemp);
+
+    if CAM16_H_temp <  hueScore_temp
+        CAM16_H_temp = CAM16_H_temp + 400;
+    else
+        hueScore_temp = hueScore_temp + 400;
+    end
+
+    CAM16_H(idxWeiredTemp) = CAM16_H_temp;
+    hueScore_mean(idxWeiredTemp) = hueScore_temp;
+end
 
 % Plot it.
 figure; hold on;
 
 % Error bar.
-ERRORBAR = 'std';
+ERRORBAR = 'stderror';
 switch ERRORBAR
     case 'stderror'
         hueScore_errorbar_plot = hueScore_stdError;
     case 'std'
         hueScore_errorbar_plot = hueScore_std;
 end
-errorbar(hueScore_mean, CAM16_H, hueScore_errorbar_plot,...
+errorbar(hueScore_mean, CAM16_H, ...
+    [], [], hueScore_errorbar_plot, hueScore_errorbar_plot,...
     'LineStyle','none','Color','k');
 
 % Mean comparison.
-f_data = plot(CAM16_H,hueScore_mean,'o',...
+f_data = plot(hueScore_mean,CAM16_H,'o',...
     'markeredgecolor','k','markerfacecolor','g');
+
+% Calculate delta hue.
+delta_hue_mean = mean(abs(CAM16_H'-hueScore_mean));
 
 % 45-deg line.
 plot(axisHue,axisHue,'k-');
 
 % Figure stuff.
-xlabel('CAM16 H');
-ylabel('Hue Score (Exp)');
+xlabel('Hue Score');
+ylabel('CAM16 H');
 xlim(axisHue);
 ylim(axisHue);
 axis square;
 grid on;
 legend(f_data,'Images','location','southeast');
-title('CAM16 vs. Hue score (experiment)');
-subtitle(sprintf('Subjects (%d) / Test Images (%d)',nSubjects,nTestImagesToCompare));
+title('CAM16 vs. Mean results');
+subtitle(sprintf('nSubjects = (%d) / nTestImages = (%d) / Mean delta H = (%.2f)',nSubjects,nTestImagesToCompare,delta_hue_mean));
 
-
-% Plot the individual results compared with CAM16.
-figure; 
+%% Plot the individual results compared with CAM16.
+figure;
+sgtitle(sprintf('CAM16 vs. Inidividual results \n nTestImages = (%d)',nTestImagesToCompare));
 for ss = 1:nSubjects
-% Get mean of two evaluations.
+    % Get the subject name.
+    subjectName = targetSubjectsNames{ss};
 
-
+    % Make a separate plot per subject.
     subplot(ceil(nSubjects/nColumns),nColumns,ss); hold on;
-    plot(CAM16_H,  )
+    plot(hueScore_meanPerSub{ss},CAM16_H,'o',...
+        'markeredgecolor','k','markerfacecolor','g','markersize',4);
+    plot(axisHue,axisHue,'k-');
+
+    xlabel('Hue Score');
+    ylabel('CAM16 H');
+    xlim(axisHue);
+    ylim(axisHue);
+    axis square;
+    grid on;
+    if (SUBJECTANON)
+        title(sprintf('Subject %d',ss));
+    else
+        title(subjectName);
+    end
 end
