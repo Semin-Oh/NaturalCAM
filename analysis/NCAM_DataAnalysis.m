@@ -22,6 +22,24 @@
 %% Initialize.
 clear; close all;
 
+%% Choose which date to analyze.
+while 1
+    inputMessageExpMode = 'Which data to analyze? [1:hue, 2:lightness]: ';
+    ansExpMode = input(inputMessageExpMode);
+    ansOptions = [1 2];
+
+    if ismember(ansExpMode, ansOptions)
+        break
+    end
+
+    disp('Type either 1 or 2!');
+end
+expModeOptions = {'hue','lightness'};
+expMode = expModeOptions{ansExpMode};
+
+% Display which experiment is running.
+fprintf('(%s) experiment data will be analyzed! \n',expMode);
+
 %% Set variables.
 %
 % Set display type and its 3x3 characterization matrix. The matrix is read
@@ -61,13 +79,13 @@ projectName = 'NaturalCAM';
 SUBJECTANON = true;
 CHECKREPEATABILITY = true;
 CHECKREPRODUCIBILITY = true;
-PLOTIMAGEWHITEPOINT = false;
+PLOTIMAGEWHITEPOINT = true;
 PLOTOBJECTDOMINANTCOLOR = false;
 
 %% Get available subject info.
 %
 % Set the repository.
-dataFiledir = fullfile(baseFiledir,projectName,'data');
+dataFiledir = fullfile(baseFiledir,projectName,'data',expMode);
 
 % Get available subject names.
 subjectNameContent = dir(dataFiledir);
