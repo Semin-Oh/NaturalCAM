@@ -28,6 +28,7 @@
 %    03/24/25    smo    - Now 'reset' button is activated, which subject
 %                         can start the evaluation from the beginning when
 %                         unintended buttons were pressed.
+%    06/03/25    smo    - Added an option to run lightness experiment.
 
 %% Initialize.
 close all; clear;
@@ -70,9 +71,29 @@ end
 % Set repository name.
 testFiledir = fullfile(baseFiledir,projectName);
 
-%% Get subject info.
+%% Get key inputs of the experiment.
+%
+% Subject name.
 inputMessageName = 'Enter subject name: ';
 subjectName = input(inputMessageName, 's');
+
+% Experimental mode. Choose either hue or lightness for now.
+while 1
+    inputMessageExpMode = 'Which mode to run? [1:hue, 2:lightness]: ';
+    ansExpMode = input(inputMessageExpMode);
+    ansOptions = [1 2];
+
+    if ismember(ansExpMode, ansOptions)
+        break
+    end
+
+    disp('Type either 1 or 2!');
+end
+expModeOptions = {'hue','lightness'};
+expMode = expModeOptions{ansExpMode};
+
+% Display which experiment is running.
+fprintf('Experiment is going to be started - (%s) \n',expMode);
 
 %% Starting from here to the end, if error occurs, we automatically close the PTB screen.
 try
@@ -90,6 +111,7 @@ try
     expParams.nArrowFlashes = 3;
     expParams.stepSizeProp = 1;
     expParams.subjectName = subjectName;
+    expParams.expMode = expMode;
     expParams.expKeyType = 'gamepad';
 
     % etc.
@@ -223,10 +245,18 @@ try
             idxTestImage = expParams.randOrder(ii,rr);
 
             % One evaluation happens here using Magnitude estimation method.
-            data.hueScore(ii,rr) = GetOneRespMagnitudeEst(testImage.testImage{idxTestImage},testImage.testImageArrow{idxTestImage},window,windowRect,...
+            evaluation_temp = GetOneRespMagnitudeEst(testImage.testImage{idxTestImage},testImage.testImageArrow{idxTestImage},window,windowRect,...
                 'expKeyType',expParams.expKeyType,'postKeyPressDelaySec',expParams.postKeyPressDelaySec,'testImageSizeHeightRatio',expParams.testImageSizeHeightRatio,...
                 'secIntvFlashingArrow',expParams.secIntvFlashingArrow,'nArrowFlashes',expParams.nArrowFlashes,'fontsize',expParams.fontSize,'secDelayBTWQuestions',expParams.secDelayBTWQuestions,...
-                'postKeyPressDelayPropSec',expParams.postKeyPressDelayPropSec,'stepSizeProp',expParams.stepSizeProp,'font',font,'verbose',true);
+                'postKeyPressDelayPropSec',expParams.postKeyPressDelayPropSec,'stepSizeProp',expParams.stepSizeProp,'font',font,'expmode',expMode,'verbose',true);
+
+            % Save out the data.
+            switch expMode
+                case 'hue'
+                    data.hueScore(ii,rr) = evaluation_temp;
+                case 'lightness'
+                    data.lightness(ii,rr) = evaluation_temp;
+            end
 
             % Display a null image again and pause for a second before
             % displaying the next test image.
@@ -265,7 +295,9 @@ try
         nTargetTrials = expParams.nTestImages * expParams.nRepeat;
         nTrialsDone = ii * rr;
         if (nTrialsDone == nTargetTrials)
-            saveFiledir = fullfile(testFiledir,'data');
+            % We save the data in different folders according to
+            % experimental mode.
+            saveFiledir = fullfile(testFiledir,'data',expMode);
 
             % Make folder with subject name if it does not exist.
             saveFoldername = fullfile(saveFiledir,subjectName);
