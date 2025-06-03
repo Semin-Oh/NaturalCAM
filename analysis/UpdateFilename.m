@@ -21,8 +21,8 @@ filedir_image_org = '/Users/semin/Dropbox (Personal)/JLU/2) Projects/NaturalCAM/
 filedir_image_label = '/Users/semin/Dropbox (Personal)/JLU/2) Projects/NaturalCAM/images/segmentation/images_labeled';
 
 % Semin's laptop.
-filedir_image_org = '/Users/ohsem/Dropbox (Personal)/JLU/2) Projects/NaturalCAM/images/segmentation/images_original';
-filedir_image_label = '/Users/ohsem/Dropbox (Personal)/JLU/2) Projects/NaturalCAM/images/segmentation/images_labeled';
+% filedir_image_org = '/Users/ohsem/Dropbox (Personal)/JLU/2) Projects/NaturalCAM/images/segmentation/images_original';
+% filedir_image_label = '/Users/ohsem/Dropbox (Personal)/JLU/2) Projects/NaturalCAM/images/segmentation/images_labeled';
 
 % Segmentation file dir.
 %
@@ -31,8 +31,8 @@ filedir_seg_org = '/Users/semin/Dropbox (Personal)/JLU/2) Projects/NaturalCAM/im
 filedir_seg_label = '/Users/semin/Dropbox (Personal)/JLU/2) Projects/NaturalCAM/images/segmentation/segmentation_labeled';
 
 % Semin's laptop.
-filedir_seg_org = '/Users/ohsem/Dropbox (Personal)/JLU/2) Projects/NaturalCAM/images/segmentation/segmentation_original';
-filedir_seg_label = '/Users/ohsem/Dropbox (Personal)/JLU/2) Projects/NaturalCAM/images/segmentation/segmentation_labeled';
+% filedir_seg_org = '/Users/ohsem/Dropbox (Personal)/JLU/2) Projects/NaturalCAM/images/segmentation/segmentation_original';
+% filedir_seg_label = '/Users/ohsem/Dropbox (Personal)/JLU/2) Projects/NaturalCAM/images/segmentation/segmentation_labeled';
 
 %% Get the image names and CoCo code names.
 %
