@@ -757,7 +757,7 @@ switch options.expMode
 
             % Right button.
             if strcmp(keyPressed,buttonRight)
-                if lightnessVal <= lightnessVal_max
+                if lightnessVal < lightnessVal_max
                     lightnessVal = lightnessVal + options.stepSizeProp;
                 end
 
