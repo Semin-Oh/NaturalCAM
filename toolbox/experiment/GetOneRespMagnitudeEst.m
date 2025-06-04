@@ -241,7 +241,9 @@ end
 % determined based on the pre-defined square from the above.
 positionHorz = sizeBG/2;
 positionVert = sizeBG*0.05;
+
 positionHorzGap = sizeBG*0.08;
+positionVertGap = sizeBG*0.03;
 
 % We set the texts differently over what we evaluate.
 switch options.expMode
@@ -261,9 +263,6 @@ switch options.expMode
 
         % Set the positions of the marker for each unique hue. We will place it
         % right below each unique hue text with another text 'select'.
-        %
-        % Set how much we will shift the marker from the texts of unique hue.
-        shiftPositionVert = sizeBG*0.03;
 
         % Copy the text positions and make a shift from it.
         textPosition_marker_red = textPosition_red;
@@ -271,10 +270,10 @@ switch options.expMode
         textPosition_marker_yellow = textPosition_yellow;
         textPosition_marker_blue = textPosition_blue;
 
-        textPosition_marker_red(2) = textPosition_marker_red(2) + shiftPositionVert;
-        textPosition_marker_green(2) = textPosition_marker_green(2) + shiftPositionVert;
-        textPosition_marker_yellow(2) = textPosition_marker_yellow(2) + shiftPositionVert;
-        textPosition_marker_blue(2) = textPosition_marker_blue(2) + shiftPositionVert;
+        textPosition_marker_red(2) = textPosition_marker_red(2) + positionVertGap;
+        textPosition_marker_green(2) = textPosition_marker_green(2) + positionVertGap;
+        textPosition_marker_yellow(2) = textPosition_marker_yellow(2) + positionVertGap;
+        textPosition_marker_blue(2) = textPosition_marker_blue(2) + positionVertGap;
         textPositions_marker = {textPosition_marker_red textPosition_marker_green textPosition_marker_yellow textPosition_marker_blue};
         textPosition_marker_initial = textPositions_marker{1};
 
@@ -288,7 +287,7 @@ switch options.expMode
         initialLightnessVal = 50;
         text = string(initialLightnessVal);
         texts = text;
-        textPositions = [positionHorz positionVert];
+        textPositions = [positionHorz positionVert + positionVertGap*2];
 end
 
 % Add text to the test image for evaluation.
@@ -403,16 +402,16 @@ switch options.expMode
                 textPosition_no = textPosition_green;
 
                 % These positions will not be changed during the experiment.
-                textPosition_secondHue(2) = textPosition_secondHue(2) + shiftPositionVert;
-                textPosition_yes(2) = textPosition_yes(2) + shiftPositionVert*2;
-                textPosition_no(2) = textPosition_no(2) + shiftPositionVert*2;
+                textPosition_secondHue(2) = textPosition_secondHue(2) + positionVertGap;
+                textPosition_yes(2) = textPosition_yes(2) + positionVertGap*2;
+                textPosition_no(2) = textPosition_no(2) + positionVertGap*2;
                 textPositions_question = [textPosition_secondHue; textPosition_yes; textPosition_no];
 
                 % Set the position of the marker and merge all of them.
                 textPosition_marker_yes = textPosition_yes;
                 textPosition_marker_no = textPosition_no;
-                textPosition_marker_yes(2) = textPosition_marker_yes(2) + shiftPositionVert;
-                textPosition_marker_no(2) = textPosition_marker_no(2) + shiftPositionVert;
+                textPosition_marker_yes(2) = textPosition_marker_yes(2) + positionVertGap;
+                textPosition_marker_no(2) = textPosition_marker_no(2) + positionVertGap;
 
                 textPositions_markerYN = {textPosition_marker_yes textPosition_marker_no};
                 textPosition_marker_initial_YN = textPositions_markerYN{1};
@@ -612,8 +611,8 @@ switch options.expMode
                     textPosition_prob1 = textPositions_UH(idx_selectedHue1,:);
                     textPosition_prob2 = textPositions_UH(idx_selectedHue2,:);
 
-                    textPosition_prob1(2) = textPosition_prob1(2) + shiftPositionVert;
-                    textPosition_prob2(2) = textPosition_prob2(2) + shiftPositionVert;
+                    textPosition_prob1(2) = textPosition_prob1(2) + positionVertGap;
+                    textPosition_prob2(2) = textPosition_prob2(2) + positionVertGap;
                     textPositions_probs = [textPosition_prob1; textPosition_prob2];
 
                     % First, display the initial hue selection screen with probs.
