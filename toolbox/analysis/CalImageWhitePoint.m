@@ -80,30 +80,34 @@ switch options.calculationMethod
         idxPecentBrightest = ceil(options.percentPixelBright * nPixels);
         dRGB_image_bright = dRGB_image_cutoff_sorted(:,1:idxPecentBrightest);
         mean_dRGB_image_bright = round(mean(dRGB_image_bright,2));
-        
+
+        % Set the estimated white point as a mean of bright pixels.
+        dRGB_estimatedWhitePoint = mean_dRGB_image_bright;
+
         % Plot it how we did.
         if (options.verbose)
             % Calculate the rg coordinates.
             rg_image = RGBTorg(dRGB_image);
             rg_image_cutoff_dummy = RGBTorg(dRGB_image_cutoff_dummy);
             rg_image_bright = RGBTorg(dRGB_image_bright);
-            rg_image_white = RGBTorg(mean_dRGB_image_bright);
-            
+            rg_image_white = RGBTorg(dRGB_estimatedWhitePoint);
+
             % This is only when your monitor setting has the D65 as a white
             % point.
             rg_white_d65 = RGBTorg([255;255;255]);
-            
+
             % Make a figure here.
             figure; hold on;
             sgtitle('Estimation of illumination in image');
 
             % Image.
-            subplot(1,2,1);
+            nSubplots = 4;
+            subplot(1,nSubplots,1);
             imshow(image);
             title('Test image');
 
             % Image profile.
-            subplot(1,2,2); hold on;
+            subplot(1,nSubplots,2); hold on;
             plot(rg_image(1,:),rg_image(2,:),'k.');
             plot(rg_image_cutoff_dummy(1,:),rg_image_cutoff_dummy(2,:),'y.');
             plot(rg_image_bright(1,:),rg_image_bright(2,:),'g.');
@@ -115,8 +119,27 @@ switch options.calculationMethod
             ylabel('g');
             xlim([0 1]);
             ylim([0 1]);
-            title('Image profile on the rg-coordinates');
+            title('Image profile');
             legend('original','cut-off','bright','white point','d65');
+
+            % Image of the estimated white point.
+            subplot(1,nSubplots,3);
+            pixelImageSize = 100;
+            imageSize = [pixelImageSize, pixelImageSize];
+            image_estimatedWhitePoint = repmat(reshape(dRGB_estimatedWhitePoint/255, 1, 1, 3), imageSize);
+            imshow(image_estimatedWhitePoint);
+            title(sprintf('White point, dRGB=(%d,%d,%d)',...
+                dRGB_estimatedWhitePoint(1),dRGB_estimatedWhitePoint(2),dRGB_estimatedWhitePoint(3)));
+
+            % Gray world assumption white point. It seems not really
+            % working well for the images that we used.
+            %
+            % subplot(1,nSubplots,4);
+            % dRGB_estimatedWhitePoint_grayWorld = mean(dRGB_image,2);
+            % image_estimatedWhitePoint_grayWorld = repmat(reshape(dRGB_estimatedWhitePoint_grayWorld/255, 1, 1, 3), imageSize);
+            % imshow(image_estimatedWhitePoint_grayWorld);
+            % title(sprintf('White point (Gray world), dRGB=(%d,%d,%d)',...
+            %     image_estimatedWhitePoint_grayWorld(1),image_estimatedWhitePoint_grayWorld(2),image_estimatedWhitePoint_grayWorld(3)));
         end
     otherwise
 end
