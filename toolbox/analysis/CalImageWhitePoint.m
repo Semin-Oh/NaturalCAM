@@ -107,9 +107,9 @@ switch options.calculationMethod
             title('Test image');
 
             % Image profile.
-            subplot(1,nSubplots,2); hold on;
+            subplot(1,nSubplots,2:nSubplots); hold on;
             plot(rg_image(1,:),rg_image(2,:),'k.');
-            plot(rg_image_cutoff_dummy(1,:),rg_image_cutoff_dummy(2,:),'y.');
+            plot(rg_image_cutoff_dummy(1,:),rg_image_cutoff_dummy(2,:),'.','color',[0.5 0.5 0.5]);
             plot(rg_image_bright(1,:),rg_image_bright(2,:),'g.');
             plot(rg_image_white(1),rg_image_white(2),'ro', ...
                 'markersize',5,'markerfacecolor','r','markeredgecolor','k');
@@ -119,17 +119,18 @@ switch options.calculationMethod
             ylabel('g');
             xlim([0 1]);
             ylim([0 1]);
+            axis square;
             title('Image profile');
             legend('original','cut-off','bright','white point','d65');
 
-            % Image of the estimated white point.
-            subplot(1,nSubplots,3);
-            pixelImageSize = 100;
-            imageSize = [pixelImageSize, pixelImageSize];
-            image_estimatedWhitePoint = repmat(reshape(dRGB_estimatedWhitePoint/255, 1, 1, 3), imageSize);
-            imshow(image_estimatedWhitePoint);
-            title(sprintf('White point, dRGB=(%d,%d,%d)',...
-                dRGB_estimatedWhitePoint(1),dRGB_estimatedWhitePoint(2),dRGB_estimatedWhitePoint(3)));
+            % % Image of the estimated white point.
+            % subplot(1,nSubplots,3);
+            % pixelImageSize = 100;
+            % imageSize = [pixelImageSize, pixelImageSize];
+            % image_estimatedWhitePoint = repmat(reshape(dRGB_estimatedWhitePoint/255, 1, 1, 3), imageSize);
+            % imshow(image_estimatedWhitePoint);
+            % title(sprintf('White point, dRGB=(%d,%d,%d)',...
+            %     dRGB_estimatedWhitePoint(1),dRGB_estimatedWhitePoint(2),dRGB_estimatedWhitePoint(3)));
 
             % Gray world assumption white point. It seems not really
             % working well for the images that we used.
