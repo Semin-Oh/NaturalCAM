@@ -218,7 +218,7 @@ if (options.verbose)
     plot(pixels(idx_cluster_c,1), pixels(idx_cluster_c,2),'b.');
 
     % Center of dominant cluster.
-    plot(lab_dominant(2),lab_dominant(3),'o','MarkerFaceColor','k');
+    plot(lab_dominant(2),lab_dominant(3),'ko','MarkerFaceColor','k');
 
     % Figure stuff.
     xlabel('CIELAB a*');
