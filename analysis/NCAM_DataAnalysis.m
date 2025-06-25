@@ -79,7 +79,7 @@ projectName = 'NaturalCAM';
 SUBJECTANON = true;
 CHECKREPEATABILITY = true;
 CHECKREPRODUCIBILITY = true;
-PLOTIMAGEWHITEPOINT = true;
+PLOTIMAGEWHITEPOINT = false;
 PLOTOBJECTDOMINANTCOLOR = false;
 
 %% Get available subject info.
