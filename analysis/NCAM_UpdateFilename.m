@@ -1,4 +1,4 @@
-% UpdateFilename.
+% NCAM_UpdateFilename.
 %
 % This routine updates the file name to match between the test images and
 % their corresponding segmentation files.
@@ -37,9 +37,11 @@ filedir_seg_label = '/Users/semin/Dropbox (Personal)/JLU/2) Projects/NaturalCAM/
 %% Get the image names and CoCo code names.
 %
 % Get the avaialble image file names.
-imageFileList = dir(filedir_image_label);
-imageNameOptions = {imageFileList.name};
-imageNameOptions = imageNameOptions(~startsWith(imageNameOptions,'.'));
+filedir_imageNames = '/Users/semin/Dropbox (Personal)/JLU/2) Projects/NaturalCAM/images';
+filename_imageNames = 'imageNames.mat';
+imageNamesData = load(fullfile(filedir_imageNames,filename_imageNames));
+imageNameOptions = imageNamesData.imageNames;
+imageNameOptions = strrep(imageNameOptions, '.png', '.jpg');
 
 % Get an available original coded file names. This comes in an ascending
 % order.
@@ -47,7 +49,9 @@ list = dir(filedir_image_org);
 imageCodeOptions = {list.name};
 imageCodeOptions = imageCodeOptions(~startsWith(imageCodeOptions,'.'));
 
-% Get only numbers of the image codes.
+% Get only numbers of the image codes. Just for a note, a total of 30
+% unique images were used, and total of 31 test images were used. One image
+% was used for both 'broccoli1' and 'carrot3'.
 for ii = 1:length(imageCodeOptions)
     imageCodeTemp = imageCodeOptions{ii};
     tokens = regexp(imageCodeTemp, '(.*?).jpg', 'tokens');
@@ -63,12 +67,14 @@ segCodeOptions = segCodeOptions(~startsWith(segCodeOptions,'.'));
 %
 % Available label can be more than one. This is for sanity check for
 % further search.
-for ii = 1:length(segCodeOptions)
+nSegmentsData = length(segCodeOptions);
+for ii = 1:nSegmentsData
     segCodeTemp = segCodeOptions{ii};
 
     % Get a label from the name.
     tokens = regexp(segCodeTemp, 'image_(.*?)_(.*?)_pixels', 'tokens');
-    
+    % tokens = regexp(segCodeTemp,'\d+','match');
+
     % Save code.
     segObjectCodes{ii} = tokens{1}{1};
     % Save label name.
@@ -76,8 +82,8 @@ for ii = 1:length(segCodeOptions)
 end
 
 %% Find the matching image name based on the image size.
-nCodeOptions = length(imageCodeOptions);
-for ii = 1:nCodeOptions
+nImageCodeOptions = length(imageCodeOptions);
+for ii = 1:nImageCodeOptions
     % Get the image code name and get the image info.
     imageCodenameTemp = imageCodeOptions{ii};
     imageInfoOrgCode = imfinfo(fullfile(filedir_image_org,imageCodenameTemp));
@@ -87,7 +93,7 @@ for ii = 1:nCodeOptions
     ttt = 1;
     while true
         if contains(imageCodenameTemp,segObjectCodes{ttt})
-           idxLabel = ttt;
+            idxLabel = ttt;
             break;
         end
         ttt = ttt+1;
@@ -114,14 +120,14 @@ for ii = 1:nCodeOptions
         end
 
         % Show progress.
-        fprintf('In process (%d/%d) finding a matching image name - (%s) - %d \n',ii,nCodeOptions,imageNameTemp,ll);
-        
+        fprintf('In process (%d/%d) finding a matching image name - (%s) - %d \n',ii,nImageCodeOptions,imageNameTemp,ll);
+
         % Keep counting.
         ll = ll+1;
     end
 end
 
-% Update the segment file names.
+%% Update the segment file names.
 for ii = 1:length(imageNameMatchOptions)
     segCodeTemp = segCodeOptions{ii};
     imageNameMatchTemp = imageNameMatchOptions{ii};

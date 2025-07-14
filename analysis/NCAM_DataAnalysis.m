@@ -1,9 +1,11 @@
 % NCAM_DataAnalysis.
 %
-% This is routine to analyze the hue data for Natual CAM project.
+% This is routine to analyze the hue data for Natual CAM project. You need
+% to run 'NCAM_UpdateFilename' to get the most recent test images and
+% corresponding segmentation data to analyze the data.
 %
 % See also:
-%    NCAM_RunExperiment.m.
+%    NCAM_RunExperiment, NCAM_UpdateFilename.
 
 % History:
 %    03/31/25    smo     - Started on it.
@@ -80,7 +82,7 @@ SUBJECTANON = true;
 CHECKREPEATABILITY = true;
 CHECKREPRODUCIBILITY = true;
 PLOTIMAGEWHITEPOINT = false;
-PLOTOBJECTDOMINANTCOLOR = false;
+PLOTOBJECTDOMINANTCOLOR = true;
 
 %% Get available subject info.
 %
@@ -133,12 +135,13 @@ validSegmentationOptions = {};
 
 % Exclude the test images if you want. For now, we have some images with no
 % proper segmentation, which will be excluded for now.
-exclImageNameOnly = {'kite1','orange1','orange2','orange3',...
-    'person1','person3','person4','surfboard1'};
+% exclImageNameOnly = {'kite1','orange1','orange2','orange3',...
+%     'person1','person3','person4','surfboard1'};
+exclImageNameOnly = {};
 
 % Here, we make a loop to find the test image names that was used in the
 % experiment, and also having the valid segmentation data.
-nTestImagesSegment = length(imageOptions);
+nTestImagesSegment = length(segmentationOptions);
 for ss = 1:nTestImagesSegment
     % Get the image name from the segmentation data.
     [~, imagename1, ~] = fileparts(segmentationOptions{ss});
