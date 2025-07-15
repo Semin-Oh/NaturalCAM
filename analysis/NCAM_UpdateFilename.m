@@ -8,13 +8,13 @@
 %    04/13/25    smo    - This routine is running, but it is not working as
 %                         planned. We will not use it for now, but we may
 %                         use it later on after elaborate it.
+%    07/15/25    smo    - Now fine the corresponding image name based on
+%                         the comparison of the image itself.
 
 %% Initialize.
 clear; close all;
 
 %% Get the image and segmentation folders.
-%
-% Image file dir.
 %
 % Office mac.
 filedir_image_org = '/Users/semin/Dropbox (Personal)/JLU/2) Projects/NaturalCAM/images/segmentation/images_original';
@@ -49,22 +49,54 @@ list = dir(filedir_image_org);
 imageCodeOptions = {list.name};
 imageCodeOptions = imageCodeOptions(~startsWith(imageCodeOptions,'.'));
 
-% Get only numbers of the image codes. Just for a note, a total of 30
-% unique images were used, and total of 31 test images were used. One image
-% was used for both 'broccoli1' and 'carrot3'.
-for ii = 1:length(imageCodeOptions)
-    imageCodeTemp = imageCodeOptions{ii};
+%% Here, we find the corresponding image name per each image code. 
+%
+% We did experiment by naming each image like apple1, carrot1, etc. We will
+% link each name to the original code from the CoCo image dataset (e.g.
+% 000000018150.jpg). The strategy here is to compare the image one-to-one
+% and find the equal image.
+nImageNames = length(imageNameOptions);
+for ii = 1:nImageNames
+    % Read an image with labeled (e.g. apple1, carrot1, etc.).
+    imageNameTemp = imageNameOptions{ii};
+    image_labeled = imread(fullfile(filedir_image_label,imageNameTemp));
+
+    % Read an image with original code of CoCo dataset (e.g.
+    % 000000018150.jpg);
+    cc = 1;
+    while true
+        imageCodeTemp = imageCodeOptions{cc};
+        image_coded = imread(fullfile(filedir_image_org,imageCodeTemp));
+
+        % Check if the image has the same size.
+        if isequal(image_labeled,image_coded)
+            % Save out the name.
+            imageCodeOptionsMatched{ii} = imageCodeTemp;
+            fprintf('Identical image found! (%s) - (%d/%d) \n',imageNameTemp,ii,nImageNames);
+            break;
+        end
+
+        % Keep going until it finds the indentical image.
+        cc = cc + 1;
+    end
+end
+
+% Get only numbers of the image codes. Again, it's sorted in the same order
+% as the labeled image names.
+nImageCodes = length(imageCodeOptionsMatched);
+for ii = 1:nImageCodes
+    imageCodeTemp = imageCodeOptionsMatched{ii};
     tokens = regexp(imageCodeTemp, '(.*?).jpg', 'tokens');
     imageCodeNumberOnly{ii} = regexprep(tokens{1}{1},'^0+','');
 end
 
+%% Find the CoCo object label per each image.
+%
 % Get all available segmentation file names.
 list = dir(filedir_seg_org);
 segCodeOptions = {list.name};
 segCodeOptions = segCodeOptions(~startsWith(segCodeOptions,'.'));
 
-%% Find the CoCo object label per each image.
-%
 % Available label can be more than one. This is for sanity check for
 % further search.
 nSegmentsData = length(segCodeOptions);
@@ -77,55 +109,24 @@ for ii = 1:nSegmentsData
 
     % Save code.
     segObjectCodes{ii} = tokens{1}{1};
+    
     % Save label name.
     segObjectLabels{ii} = tokens{1}{2};
 end
 
-%% Find the matching image name based on the image size.
-nImageCodeOptions = length(imageCodeOptions);
-for ii = 1:nImageCodeOptions
-    % Get the image code name and get the image info.
-    imageCodenameTemp = imageCodeOptions{ii};
-    imageInfoOrgCode = imfinfo(fullfile(filedir_image_org,imageCodenameTemp));
+%% Find the matching image name.
+for ss = 1:nSegmentsData
+    % Get the index in the sorted code names.
+    segObjectCodeTemp = segObjectCodes{ss};
+    idx = find(strcmp(imageCodeNumberOnly,segObjectCodeTemp));
 
-    % Get the object labels for segmentation data. This will be used for a
-    % sanity check.
-    ttt = 1;
-    while true
-        if contains(imageCodenameTemp,segObjectCodes{ttt})
-            idxLabel = ttt;
-            break;
-        end
-        ttt = ttt+1;
-    end
-    segCodeImageLabelTemp = segObjectLabels{idxLabel};
-
-    ll = 1;
-    while true
-        % Read out custom-labeled image one by one to check if each has the
-        % identical size with the image above.
-        imageNameTemp = imageNameOptions{ll};
-        imageInfoLabel = imfinfo(fullfile(filedir_image_label,imageNameTemp));
-
-        % Check if the size of the image matches.
-        if (imageInfoOrgCode.Width == imageInfoLabel.Width...
-                && imageInfoOrgCode.Height == imageInfoLabel.Height)
-            disp('Image size matched!');
-
-            % If the image size matches, check if the name has a corresponding object label.
-            if contains(imageNameTemp,segCodeImageLabelTemp)
-                imageNameMatchOptions{ii} = imageNameTemp;
-                break;
-            end
-        end
-
-        % Show progress.
-        fprintf('In process (%d/%d) finding a matching image name - (%s) - %d \n',ii,nImageCodeOptions,imageNameTemp,ll);
-
-        % Keep counting.
-        ll = ll+1;
-    end
+    % Check if the names matches the label.
+    imageNameMatchOptions{ss} = imageNameOptions{idx};
 end
+imageNameMatchOptions{15} = 'carrot3.jpg';
+
+% Sanity check.
+
 
 %% Update the segment file names.
 for ii = 1:length(imageNameMatchOptions)
