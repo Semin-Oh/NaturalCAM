@@ -288,6 +288,19 @@ switch options.expMode
         text = string(initialLightnessVal);
         texts = text;
         textPositions = [positionHorz positionVert + positionVertGap*2];
+
+        % Generate the square (reference) to present it with the images.
+        squareSize = 50;
+        squareRect = [100, 100, 100 + squareSize, 100 + squareSize];
+        
+        % Set it differently for brightness and colorfulness experiment.
+        
+        squareColor = [255 0 0];
+
+        % Draw the small square on top of the image. We draw this before
+        % flipping the screen so that the screen shows the test image and
+        % this reference simultaneously.
+        Screen('FillRect', window, squareColor, squareRect);
 end
 
 % Add text to the test image for evaluation.
@@ -733,7 +746,9 @@ switch options.expMode
         % After the evaluation, convert the evaluation into hue-400 score.
         evaluation = ComputeHueScore(selectedHues,proportions);
 
-    case 'lightness'
+        % For lightness and colorfulness, we use basically the same method
+        % except the reference to be given with the test images.
+    case or('lightness','colorfulness')
         % For the lightness experiment, it's much simpler than hue. We will
         % just display a single string along with test images.
         %
