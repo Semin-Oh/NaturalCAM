@@ -26,9 +26,9 @@ clear; close all;
 
 %% Choose which date to analyze.
 while 1
-    inputMessageExpMode = 'Which data to analyze? [1:hue, 2:lightness]: ';
+    inputMessageExpMode = 'Which data to analyze? [1:hue, 2:lightness, 3:colorfulness]: ';
     ansExpMode = input(inputMessageExpMode);
-    ansOptions = [1 2];
+    ansOptions = [1 2 3];
 
     if ismember(ansExpMode, ansOptions)
         break
@@ -36,7 +36,7 @@ while 1
 
     disp('Type either 1 or 2!');
 end
-expModeOptions = {'hue','lightness'};
+expModeOptions = {'hue','lightness','colorfulness'};
 expMode = expModeOptions{ansExpMode};
 
 % Display which experiment is running.
