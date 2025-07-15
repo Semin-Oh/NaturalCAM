@@ -8,31 +8,32 @@
 %    04/13/25    smo    - This routine is running, but it is not working as
 %                         planned. We will not use it for now, but we may
 %                         use it later on after elaborate it.
-%    07/15/25    smo    - Now fine the corresponding image name based on
-%                         the comparison of the image itself.
+%    07/15/25    smo    - Now find the corresponding image name based on
+%                         the comparison of the image itself. It works
+%                         well.
 
 %% Initialize.
 clear; close all;
 
-%% Get the image and segmentation folders.
-%
-% Office mac.
-filedir_image_org = '/Users/semin/Dropbox (Personal)/JLU/2) Projects/NaturalCAM/images/segmentation/images_original';
-filedir_image_label = '/Users/semin/Dropbox (Personal)/JLU/2) Projects/NaturalCAM/images/segmentation/images_labeled';
+%% Set directories where the segmentation files are.
+whichComputer = 'office';
 
-% Semin's laptop.
-% filedir_image_org = '/Users/ohsem/Dropbox (Personal)/JLU/2) Projects/NaturalCAM/images/segmentation/images_original';
-% filedir_image_label = '/Users/ohsem/Dropbox (Personal)/JLU/2) Projects/NaturalCAM/images/segmentation/images_labeled';
+% Set it based on which computer you are using.
+switch whichComputer
+    % Semin's office mac.
+    case 'office'
+        filedir_image_org = '/Users/semin/Dropbox (Personal)/JLU/2) Projects/NaturalCAM/images/segmentation/images_original';
+        filedir_image_label = '/Users/semin/Dropbox (Personal)/JLU/2) Projects/NaturalCAM/images/segmentation/images_labeled';
+        filedir_seg_org = '/Users/semin/Dropbox (Personal)/JLU/2) Projects/NaturalCAM/images/segmentation/segmentation_original';
+        filedir_seg_label = '/Users/semin/Dropbox (Personal)/JLU/2) Projects/NaturalCAM/images/segmentation/segmentation_labeled';
 
-% Segmentation file dir.
-%
-% Office mac.
-filedir_seg_org = '/Users/semin/Dropbox (Personal)/JLU/2) Projects/NaturalCAM/images/segmentation/segmentation_original';
-filedir_seg_label = '/Users/semin/Dropbox (Personal)/JLU/2) Projects/NaturalCAM/images/segmentation/segmentation_labeled';
-
-% Semin's laptop.
-% filedir_seg_org = '/Users/ohsem/Dropbox (Personal)/JLU/2) Projects/NaturalCAM/images/segmentation/segmentation_original';
-% filedir_seg_label = '/Users/ohsem/Dropbox (Personal)/JLU/2) Projects/NaturalCAM/images/segmentation/segmentation_labeled';
+        % Semin's personal laptop.
+    case 'personal'
+        filedir_image_org = '/Users/ohsem/Dropbox (Personal)/JLU/2) Projects/NaturalCAM/images/segmentation/images_original';
+        filedir_image_label = '/Users/ohsem/Dropbox (Personal)/JLU/2) Projects/NaturalCAM/images/segmentation/images_labeled';
+        filedir_seg_org = '/Users/ohsem/Dropbox (Personal)/JLU/2) Projects/NaturalCAM/images/segmentation/segmentation_original';
+        filedir_seg_label = '/Users/ohsem/Dropbox (Personal)/JLU/2) Projects/NaturalCAM/images/segmentation/segmentation_labeled';
+end
 
 %% Get the image names and CoCo code names.
 %
@@ -49,7 +50,7 @@ list = dir(filedir_image_org);
 imageCodeOptions = {list.name};
 imageCodeOptions = imageCodeOptions(~startsWith(imageCodeOptions,'.'));
 
-%% Here, we find the corresponding image name per each image code. 
+%% Here, we find the corresponding image name per each image code.
 %
 % We did experiment by naming each image like apple1, carrot1, etc. We will
 % link each name to the original code from the CoCo image dataset (e.g.
@@ -109,7 +110,7 @@ for ii = 1:nSegmentsData
 
     % Save code.
     segObjectCodes{ii} = tokens{1}{1};
-    
+
     % Save label name.
     segObjectLabels{ii} = tokens{1}{2};
 end
@@ -121,12 +122,18 @@ for ss = 1:nSegmentsData
     idx = find(strcmp(imageCodeNumberOnly,segObjectCodeTemp));
 
     % Check if the names matches the label.
-    imageNameMatchOptions{ss} = imageNameOptions{idx};
+    segObjectLabelTemp = segObjectLabels{ss};
+    imageNameTemp = imageNameOptions(idx);
+
+    % Make a loop for the same image to find the right label.
+    nIndex = length(idx);
+    for xx = 1:nIndex
+        imageNameTempOne = imageNameTemp{xx};
+        if contains(imageNameTempOne,segObjectLabelTemp)
+            imageNameMatchOptions{ss} = imageNameTempOne;
+        end
+    end
 end
-imageNameMatchOptions{15} = 'carrot3.jpg';
-
-% Sanity check.
-
 
 %% Update the segment file names.
 for ii = 1:length(imageNameMatchOptions)
