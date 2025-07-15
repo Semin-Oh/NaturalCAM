@@ -79,17 +79,17 @@ subjectName = input(inputMessageName, 's');
 
 % Experimental mode. Choose either hue or lightness for now.
 while 1
-    inputMessageExpMode = 'Which mode to run? [1:hue, 2:lightness]: ';
+    inputMessageExpMode = 'Which mode to run? [1:hue, 2:lightness, 3:colorfulness]: ';
     ansExpMode = input(inputMessageExpMode);
-    ansOptions = [1 2];
+    ansOptions = [1 2 3];
 
     if ismember(ansExpMode, ansOptions)
         break
     end
 
-    disp('Type either 1 or 2!');
+    disp('Type either 1 or 2 or 3!');
 end
-expModeOptions = {'hue','lightness'};
+expModeOptions = {'hue','lightness','colorfulness'};
 expMode = expModeOptions{ansExpMode};
 
 % Display which experiment is running.
@@ -256,6 +256,8 @@ try
                     data.hueScore(ii,rr) = evaluation_temp;
                 case 'lightness'
                     data.lightness(ii,rr) = evaluation_temp;
+                case 'colorfulness'
+                    data.colorfulness(ii,rr) = evaluation_temp;
             end
 
             % Display a null image again and pause for a second before
