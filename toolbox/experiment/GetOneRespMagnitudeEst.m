@@ -290,11 +290,11 @@ switch options.expMode
         textPositions = [positionHorz positionVert + positionVertGap*2];
 
         % Generate the square (reference) to present it with the images.
-        squareSize = 50;
-        squareRect = [100, 100, 100 + squareSize, 100 + squareSize];
+        % Square rect is [x1, y1, x2, y2].
+        squareSize = 100;
+        squareRect = [300, 0, 300 + squareSize, 0 + squareSize];
         
-        % Set it differently for brightness and colorfulness experiment.
-        
+        % Set it differently for brightness and colorfulness experiment. 
         squareColor = [255 0 0];
 
         % Draw the small square on top of the image. We draw this before
