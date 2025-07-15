@@ -748,7 +748,7 @@ switch options.expMode
 
         % For lightness and colorfulness, we use basically the same method
         % except the reference to be given with the test images.
-    case or('lightness','colorfulness')
+    case {'lightness','colorfulness'}
         % For the lightness experiment, it's much simpler than hue. We will
         % just display a single string along with test images.
         %
