@@ -293,9 +293,9 @@ switch options.expMode
         % Square rect is [x1, y1, x2, y2].
         squareSize = 100;
         squareRect = [300, sizeBG/2 - squareSize/2, 300 + squareSize, sizeBG/2 + squareSize/2];
-        
+
         % Set the square color differently for brightness and colorfulness
-        % experiment. 
+        % experiment.
         %
         % Mean CAM16 value of the 31 test images was 56 (J) and
         % 73 (C). We will set the reference based on this value.
