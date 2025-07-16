@@ -280,7 +280,7 @@ switch options.expMode
         % Collect all the positions in a variable.
         textPositions = [textPositions_UH; textPosition_marker_initial];
 
-    case 'lightness'
+    case {'lightness','colorfulness'}
         % For the lightness experiment, we will simply display one string
         % ranging from 0 to 100 outside the image. The initial value will
         % be fixed to 50.
@@ -292,10 +292,31 @@ switch options.expMode
         % Generate the square (reference) to present it with the images.
         % Square rect is [x1, y1, x2, y2].
         squareSize = 100;
-        squareRect = [300, 0, 300 + squareSize, 0 + squareSize];
+        squareRect = [300, sizeBG/2 - squareSize/2, 300 + squareSize, sizeBG/2 + squareSize/2];
         
-        % Set it differently for brightness and colorfulness experiment. 
-        squareColor = [255 0 0];
+        % Set the square color differently for brightness and colorfulness
+        % experiment. 
+        %
+        % Mean CAM16 value of the 31 test images was 56 (J) and
+        % 73 (C). We will set the reference based on this value.
+        switch options.expMode
+            case 'lightness'
+                JCH_reference = [55 0 0];
+            case 'colorfulness'
+                JCH_reference = [55 75 20];
+        end
+        % Convert CAM16 values to RGB using the display setting that used
+        % in the experiment.
+        M_RGBToXYZ =  [62.1997 22.8684 19.2310;...
+            28.5133 78.5446 6.9256;...
+            0.0739 6.3714 99.5962];
+        XYZ_white = sum(M_RGBToXYZ,2);
+        LA = XYZ_white(2)*0.2;
+        gamma = 2.1904;
+
+        XYZ_reference = JCHToXYZ(JCH_reference,XYZ_white,LA);
+        RGB_reference = XYZToRGB(XYZ_reference,M_RGBToXYZ,gamma);
+        squareColor = RGB_reference;
 
         % Draw the small square on top of the image. We draw this before
         % flipping the screen so that the screen shows the test image and
