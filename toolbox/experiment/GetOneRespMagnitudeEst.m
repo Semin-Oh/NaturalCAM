@@ -291,8 +291,8 @@ switch options.expMode
 
         % Generate the square (reference) to present it with the images.
         % Square rect is [x1, y1, x2, y2].
-        squareSize = 100;
-        squareRect = [300, sizeBG/2 - squareSize/2, 300 + squareSize, sizeBG/2 + squareSize/2];
+        squareSize = 200;
+        squareRect = [100, sizeBG/2 - squareSize/2, 100 + squareSize, sizeBG/2 + squareSize/2];
 
         % Set the square color differently for brightness and colorfulness
         % experiment.
@@ -301,9 +301,9 @@ switch options.expMode
         % 73 (C). We will set the reference based on this value.
         switch options.expMode
             case 'lightness'
-                JCH_reference = [55 0 0];
+                JCH_reference = [55; 0; 0];
             case 'colorfulness'
-                JCH_reference = [55 75 20];
+                JCH_reference = [55; 75; 20];
         end
         % Convert CAM16 values to RGB using the display setting that used
         % in the experiment.
