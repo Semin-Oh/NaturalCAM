@@ -20,7 +20,6 @@
 %                          repeatability and reproducibility. Also, now we
 %                          can choose test images not to be included in
 %                          data analysis.
-%    07/17/25    smo     - Made it to work for all color appearances.
 
 %% Initialize.
 clear; close all;
@@ -83,7 +82,7 @@ SUBJECTANON = true;
 CHECKREPEATABILITY = true;
 CHECKREPRODUCIBILITY = true;
 PLOTIMAGEWHITEPOINT = false;
-PLOTOBJECTDOMINANTCOLOR = false;
+PLOTOBJECTDOMINANTCOLOR = true;
 
 %% Get available subject info.
 %
@@ -234,26 +233,19 @@ for ss = 1:nSubjects
     % order. Here, to be careful on this, we make a loop to sort one by
     % one.
     for rr = 1:nRepeat
-        switch expMode
-            case 'hue'
-                rawDataOneSubject = rawData.data.hueScore;
-            case 'lightness'
-                rawDataOneSubject = rawData.data.lightness;
-            case 'colorfulness'
-                rawDataOneSubject = rawData.data.colorfulness;
-        end
-        rawDataOneSubject_temp =  rawDataOneSubject(:,rr);
+        hueScore_rawTemp =  rawData.data.hueScore(:,rr);
         idxOrderSortedTemp = idxOrder_sorted(:,rr);
-        rawDataOneSubjectSorted_temp(:,rr) = rawDataOneSubject_temp(idxOrderSortedTemp);
+        hueScore_sortedTemp(:,rr) = hueScore_rawTemp(idxOrderSortedTemp);
     end
     % We will save out the results with only valid segmentation data.
-    rawDataAllSubjectsCell{ss} = rawDataOneSubjectSorted_temp(idxTestImages,:);
+    hueScore_raw{ss} = hueScore_sortedTemp(idxTestImages,:);
 
     % Calculate the mean of the repeatitions within subject.
-    rawDataAllSubjectsMeanRepeats{ss} = mean(rawDataAllSubjectsCell{ss},2);
+    hueScore_meanPerSub{ss} = mean(hueScore_raw{ss},2);
 end
 
 %% Check repeatability - within observer.
+axisHue = [0 450];
 if (CHECKREPEATABILITY)
     figure; hold on;
 
@@ -263,36 +255,23 @@ if (CHECKREPEATABILITY)
         subjectName = targetSubjectsNames{ss};
 
         % Get one subject data.
-        rawDataOneSubject_temp = rawDataAllSubjectsCell{ss};
+        hueScore_oneSubTemp = hueScore_raw{ss};
 
         % Calculate the correlation coefficient between two repeatitions.
         % Here, we will only use the data with valid segmentation data.
-        r_matrix = corrcoef(rawDataOneSubject_temp(:,1),rawDataOneSubject_temp(:,2));
+        r_matrix = corrcoef(hueScore_oneSubTemp(:,1),hueScore_oneSubTemp(:,2));
         r_withinSubjects(ss) = r_matrix(1,2);
-
-        % Set figure stuff.
-        switch expMode
-            case 'hue'
-                strAxes = 'Hue score';
-                axisLim = [0 450];
-            case 'lightness'
-                strAxes = 'Brightness';
-                axisLim = [0 100];
-            case 'colorfulness'
-                strAxes = 'Colorfulness';
-                axisLim = [0 130];
-        end
 
         % Plot it here.
         nColumns = 5;
         subplot(ceil(nSubjects/nColumns),nColumns,ss); hold on;
-        plot(rawDataOneSubject_temp(:,1),rawDataOneSubject_temp(:,2),'k.');
-        plot(axisLim,axisLim,'k-');
+        plot(hueScore_oneSubTemp(:,1),hueScore_oneSubTemp(:,2),'k.');
+        plot(axisHue,axisHue,'k-');
         axis square;
-        xlabel(strAxes);
-        ylabel(strAxes);
-        xlim(axisLim);
-        ylim(axisLim);
+        xlabel('Hue score');
+        ylabel('Hue score');
+        xlim(axisHue);
+        ylim(axisHue);
 
         if (SUBJECTANON)
             title(sprintf('Subject %d',ss));
@@ -318,32 +297,27 @@ if (CHECKREPRODUCIBILITY)
     % number of subjects. For example, 31 images were used with 2 repetitions
     % and 10 subjects, the matrix will have the size of 31 x 20 (2 rep x 10
     % subs).
-    rawDataAllSubjectsMat = horzcat(rawDataAllSubjectsMeanRepeats{:});
+    hueScoreAllSub = horzcat(hueScore_meanPerSub{:});
 
-    switch expMode
-        case 'hue'
-            % Make an average per each test image across all subjects and repetitions.
-            % WE NEED TO THINK ABOUT HOW TO MANAGE THE DATA WITHIN THE RANGE BLUE-RED.
-            % hueScoreMeanAllSub = mean(hueScoreAllSub,2);
-            %
-            % Convert hue quadrature (0–400) to radians (0–2π).
-            angles = rawDataAllSubjectsMat / 400 * 2 * pi;
+    % Make an average per each test image across all subjects and repetitions.
+    % WE NEED TO THINK ABOUT HOW TO MANAGE THE DATA WITHIN THE RANGE BLUE-RED.
+    % hueScoreMeanAllSub = mean(hueScoreAllSub,2);
 
-            % Compute mean angle using circular statistics
-            mean_sin = mean(sin(angles),2);
-            mean_cos = mean(cos(angles),2);
-            mean_angle = atan2(mean_sin, mean_cos);
+    % Convert hue quadrature (0–400) to radians (0–2π).
+    angles = hueScoreAllSub / 400 * 2 * pi;
 
-            % Convert mean angle back to hue quadrature scale.
-            meanDataAllSubjects = mod(mean_angle, 2*pi) / (2*pi) * 400;
-        case {'lightness','colorfulness'}
-            meanDataAllSubjects = mean(rawDataAllSubjectsMat,2);
-    end
-    meanDataAllSubjects = mean(rawDataAllSubjectsMat,2);
+    % Compute mean angle using circular statistics
+    mean_sin = mean(sin(angles),2);
+    mean_cos = mean(cos(angles),2);
+    mean_angle = atan2(mean_sin, mean_cos);
+
+    % Convert mean angle back to hue quadrature scale.
+    hueScore_mean = mod(mean_angle, 2*pi) / (2*pi) * 400;
+
     % Get standard deviation and standard error.
-    n = size(rawDataAllSubjectsMat,2);
-    stdAllSubjects = std(rawDataAllSubjectsMat');
-    stdErrorAllSubjects = stdAllSubjects/sqrt(n);
+    n = size(hueScoreAllSub,2);
+    hueScore_std = std(hueScoreAllSub');
+    hueScore_stdError = hueScore_std/sqrt(n);
 
     % Make a loop for all subjects.
     for ss = 1:nSubjects
@@ -351,21 +325,21 @@ if (CHECKREPRODUCIBILITY)
         subjectName = targetSubjectsNames{ss};
 
         % Get one subject data.
-        rawDataOneSubject_temp = rawDataAllSubjectsMeanRepeats{ss};
+        hueScore_oneSubTemp = hueScore_meanPerSub{ss};
 
         % Calculate the correlation coefficient between one subject data and mean.
-        r_matrix = corrcoef(rawDataOneSubject_temp,meanDataAllSubjects);
+        r_matrix = corrcoef(hueScore_oneSubTemp,hueScore_mean);
         r_acrossSubjects(ss) = r_matrix(1,2);
 
         % Plot it here.
         subplot(ceil(nSubjects/5),nColumns,ss); hold on;
-        plot(meanDataAllSubjects,rawDataOneSubject_temp(:,1),'r.');
-        plot(axisLim,axisLim,'k-');
+        plot(hueScore_mean,hueScore_oneSubTemp(:,1),'r.');
+        plot(axisHue,axisHue,'k-');
         axis square;
-        xlabel(append(strAxes,' (mean)'));
-        ylabel(append(strAxes,' (individual)'));
-        xlim(axisLim);
-        ylim(axisLim);
+        xlabel('Hue score (mean)');
+        ylabel('Hue score (individual)');
+        xlim(axisHue);
+        ylim(axisHue);
 
         if (SUBJECTANON)
             title(sprintf('Subject %d',ss));
@@ -435,29 +409,24 @@ for ii = 1:nTestImagesToCompare
 end
 
 % Extract the CAM16 Hue quadrature values
-CAM16_J = JCH_targetObject(1,:);
-CAM16_C = JCH_targetObject(2,:);
 CAM16_H = JCH_targetObject(3,:);
 
 %% Comparison between experiment results vs. CAM16 estimations.
 %
-% 07/17/25 smo : I stopped here and I need to review and correct this part
-% to make it work for colorfulness and lightness. Also, the corrections for
-% hue to make a circle (400) should be done for individual data, not the
-% mean.
+% THIS PART WILL BE ADDED LATER ON
 %
 % Match the scale between CAM16 H values and the experimental results. As H
 % has a circular scale, some values might be off-scale. For example, if we
 % have a pair of the values, 32 and 385, we will convert them to 432
 % (32+400) and 385. It's preferred to add 400 to match the scale to avoid
 % any negative values.
-deltaHue = CAM16_H'-meanDataAllSubjects;
+deltaHue = CAM16_H'-hueScore_mean;
 idxWeired = find(abs(deltaHue)>100);
 for ww = 1:length(idxWeired)
     idxWeiredTemp = idxWeired(ww);
 
     CAM16_H_temp = CAM16_H(idxWeiredTemp);
-    hueScore_temp = meanDataAllSubjects(idxWeiredTemp);
+    hueScore_temp = hueScore_mean(idxWeiredTemp);
 
     if CAM16_H_temp <  hueScore_temp
         CAM16_H_temp = CAM16_H_temp + 400;
@@ -466,7 +435,7 @@ for ww = 1:length(idxWeired)
     end
 
     CAM16_H(idxWeiredTemp) = CAM16_H_temp;
-    meanDataAllSubjects(idxWeiredTemp) = hueScore_temp;
+    hueScore_mean(idxWeiredTemp) = hueScore_temp;
 end
 
 % Plot it.
@@ -476,29 +445,29 @@ figure; hold on;
 ERRORBAR = 'stderror';
 switch ERRORBAR
     case 'stderror'
-        hueScore_errorbar_plot = stdErrorAllSubjects;
+        hueScore_errorbar_plot = hueScore_stdError;
     case 'std'
-        hueScore_errorbar_plot = stdAllSubjects;
+        hueScore_errorbar_plot = hueScore_std;
 end
-errorbar(meanDataAllSubjects, CAM16_H, ...
+errorbar(hueScore_mean, CAM16_H, ...
     [], [], hueScore_errorbar_plot, hueScore_errorbar_plot,...
     'LineStyle','none','Color','k');
 
 % Mean comparison.
-f_data = plot(meanDataAllSubjects,CAM16_H,'o',...
+f_data = plot(hueScore_mean,CAM16_H,'o',...
     'markeredgecolor','k','markerfacecolor','g');
 
 % Calculate delta hue.
-delta_hue_mean = mean(abs(CAM16_H'-meanDataAllSubjects));
+delta_hue_mean = mean(abs(CAM16_H'-hueScore_mean));
 
 % 45-deg line.
-plot(axisLim,axisLim,'k-');
+plot(axisHue,axisHue,'k-');
 
 % Figure stuff.
 xlabel('Hue Score');
 ylabel('CAM16 H');
-xlim(axisLim);
-ylim(axisLim);
+xlim(axisHue);
+ylim(axisHue);
 axis square;
 grid on;
 legend(f_data,'Images','location','southeast');
@@ -514,14 +483,14 @@ for ss = 1:nSubjects
 
     % Make a separate plot per subject.
     subplot(ceil(nSubjects/nColumns),nColumns,ss); hold on;
-    plot(rawDataAllSubjectsMeanRepeats{ss},CAM16_H,'o',...
+    plot(hueScore_meanPerSub{ss},CAM16_H,'o',...
         'markeredgecolor','k','markerfacecolor','g','markersize',4);
-    plot(axisLim,axisLim,'k-');
+    plot(axisHue,axisHue,'k-');
 
     xlabel('Hue Score');
     ylabel('CAM16 H');
-    xlim(axisLim);
-    ylim(axisLim);
+    xlim(axisHue);
+    ylim(axisHue);
     axis square;
     grid on;
     if (SUBJECTANON)
