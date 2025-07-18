@@ -128,7 +128,7 @@ try
             expParams.JCH_reference = [];
     end
 
-    % etc.test
+    % etc.
     SAVETHERESULTS = true;
 
     %% Load the test images.
