@@ -113,6 +113,7 @@ arguments
     options.font = 'DejaVuSans'
     options.fontSize = 25;
     options.expMode = 'hue'
+    options.JCH_reference = [55; 0; 0];
     options.verbose = true;
 end
 
@@ -294,17 +295,6 @@ switch options.expMode
         squareSize = 200;
         squareRect = [100, sizeBG/2 - squareSize/2, 100 + squareSize, sizeBG/2 + squareSize/2];
 
-        % Set the square color differently for brightness and colorfulness
-        % experiment.
-        %
-        % Mean CAM16 value of the 31 test images was 56 (J) and
-        % 73 (C). We will set the reference based on this value.
-        switch options.expMode
-            case 'lightness'
-                JCH_reference = [55; 0; 0];
-            case 'colorfulness'
-                JCH_reference = [55; 75; 20];
-        end
         % Convert CAM16 values to RGB using the display setting that used
         % in the experiment.
         M_RGBToXYZ =  [62.1997 22.8684 19.2310;...
@@ -314,7 +304,7 @@ switch options.expMode
         LA = XYZ_white(2)*0.2;
         gamma = 2.1904;
 
-        XYZ_reference = JCHToXYZ(JCH_reference,XYZ_white,LA);
+        XYZ_reference = JCHToXYZ(options.JCH_reference,XYZ_white,LA);
         RGB_reference = XYZToRGB(XYZ_reference,M_RGBToXYZ,gamma);
         squareColor = RGB_reference;
 
