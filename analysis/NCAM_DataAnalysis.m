@@ -87,7 +87,7 @@ SUBJECTANON = true;
 CHECKREPEATABILITY = false;
 CHECKREPRODUCIBILITY = false;
 PLOTIMAGEWHITEPOINT = false;
-PLOTOBJECTDOMINANTCOLOR = false;
+PLOTOBJECTDOMINANTCOLOR = true;
 
 % Figure stuff.
 %
@@ -163,7 +163,7 @@ validSegmentationOptions = {};
 % proper segmentation, which will be excluded for now.
 % exclImageNameOnly = {'kite1','orange1','orange2','orange3',...
 %     'person1','person3','person4','surfboard1'};
-exclImageNameOnly = {};
+exclImageNameOnly = {'person1','person3','person4'};
 
 % Here, we make a loop to find the test image names that was used in the
 % experiment, and also having the valid segmentation data.
