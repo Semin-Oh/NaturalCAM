@@ -20,7 +20,11 @@
 %                          repeatability and reproducibility. Also, now we
 %                          can choose test images not to be included in
 %                          data analysis.
-%    07/17/25    smo     - Made it to work for all color appearances.
+%    07/18/25    smo     - Made it to work for all color appearances.
+
+%% NOTE
+% There are three images in Hue data where the dominant color was chosen
+% wrong. That should be fixed for the analysis.
 
 %% Initialize.
 clear; close all;
@@ -80,10 +84,31 @@ projectName = 'NaturalCAM';
 
 % Control print out and plots.
 SUBJECTANON = true;
-CHECKREPEATABILITY = true;
-CHECKREPRODUCIBILITY = true;
+CHECKREPEATABILITY = false;
+CHECKREPRODUCIBILITY = false;
 PLOTIMAGEWHITEPOINT = false;
 PLOTOBJECTDOMINANTCOLOR = false;
+
+% Figure stuff.
+%
+% Axis labels.
+switch expMode
+    case 'hue'
+        strAxesData = 'Hue score';
+        strAxesCAM16 = 'CAM16 H';
+        axisLim = [0 450];
+    case 'lightness'
+        strAxesData = 'Brightness';
+        strAxesCAM16 = 'CAM16 J';
+        axisLim = [0 100];
+    case 'colorfulness'
+        strAxesData = 'Colorfulness';
+        strAxesCAM16 = 'CAM16 C';
+        axisLim = [0 130];
+end
+
+% Number of subplots in column for individual results.
+nColumnsSubplot = 5;
 
 %% Get available subject info.
 %
@@ -253,6 +278,13 @@ for ss = 1:nSubjects
     rawDataAllSubjectsMeanRepeats{ss} = mean(rawDataAllSubjectsCell{ss},2);
 end
 
+% Put all subjects data into one matrix. The size of the matrix
+% depends on the number of test images, the number of repetitions, and the
+% number of subjects. For example, 31 images were used with 2 repetitions
+% and 10 subjects, the matrix will have the size of 31 x 20 (2 rep x 10
+% subs).
+rawDataAllSubjectsMat = horzcat(rawDataAllSubjectsMeanRepeats{:});
+
 %% Check repeatability - within observer.
 if (CHECKREPEATABILITY)
     figure; hold on;
@@ -270,27 +302,13 @@ if (CHECKREPEATABILITY)
         r_matrix = corrcoef(rawDataOneSubject_temp(:,1),rawDataOneSubject_temp(:,2));
         r_withinSubjects(ss) = r_matrix(1,2);
 
-        % Set figure stuff.
-        switch expMode
-            case 'hue'
-                strAxes = 'Hue score';
-                axisLim = [0 450];
-            case 'lightness'
-                strAxes = 'Brightness';
-                axisLim = [0 100];
-            case 'colorfulness'
-                strAxes = 'Colorfulness';
-                axisLim = [0 130];
-        end
-
         % Plot it here.
-        nColumns = 5;
-        subplot(ceil(nSubjects/nColumns),nColumns,ss); hold on;
+        subplot(ceil(nSubjects/nColumnsSubplot),nColumnsSubplot,ss); hold on;
         plot(rawDataOneSubject_temp(:,1),rawDataOneSubject_temp(:,2),'k.');
         plot(axisLim,axisLim,'k-');
         axis square;
-        xlabel(strAxes);
-        ylabel(strAxes);
+        xlabel(strAxesData);
+        ylabel(strAxesData);
         xlim(axisLim);
         ylim(axisLim);
 
@@ -312,14 +330,6 @@ if (CHECKREPRODUCIBILITY)
     figure; hold on;
     % Calculate the mean results across all subjects. We will compare each
     % subject's data with the mean.
-    %
-    % First, put all subjects data into one matrix. The size of the matrix
-    % depends on the number of test images, the number of repetitions, and the
-    % number of subjects. For example, 31 images were used with 2 repetitions
-    % and 10 subjects, the matrix will have the size of 31 x 20 (2 rep x 10
-    % subs).
-    rawDataAllSubjectsMat = horzcat(rawDataAllSubjectsMeanRepeats{:});
-
     switch expMode
         case 'hue'
             % Make an average per each test image across all subjects and repetitions.
@@ -340,10 +350,6 @@ if (CHECKREPRODUCIBILITY)
             meanDataAllSubjects = mean(rawDataAllSubjectsMat,2);
     end
     meanDataAllSubjects = mean(rawDataAllSubjectsMat,2);
-    % Get standard deviation and standard error.
-    n = size(rawDataAllSubjectsMat,2);
-    stdAllSubjects = std(rawDataAllSubjectsMat');
-    stdErrorAllSubjects = stdAllSubjects/sqrt(n);
 
     % Make a loop for all subjects.
     for ss = 1:nSubjects
@@ -358,12 +364,12 @@ if (CHECKREPRODUCIBILITY)
         r_acrossSubjects(ss) = r_matrix(1,2);
 
         % Plot it here.
-        subplot(ceil(nSubjects/5),nColumns,ss); hold on;
+        subplot(ceil(nSubjects/5),nColumnsSubplot,ss); hold on;
         plot(meanDataAllSubjects,rawDataOneSubject_temp(:,1),'r.');
         plot(axisLim,axisLim,'k-');
         axis square;
-        xlabel(append(strAxes,' (mean)'));
-        ylabel(append(strAxes,' (individual)'));
+        xlabel(append(strAxesData,' (mean)'));
+        ylabel(append(strAxesData,' (individual)'));
         xlim(axisLim);
         ylim(axisLim);
 
@@ -439,71 +445,102 @@ CAM16_J = JCH_targetObject(1,:);
 CAM16_C = JCH_targetObject(2,:);
 CAM16_H = JCH_targetObject(3,:);
 
-%% Comparison between experiment results vs. CAM16 estimations.
-%
-% 07/17/25 smo : I stopped here and I need to review and correct this part
-% to make it work for colorfulness and lightness. Also, the corrections for
-% hue to make a circle (400) should be done for individual data, not the
-% mean.
-%
-% Match the scale between CAM16 H values and the experimental results. As H
-% has a circular scale, some values might be off-scale. For example, if we
-% have a pair of the values, 32 and 385, we will convert them to 432
-% (32+400) and 385. It's preferred to add 400 to match the scale to avoid
-% any negative values.
-deltaHue = CAM16_H'-meanDataAllSubjects;
-idxWeired = find(abs(deltaHue)>100);
-for ww = 1:length(idxWeired)
-    idxWeiredTemp = idxWeired(ww);
-
-    CAM16_H_temp = CAM16_H(idxWeiredTemp);
-    hueScore_temp = meanDataAllSubjects(idxWeiredTemp);
-
-    if CAM16_H_temp <  hueScore_temp
-        CAM16_H_temp = CAM16_H_temp + 400;
-    else
-        hueScore_temp = hueScore_temp + 400;
-    end
-
-    CAM16_H(idxWeiredTemp) = CAM16_H_temp;
-    meanDataAllSubjects(idxWeiredTemp) = hueScore_temp;
+% Set it differently per experiment mode.
+switch expMode
+    case 'hue'
+        CAM16_values = CAM16_H;
+    case 'lightness'
+        CAM16_values = CAM16_J;
+    case 'colorfulness'
+        CAM16_values = CAM16_C;
 end
+%% Comparison between experiment results vs. CAM16 estimations.
+switch expMode
+    case 'hue'
+        % Match the scale between CAM16 H values and the experimental results. As H
+        % has a circular scale, some values might be off-scale. For example, if we
+        % have a pair of the values, 32 and 385, we will convert them to 432
+        % (32+400) and 385. It's preferred to add 400 to match the scale to avoid
+        % any negative values.
+        rawDataAllSubjectsCleanedMat = rawDataAllSubjectsMat;
+        for ss = 1:nSubjects
+            rawDataOneSubjectMat = rawDataAllSubjectsMat(:,ss);
+            deltaHue = CAM16_values'-rawDataOneSubjectMat;
+
+            % We set the criteria of the weird values that has over 100 of
+            % difference in Hue quadrature (H).
+            deltaHue_weird = 300;
+            idxWeired = find(abs(deltaHue)>deltaHue_weird);
+
+            % We will update the weird value one by one in the loop.
+            for ww = 1:length(idxWeired)
+                % Find the index of the weird values (where the value is
+                % different over 100, which does not make sense).
+                idxWeiredTemp = idxWeired(ww);
+                CAM16_values_temp = CAM16_values(idxWeiredTemp);
+                rawData_temp = rawDataOneSubjectMat(idxWeiredTemp);
+
+                % We will update the values of the subjects' evaluation
+                % while keeping the same of the CAM16 values.
+                if rawData_temp < CAM16_values_temp
+                    rawData_temp = rawData_temp + 400;
+                else
+                    rawData_temp = rawData_temp - 400;
+                end
+
+                % Update the value here and save it in an updated array.
+                rawDataAllSubjectsCleanedMat(idxWeiredTemp) = rawData_temp;
+            end
+        end
+
+        % We will just pass the raw data for colorfulness and lightness.
+    case {'lightness','colorfulness'}
+        rawDataAllSubjectsCleanedMat = rawDataAllSubjectsMat;
+end
+
+% Calculate the mean of all subjects here.
+meanDataAllSubjects = mean(rawDataAllSubjectsCleanedMat,2);
 
 % Plot it.
 figure; hold on;
 
 % Error bar.
 ERRORBAR = 'stderror';
+
+n = size(rawDataAllSubjectsMat,2);
+stdAllSubjects = std(rawDataAllSubjectsMat');
+stdErrorAllSubjects = stdAllSubjects/sqrt(n);
+
 switch ERRORBAR
     case 'stderror'
         hueScore_errorbar_plot = stdErrorAllSubjects;
     case 'std'
         hueScore_errorbar_plot = stdAllSubjects;
 end
-errorbar(meanDataAllSubjects, CAM16_H, ...
+errorbar(meanDataAllSubjects, CAM16_values, ...
     [], [], hueScore_errorbar_plot, hueScore_errorbar_plot,...
     'LineStyle','none','Color','k');
 
 % Mean comparison.
-f_data = plot(meanDataAllSubjects,CAM16_H,'o',...
+f_data = plot(meanDataAllSubjects,CAM16_values,'o',...
     'markeredgecolor','k','markerfacecolor','g');
 
 % Calculate delta hue.
-delta_hue_mean = mean(abs(CAM16_H'-meanDataAllSubjects));
+mean_delta_CAM16 = mean(abs(CAM16_values'-meanDataAllSubjects));
 
 % 45-deg line.
 plot(axisLim,axisLim,'k-');
 
 % Figure stuff.
-xlabel('Hue Score');
-ylabel('CAM16 H');
+xlabel(strAxesData);
+ylabel(strAxesCAM16);
 xlim(axisLim);
 ylim(axisLim);
 axis square;
 grid on;
 legend(f_data,'Images','location','southeast');
 title('CAM16 vs. Mean results');
-subtitle(sprintf('nSubjects = (%d) / nTestImages = (%d) / Mean delta H = (%.2f)',nSubjects,nTestImagesToCompare,delta_hue_mean));
+subtitle(sprintf('nSubjects = (%d) / nTestImages = (%d) / Mean delta = (%.2f)',nSubjects,nTestImagesToCompare,mean_delta_CAM16));
 
 %% Plot the individual results compared with CAM16.
 figure;
@@ -513,13 +550,13 @@ for ss = 1:nSubjects
     subjectName = targetSubjectsNames{ss};
 
     % Make a separate plot per subject.
-    subplot(ceil(nSubjects/nColumns),nColumns,ss); hold on;
-    plot(rawDataAllSubjectsMeanRepeats{ss},CAM16_H,'o',...
+    subplot(ceil(nSubjects/nColumnsSubplot),nColumnsSubplot,ss); hold on;
+    plot(rawDataAllSubjectsCleanedMat(:,ss),CAM16_values,'o',...
         'markeredgecolor','k','markerfacecolor','g','markersize',4);
     plot(axisLim,axisLim,'k-');
 
-    xlabel('Hue Score');
-    ylabel('CAM16 H');
+    xlabel(strAxesData);
+    ylabel(strAxesCAM16);
     xlim(axisLim);
     ylim(axisLim);
     axis square;
