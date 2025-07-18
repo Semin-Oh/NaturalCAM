@@ -114,20 +114,6 @@ try
     expParams.expMode = expMode;
     expParams.expKeyType = 'gamepad';
 
-    % Reference patch. It's only for colorfulness and lightness
-    % experiments. Mean CAM16 value of the 31 test images was 56 (J) and
-    % 73 (C). We will set the reference based on this value.
-    switch expMode
-        case 'lightness'
-            expParams.JCH_reference = [55; 0; 0];
-        case 'colorfulness'
-            % CAM16 unique hue angle (Red 20.14, Yellow 90, Green 164.25,
-            % Blue 237.53).
-            expParams.JCH_reference = [55; 70; 20.14];
-        otherwise
-            expParams.JCH_reference = [];
-    end
-
     % etc.
     SAVETHERESULTS = true;
 
@@ -141,7 +127,7 @@ try
     imageNameContent = dir(testImageFiledir);
     imageNameList = {imageNameContent.name};
     imageNames = imageNameList(~startsWith(imageNameList,'.'));
-
+    
     % Save out the image names.
     expParams.imageNames = imageNames;
 
@@ -262,7 +248,7 @@ try
             evaluation_temp = GetOneRespMagnitudeEst(testImage.testImage{idxTestImage},testImage.testImageArrow{idxTestImage},window,windowRect,...
                 'expKeyType',expParams.expKeyType,'postKeyPressDelaySec',expParams.postKeyPressDelaySec,'testImageSizeHeightRatio',expParams.testImageSizeHeightRatio,...
                 'secIntvFlashingArrow',expParams.secIntvFlashingArrow,'nArrowFlashes',expParams.nArrowFlashes,'fontsize',expParams.fontSize,'secDelayBTWQuestions',expParams.secDelayBTWQuestions,...
-                'postKeyPressDelayPropSec',expParams.postKeyPressDelayPropSec,'stepSizeProp',expParams.stepSizeProp,'font',font,'expmode',expMode,'JCH_reference',expParams.JCH_reference,'verbose',true);
+                'postKeyPressDelayPropSec',expParams.postKeyPressDelayPropSec,'stepSizeProp',expParams.stepSizeProp,'font',font,'expmode',expMode,'verbose',true);
 
             % Save out the data.
             switch expMode
