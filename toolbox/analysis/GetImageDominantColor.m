@@ -34,6 +34,10 @@ function XYZ_dominant = GetImageDominantColor(image, segmentData, M, gamma, XYZw
 % Optional key/value pairs:
 %    nClusters               - Number of clusters to find using k-means.
 %                              Default to 3.
+%    numCluster              - The number of cluster to choose for
+%                              calculations. Default to 1 which is a
+%                              dominant cluster, but you can choose 2 for
+%                              secondary and 3 for the third.
 %    nReplicates             - The number of repetitions to make when
 %                              clustering using k-means. It's common to do
 %                              5-10 times for a qucik search. Default to 5.
@@ -59,6 +63,8 @@ function XYZ_dominant = GetImageDominantColor(image, segmentData, M, gamma, XYZw
 %                              cluster. This way, it allows a fast visual
 %                              check if this routine works fine.
 %    04/14/25   smo          - Now plot everything in one figure.
+%    07/22/25   smo          - Added an option to choose second or third
+%                              cluster for calculations.
 
 %% Set variables.
 arguments
@@ -68,6 +74,7 @@ arguments
     gamma (1,1)
     XYZw (3,1)
     options.nClusters (1,1) = 3
+    options.numCluster (1,1) = 1
     options.nReplicates (1,1) = 5
     options.clusterSpace = 'ab'
     options.imgSizePixel (1,1) = 200
@@ -149,14 +156,30 @@ for i = 1:options.nClusters
     % end
 end
 
+% Get the index of each cluster. We will make an option to choose either
+% second or third cluster for further calculations.
+for cc = 1:options.nClusters
+    percentage(cc) = dcd(cc).Percentage;
+end
+[percentage_sorted I] = sort(percentage,'descend');
+
 %% Calculate L* value for the center of each cluster.
 %
 % As we find the clusters on the CIELAB a*b* plane, each center of the
 % cluster does not have the L* information. Here, we simply calculate
 % the mean of all pixels in the cluster.
 %
+% First, define which cluster to choose. You can optionally choose second
+% cluster for calculation. For some images (labeled with Person),
+% the dominant cluster does not represent the color well.
+if ~(options.numCluster == 1)
+    idxDominantCluster = I(options.numCluster);
+else
+    % Otherwise, choose the dominant cluster.
+    idxDominantCluster = mode(idxCluster);
+end
+
 % Get CIELAB values of the center of clusters.
-idxDominantCluster = mode(idxCluster);
 for cc = 1:options.nClusters
     lab_centeredCluster = dcd(cc).Lab;
 

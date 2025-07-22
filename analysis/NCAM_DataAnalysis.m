@@ -85,7 +85,7 @@ projectName = 'NaturalCAM';
 % Control print out and plots.
 SUBJECTANON = true;
 CHECKREPEATABILITY = false;
-CHECKREPRODUCIBILITY = false;
+CHECKREPRODUCIBILITY = true;
 PLOTIMAGEWHITEPOINT = false;
 PLOTOBJECTDOMINANTCOLOR = true;
 
@@ -163,7 +163,8 @@ validSegmentationOptions = {};
 % proper segmentation, which will be excluded for now.
 % exclImageNameOnly = {'kite1','orange1','orange2','orange3',...
 %     'person1','person3','person4','surfboard1'};
-exclImageNameOnly = {'person1','person3','person4'};
+% exclImageNameOnly = {'person1','person3','person4'};
+exclImageNameOnly = {};
 
 % Here, we make a loop to find the test image names that was used in the
 % experiment, and also having the valid segmentation data.
@@ -349,7 +350,7 @@ if (CHECKREPRODUCIBILITY)
         case {'lightness','colorfulness'}
             meanDataAllSubjects = mean(rawDataAllSubjectsMat,2);
     end
-    meanDataAllSubjects = mean(rawDataAllSubjectsMat,2);
+    % meanDataAllSubjects = mean(rawDataAllSubjectsMat,2);
 
     % Make a loop for all subjects.
     for ss = 1:nSubjects
@@ -423,8 +424,21 @@ for ii = 1:nTestImagesToCompare
     nClusters = 3;
     nReplicates = 5;
     clusterSpace = 'ab';
+
+    % Choose which cluster to choose.
+    if ii == 25
+        numCluster = 2;
+    elseif ii == 27
+        numCluster = 2;
+    elseif ii == 28
+        numCluster = 3;
+    else
+        numCluster = 1;
+    end
+
+    % Calculation happens here.
     XYZ_targetObject = GetImageDominantColor(image,segmentData,M_RGBToXYZ,gamma_display,XYZ_white,...
-        'nClusters',nClusters,'nReplicates',nReplicates,...
+        'nClusters',nClusters,'numCluster',numCluster,'nReplicates',nReplicates,...
         'clusterSpace',clusterSpace,'verbose',PLOTOBJECTDOMINANTCOLOR);
 
     %% Actual calculations of CAM16 happens here.
@@ -499,7 +513,8 @@ switch expMode
 end
 
 % Calculate the mean of all subjects here.
-meanDataAllSubjects = mean(rawDataAllSubjectsCleanedMat,2);
+% IT HAPPENS ABOVE WHEN CHECKING THE REPRODUCIBILITY.
+% meanDataAllSubjects = mean(rawDataAllSubjectsCleanedMat,2);
 
 % Plot it.
 figure; hold on;
@@ -523,17 +538,20 @@ errorbar(meanDataAllSubjects, CAM16_values, ...
 
 % Mean comparison.
 f_data = plot(meanDataAllSubjects,CAM16_values,'o',...
-    'markeredgecolor','k','markerfacecolor','g');
+    'markeredgecolor','k','markerfacecolor','g','markersize',8);
 
 % Calculate delta hue.
 mean_delta_CAM16 = mean(abs(CAM16_values'-meanDataAllSubjects));
+
+% Correlation.
+r_meanHue = corr(meanDataAllSubjects,CAM16_values');
 
 % 45-deg line.
 plot(axisLim,axisLim,'k-');
 
 % Figure stuff.
-xlabel(strAxesData);
-ylabel(strAxesCAM16);
+xlabel(strAxesData,'fontsize',15);
+ylabel(strAxesCAM16,'fontsize',15);
 xlim(axisLim);
 ylim(axisLim);
 axis square;
