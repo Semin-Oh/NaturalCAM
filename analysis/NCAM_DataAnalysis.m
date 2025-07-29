@@ -21,6 +21,8 @@
 %                          can choose test images not to be included in
 %                          data analysis.
 %    07/18/25    smo     - Made it to work for all color appearances.
+%    07/29/25    smo     - Added the CAM16 calculation results when we make
+%                          an average across all pl poi
 
 %% NOTE
 % There are three images in Hue data where the dominant color was chosen
@@ -437,7 +439,7 @@ for ii = 1:nTestImagesToCompare
     end
 
     % Calculation happens here.
-    XYZ_targetObject = GetImageDominantColor(image,segmentData,M_RGBToXYZ,gamma_display,XYZ_white,...
+    [XYZ_targetObject XYZ_segmentedObject] = GetImageDominantColor(image,segmentData,M_RGBToXYZ,gamma_display,XYZ_white,...
         'nClusters',nClusters,'numCluster',numCluster,'nReplicates',nReplicates,...
         'clusterSpace',clusterSpace,'verbose',PLOTOBJECTDOMINANTCOLOR);
 
@@ -450,6 +452,10 @@ for ii = 1:nTestImagesToCompare
     % Calculate CAM16 values here and we extract Hue quadrature (H).
     JCH_targetObject(:,ii) = XYZToJCH(XYZ_targetObject,XYZ_white,LA);
 
+    % We also calculate the CAM16 values based on the average across all
+    % pixels to compare. It will take a while.
+    JCH_segmentedObject(:,ii) = mean(XYZToJCH(XYZ_segmentedObject,XYZ_white,LA),2);
+    
     % Show progress.
     fprintf('Calculating CAM16 values - Image (%d/%d) \n', ii, nTestImagesToCompare);
 end
@@ -458,6 +464,11 @@ end
 CAM16_J = JCH_targetObject(1,:);
 CAM16_C = JCH_targetObject(2,:);
 CAM16_H = JCH_targetObject(3,:);
+
+% Same thing for the mean CAM16 values across all pixels.
+CAM16_J_avgPixels = JCH_segmentedObject(1,:);
+CAM16_C_avgPixels = JCH_segmentedObject(2,:);
+CAM16_H_avgPixels = JCH_segmentedObject(3,:);
 
 % Set it differently per experiment mode.
 switch expMode
@@ -536,7 +547,11 @@ errorbar(meanDataAllSubjects, CAM16_values, ...
     [], [], hueScore_errorbar_plot, hueScore_errorbar_plot,...
     'LineStyle','none','Color','k');
 
-% Mean comparison.
+% Experiemnt data vs. CAM16 averaged across all pixels.
+f_data2 = plot(meanDataAllSubjects,CAM16_H_avgPixels,'o',...
+    'markeredgecolor','k','markerfacecolor',[0.5 0.5 0.5],'markersize',8);
+
+% Experiment data vs. CAM16 value using our method.
 f_data = plot(meanDataAllSubjects,CAM16_values,'o',...
     'markeredgecolor','k','markerfacecolor','g','markersize',8);
 
@@ -556,7 +571,7 @@ xlim(axisLim);
 ylim(axisLim);
 axis square;
 grid on;
-legend(f_data,'Images','location','southeast');
+legend([f_data f_data2],'Our method','Pixel average','location','southeast','fontsize',13);
 title('CAM16 vs. Mean results');
 subtitle(sprintf('nSubjects = (%d) / nTestImages = (%d) / Mean delta = (%.2f)',nSubjects,nTestImagesToCompare,mean_delta_CAM16));
 

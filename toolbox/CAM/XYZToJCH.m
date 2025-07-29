@@ -203,6 +203,24 @@ t = ones(1,nTargets);
 a = RGBpa(1,:) - 12*RGBpa(2,:)/11 + RGBpa(3,:)/11;
 b = (RGBpa(1,:) + RGBpa(2,:) - 2*RGBpa(3,:))/9;
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% TEMP treatment to sort out real numbers.
+if ~isreal(a)
+    idx = find(imag(a) ~= 0);
+    a(idx) = [];
+    b(idx) = [];
+    RGBpa(:,idx) = [];
+end
+if ~isreal(b)
+    idx = find(imag(b) ~= 0);
+    a(idx) = [];
+    b(idx) = [];
+    RGBpa(:,idx) = [];
+end
+% Update the number of targets after removing imaginery number.s
+nTargets = length(a);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 % Hue angle.
 for ii = 1:nTargets
     h_temp = rad2deg(atan2(b(ii),a(ii)));

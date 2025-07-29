@@ -1,4 +1,4 @@
-function XYZ_dominant = GetImageDominantColor(image, segmentData, M, gamma, XYZw, options)
+function [XYZ_dominant XYZ_segmentedObject] = GetImageDominantColor(image, segmentData, M, gamma, XYZw, options)
 % Compute a MPEG-7–style Dominant Color Descriptor (DCD) to pick a dominant
 % color (pixel) within an image.
 %
@@ -30,6 +30,8 @@ function XYZ_dominant = GetImageDominantColor(image, segmentData, M, gamma, XYZw
 %                              are calculated based on the mean of the
 %                              dominant cluster on CIELAB color space.
 %                              Then, it was converted to XYZ.
+%    XYZ_segmentedObject     - CIE XYZ values of all pixels of a segmented
+%                              object.
 %
 % Optional key/value pairs:
 %    nClusters               - Number of clusters to find using k-means.
@@ -65,6 +67,8 @@ function XYZ_dominant = GetImageDominantColor(image, segmentData, M, gamma, XYZw
 %    04/14/25   smo          - Now plot everything in one figure.
 %    07/22/25   smo          - Added an option to choose second or third
 %                              cluster for calculations.
+%    07/29/25   smo          - Now print out the XYZ values of all pixels
+%                              on the segmented object too.
 
 %% Set variables.
 arguments
