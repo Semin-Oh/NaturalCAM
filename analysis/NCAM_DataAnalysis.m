@@ -455,7 +455,7 @@ for ii = 1:nTestImagesToCompare
     % We also calculate the CAM16 values based on the average across all
     % pixels to compare. It will take a while.
     JCH_segmentedObject(:,ii) = mean(XYZToJCH(XYZ_segmentedObject,XYZ_white,LA),2);
-    
+
     % Show progress.
     fprintf('Calculating CAM16 values - Image (%d/%d) \n', ii, nTestImagesToCompare);
 end
@@ -466,18 +466,21 @@ CAM16_C = JCH_targetObject(2,:);
 CAM16_H = JCH_targetObject(3,:);
 
 % Same thing for the mean CAM16 values across all pixels.
-CAM16_J_avgPixels = JCH_segmentedObject(1,:);
-CAM16_C_avgPixels = JCH_segmentedObject(2,:);
-CAM16_H_avgPixels = JCH_segmentedObject(3,:);
+CAM16_J_pixelAverage = JCH_segmentedObject(1,:);
+CAM16_C_pixelAverage = JCH_segmentedObject(2,:);
+CAM16_H_pixelAverage = JCH_segmentedObject(3,:);
 
 % Set it differently per experiment mode.
 switch expMode
     case 'hue'
         CAM16_values = CAM16_H;
+        CAM16_pixelAverage = CAM16_H_pixelAverage;
     case 'lightness'
         CAM16_values = CAM16_J;
+        CAM16_pixelAverage = CAM16_J_pixelAverage;
     case 'colorfulness'
         CAM16_values = CAM16_C;
+        CAM16_pixelAverage = CAM16_C_pixelAverage;
 end
 %% Comparison between experiment results vs. CAM16 estimations.
 switch expMode
@@ -548,7 +551,7 @@ errorbar(meanDataAllSubjects, CAM16_values, ...
     'LineStyle','none','Color','k');
 
 % Experiemnt data vs. CAM16 averaged across all pixels.
-f_data2 = plot(meanDataAllSubjects,CAM16_H_avgPixels,'o',...
+f_data2 = plot(meanDataAllSubjects,CAM16_pixelAverage,'o',...
     'markeredgecolor','k','markerfacecolor',[0.5 0.5 0.5],'markersize',8);
 
 % Experiment data vs. CAM16 value using our method.
@@ -557,6 +560,7 @@ f_data = plot(meanDataAllSubjects,CAM16_values,'o',...
 
 % Calculate delta hue.
 mean_delta_CAM16 = mean(abs(CAM16_values'-meanDataAllSubjects));
+mean_delta_CAM16_pixelAverage = mean(abs(CAM16_pixelAverage'-meanDataAllSubjects));
 
 % Correlation.
 r_meanHue = corr(meanDataAllSubjects,CAM16_values');
@@ -571,7 +575,8 @@ xlim(axisLim);
 ylim(axisLim);
 axis square;
 grid on;
-legend([f_data f_data2],'Our method','Pixel average','location','southeast','fontsize',13);
+legend([f_data f_data2],sprintf('Our method (%.2f)',mean_delta_CAM16),sprintf('Pixel average (%.2f)',mean_delta_CAM16_pixelAverage),...
+    'location','southeast','fontsize',13);
 title('CAM16 vs. Mean results');
 subtitle(sprintf('nSubjects = (%d) / nTestImages = (%d) / Mean delta = (%.2f)',nSubjects,nTestImagesToCompare,mean_delta_CAM16));
 
