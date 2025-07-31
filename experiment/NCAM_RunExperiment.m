@@ -123,7 +123,7 @@ try
         case 'colorfulness'
             % CAM16 unique hue angle (Red 20.14, Yellow 90, Green 164.25,
             % Blue 237.53).
-            expParams.JCH_reference = [55; 70; 20.14];
+            expParams.JCH_reference = [55; 60; 164.25];
         otherwise
             expParams.JCH_reference = [];
     end
