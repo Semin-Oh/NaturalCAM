@@ -22,7 +22,13 @@
 %                          data analysis.
 %    07/18/25    smo     - Made it to work for all color appearances.
 %    07/29/25    smo     - Added the CAM16 calculation results when we make
-%                          an average across all pl poi
+%                          an average across all pixels.
+%    07/31/25    smo     - Now we scale the data of brightness and
+%                          colorfulness to match the scale between the
+%                          experimental data and the model estimations.
+%                          What we measured is brightness, but this script
+%                          uses the term lightness (written down here so
+%                          that we do not get confused).
 
 %% NOTE
 % There are three images in Hue data where the dominant color was chosen
@@ -86,10 +92,10 @@ projectName = 'NaturalCAM';
 
 % Control print out and plots.
 SUBJECTANON = true;
-CHECKREPEATABILITY = false;
+CHECKREPEATABILITY = true;
 CHECKREPRODUCIBILITY = true;
 PLOTIMAGEWHITEPOINT = false;
-PLOTOBJECTDOMINANTCOLOR = true;
+PLOTOBJECTDOMINANTCOLOR = false;
 
 % Figure stuff.
 %
@@ -550,6 +556,15 @@ errorbar(meanDataAllSubjects, CAM16_values, ...
     [], [], hueScore_errorbar_plot, hueScore_errorbar_plot,...
     'LineStyle','none','Color','k');
 
+% For lightness and colorfulenss, we scale the experimental data to
+% have the same average of the CAM16 values.
+switch expMode
+    case {'lightness','colorfulness'}
+        meanDataAllSubjects = (meanDataAllSubjects-min(meanDataAllSubjects))./(max(meanDataAllSubjects)-min(meanDataAllSubjects));
+        CAM16_pixelAverage = (CAM16_pixelAverage-min(CAM16_pixelAverage))./(max(CAM16_pixelAverage)-min(CAM16_pixelAverage));
+        CAM16_values = (CAM16_values-min(CAM16_values))./(max(CAM16_values)-min(CAM16_values));
+end
+
 % Experiemnt data vs. CAM16 averaged across all pixels.
 f_data2 = plot(meanDataAllSubjects,CAM16_pixelAverage,'o',...
     'markeredgecolor','k','markerfacecolor',[0.5 0.5 0.5],'markersize',8);
@@ -571,6 +586,10 @@ plot(axisLim,axisLim,'k-');
 % Figure stuff.
 xlabel(strAxesData,'fontsize',15);
 ylabel(strAxesCAM16,'fontsize',15);
+switch expMode
+    case {'lightness','colorfulness'}
+        axisLim = [0 1];
+end
 xlim(axisLim);
 ylim(axisLim);
 axis square;
