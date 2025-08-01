@@ -29,6 +29,8 @@
 %                          What we measured is brightness, but this script
 %                          uses the term lightness (written down here so
 %                          that we do not get confused).
+%    08/01/25    smo     - Added a new rescaling method for colorfulness
+%                          brightness data.
 
 %% NOTE
 % There are three images in Hue data where the dominant color was chosen
@@ -558,11 +560,31 @@ errorbar(meanDataAllSubjects, CAM16_values, ...
 
 % For lightness and colorfulenss, we scale the experimental data to
 % have the same average of the CAM16 values.
+rescaleData = true;
 switch expMode
     case {'lightness','colorfulness'}
-        meanDataAllSubjects = (meanDataAllSubjects-min(meanDataAllSubjects))./(max(meanDataAllSubjects)-min(meanDataAllSubjects));
-        CAM16_pixelAverage = (CAM16_pixelAverage-min(CAM16_pixelAverage))./(max(CAM16_pixelAverage)-min(CAM16_pixelAverage));
-        CAM16_values = (CAM16_values-min(CAM16_values))./(max(CAM16_values)-min(CAM16_values));
+        if (rescaleData)
+            % % Get the max CAM16 value to rescale in the following step.
+            % maxValCAM16 = max([CAM16_pixelAverage CAM16_values]);
+            %
+            % % Scale to 0-1.
+            % meanDataAllSubjects = (meanDataAllSubjects-min(meanDataAllSubjects))./(max(meanDataAllSubjects)-min(meanDataAllSubjects));
+            % CAM16_pixelAverage = (CAM16_pixelAverage-min(CAM16_pixelAverage))./(max(CAM16_pixelAverage)-min(CAM16_pixelAverage));
+            % CAM16_values = (CAM16_values-min(CAM16_values))./(max(CAM16_values)-min(CAM16_values));
+            %
+            % % Set the maximum value as the max cam16 value for both experimental data and the model estimation.
+            % meanDataAllSubjects = meanDataAllSubjects*maxValCAM16;
+            % CAM16_pixelAverage = CAM16_pixelAverage*maxValCAM16;
+            % CAM16_values = CAM16_values*maxValCAM16;
+
+            % Here's another method to rescale the data. Rescale each CAM16
+            % estimation so that it has the same mean value of the
+            % experimental results. This is the method that I used for my
+            % master's thesis.
+            meanExps = mean(meanDataAllSubjects);
+            CAM16_pixelAverage = CAM16_pixelAverage./mean(CAM16_pixelAverage)*meanExps;
+            CAM16_values = CAM16_values./mean(CAM16_values)*meanExps;
+        end
 end
 
 % Experiemnt data vs. CAM16 averaged across all pixels.
@@ -586,10 +608,12 @@ plot(axisLim,axisLim,'k-');
 % Figure stuff.
 xlabel(strAxesData,'fontsize',15);
 ylabel(strAxesCAM16,'fontsize',15);
-switch expMode
-    case {'lightness','colorfulness'}
-        axisLim = [0 1];
-end
+% switch expMode
+%     case {'lightness','colorfulness'}
+%         if (rescaleData)
+%             axisLim = [0 1];
+%         end
+% end
 xlim(axisLim);
 ylim(axisLim);
 axis square;
