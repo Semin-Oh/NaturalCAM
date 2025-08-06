@@ -93,7 +93,7 @@ end
 projectName = 'NaturalCAM';
 
 % Control print out and plots.
-SUBJECTANON = true;
+SUBJECTANON = false;
 CHECKREPEATABILITY = true;
 CHECKREPRODUCIBILITY = true;
 PLOTIMAGEWHITEPOINT = false;
