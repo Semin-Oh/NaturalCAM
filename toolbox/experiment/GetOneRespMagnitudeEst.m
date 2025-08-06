@@ -764,7 +764,7 @@ switch options.expMode
         % just display a single string along with test images.
         %
         % Set max and min values of lightness evaluation.
-        lightnessVal_max = 100;
+        lightnessVal_max = 1000;
         lightnessVal_min = 0;
 
         % Set the initial value here.
